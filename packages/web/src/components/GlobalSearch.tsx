@@ -24,7 +24,7 @@ export function GlobalSearch({ buyers, query, setQuery, onSelect }: {
         {focused && suggestions.length > 0 && (
           <ul className="suggest" role="listbox">
             {suggestions.map((b) => (
-              <li key={b.buyerId} role="option" onMouseDown={() => { onSelect(b.buyerId); setFocused(false); }}>
+              <li key={b.buyerId} role="option" onMouseDown={(e) => { e.preventDefault(); onSelect(b.buyerId); setFocused(false); }}>
                 <span className="suggest-name">{b.buyerName ?? b.buyerId}</span>
                 <span className="suggest-meta">
                   <span className="muted small mono">{b.buyerId}</span>

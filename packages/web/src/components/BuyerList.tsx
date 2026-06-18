@@ -127,13 +127,13 @@ export function BuyerList({ buyers, query, onSelect }: { buyers: IndexBuyer[]; q
         <div className="empty">Nav atbilstošu pasūtītāju. Pamēģini citu meklēšanas vārdu vai filtru.</div>
       ) : (
         <>
-          <div className="table-wrap"><table>
+          <div className="table-wrap"><table className="buyer-table">
             <thead>
               <tr>
                 <th className="sortable" style={{ width: 64 }} onClick={() => toggleSort('combined')} title="Kopējais svērtais risks (0–100)">Risks{caret('combined')}</th>
                 <th className="sortable" onClick={() => toggleSort('name')}>Pasūtītājs{caret('name')}</th>
                 {IND.map((i) => (
-                  <th key={i.key} className={`sortable ${ind === i.key ? 'col-active' : ''}`} style={{ width: 70 }} title={i.tip} onClick={() => toggleSort(i.key)}>{i.label}{caret(i.key)}</th>
+                  <th key={i.key} className={`sortable col-ind ${ind === i.key ? 'col-active' : ''}`} style={{ width: 70 }} title={i.tip} onClick={() => toggleSort(i.key)}>{i.label}{caret(i.key)}</th>
                 ))}
               </tr>
             </thead>
@@ -142,7 +142,7 @@ export function BuyerList({ buyers, query, onSelect }: { buyers: IndexBuyer[]; q
                 <tr key={b.buyerId} className="clickable" onClick={() => onSelect(b.buyerId)}>
                   <td><span className={`risk-circle ${scoreKey(b.combinedScore)}`}>{b.combinedScore ?? '–'}</span></td>
                   <td><Highlight text={b.buyerName ?? b.buyerId} term={term} /><div className="muted small mono">{b.buyerId}</div></td>
-                  {IND.map((i) => <td key={i.key}><MiniBadge score={b.scores[i.key]} level={b.levels[i.key]} /></td>)}
+                  {IND.map((i) => <td key={i.key} className="col-ind"><MiniBadge score={b.scores[i.key]} level={b.levels[i.key]} /></td>)}
                 </tr>
               ))}
             </tbody>

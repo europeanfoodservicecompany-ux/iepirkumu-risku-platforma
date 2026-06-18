@@ -148,6 +148,8 @@ export function parseActiveTenders(notices: AnyObj[], baseUrl = IUB_NOTICE_BASE_
     if (!buyer.id) continue;
     const lot0 = (Array.isArray(n.lots) ? n.lots[0] : null) ?? {};
     const tp = lot0.tenderingProcess ?? {};
+    const eisUrl = (s: unknown) => (typeof s === 'string' && s.includes('eis.gov.lv') ? s : null);
+    const tenderUrl = eisUrl(n.tenderingProcess?.documentsURL) ?? eisUrl(n.tenderingTerms?.submissionURL) ?? buyer.client ?? null;
     const estimated = num(lot0.additionalInformation?.estimatedValue ?? n.automaticallyCalculated?.statementValue?.estimatedValue?.sum);
     const noticeId: string = n.identifier ?? '';
     out.push({
@@ -158,7 +160,7 @@ export function parseActiveTenders(notices: AnyObj[], baseUrl = IUB_NOTICE_BASE_
       deadline: parseDate(tp.deadlineReceiptTendersEndDate),
       deadlineTime: typeof tp.deadlineReceiptTendersEndTime === 'string' ? tp.deadlineReceiptTendersEndTime : null,
       estimatedValue: estimated,
-      sourceUrl: buyer.client ?? null,
+      sourceUrl: tenderUrl,
       publishedDate: null,
     });
   }
