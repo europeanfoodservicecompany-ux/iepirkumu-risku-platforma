@@ -1,5 +1,6 @@
 import type { Lot, CpvStat } from './types.ts';
 import { isSingleBid } from './indicators/B1.ts';
+import { CPV4_LABELS } from './cpv-labels.ts';
 
 export type NationalBaseline = {
   singleBidLots: number;
@@ -162,7 +163,7 @@ export function computeClosedMarkets(
     const score = Math.round(clampN(0.6 * hhi * 100 + 0.4 * singleBidRate * 100, 0, 100));
     const level = score >= 55 ? 'red' : score >= 30 ? 'yellow' : null;
     out.push({
-      cpv, label: (CPV_DIVISIONS[cpv.slice(0, 2)] ?? 'CPV') + ` (CPV ${cpv})`,
+      cpv, label: (CPV4_LABELS[cpv] ?? CPV_DIVISIONS[cpv.slice(0, 2)] ?? 'CPV') + ` (CPV ${cpv})`,
       contracts: m.contracts, distinctWinners: m.winners.size,
       hhi: round2(hhi, 3), top1Share: round2(top1, 3), top3Share: round2(top3, 3),
       singleBidRate: round2(singleBidRate, 3), awardedValue: Math.round(m.value),
