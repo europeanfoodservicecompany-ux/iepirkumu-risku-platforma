@@ -54,7 +54,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    fetch(`${BASE}data/index.json`)
+    fetch(`${BASE}data/index.json`, { cache: 'no-cache' })
       .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(setIndex).catch((e) => setError(String(e)));
   }, []);
@@ -62,15 +62,15 @@ export function App() {
   useEffect(() => {
     if (!selected) { setDetail(null); return; }
     setDetailLoading(true); setDetail(null);
-    fetch(`${BASE}data/buyers/${selected}.json`)
+    fetch(`${BASE}data/buyers/${selected}.json`, { cache: 'no-cache' })
       .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(setDetail).catch(() => setDetail(null)).finally(() => setDetailLoading(false));
   }, [selected]);
 
   useEffect(() => {
-    if (view === 'sectors' && !sectors) fetch(`${BASE}data/sectors.json`).then((r) => r.json()).then(setSectors).catch(() => {});
-    if (view === 'markets' && !markets) fetch(`${BASE}data/markets.json`).then((r) => r.json()).then(setMarkets).catch(() => {});
-    if ((view === 'active' || selected) && !active) fetch(`${BASE}data/active.json`).then((r) => r.json()).then(setActive).catch(() => {});
+    if (view === 'sectors' && !sectors) fetch(`${BASE}data/sectors.json`, { cache: 'no-cache' }).then((r) => r.json()).then(setSectors).catch(() => {});
+    if (view === 'markets' && !markets) fetch(`${BASE}data/markets.json`, { cache: 'no-cache' }).then((r) => r.json()).then(setMarkets).catch(() => {});
+    if ((view === 'active' || selected) && !active) fetch(`${BASE}data/active.json`, { cache: 'no-cache' }).then((r) => r.json()).then(setActive).catch(() => {});
   }, [view, sectors, markets, active, selected]);
 
   const nav = (
