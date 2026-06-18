@@ -8,6 +8,13 @@ const barColor: Record<string, string> = {
   red: 'var(--red)', yellow: 'var(--yellow)', green: 'var(--green)', gray: 'var(--gray)',
 };
 
+// Karte kā īsta saite (atveras droši jaunā cilnē), ja ir URL; citādi parasts bloks.
+function Flag({ url, children }: { url?: string | null; children: React.ReactNode }) {
+  return url
+    ? <a className="lot row-link" href={url} target="_blank" rel="noopener noreferrer">{children}</a>
+    : <div className="lot">{children}</div>;
+}
+
 // Grupē kopas līgumus pa uzvarētājiem (salami pazīme = daudzi vienam piegādātājam).
 function groupByWinner(members: { id: string; value: number | null; date: string | null; winnerId: string | null; winnerName: string | null; sourceUrl: string | null }[]) {
   const m = new Map<string, { name: string; sum: number; items: typeof members }>();
@@ -18,7 +25,6 @@ function groupByWinner(members: { id: string; value: number | null; date: string
   }
   return [...m.values()].sort((a, b) => b.sum - a.sum);
 }
-
 
 function ScoreBar({ r }: { r: RiskResult }) {
   if (r.score === null) return null;
@@ -45,7 +51,6 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
   const eRes = buyer.e;
   const dRes = buyer.d;
   const newWinners = dRes.detail?.newWinners ?? [];
-  const openUrl = (url?: string | null) => { if (url) window.open(url, '_blank', 'noopener'); };
 
   function exportFlagged() {
     const rows: (string | number | null)[][] = [];
@@ -54,7 +59,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
     for (const p of priceFlags) rows.push(['C vērtības novirze', `CPV ${(p.cpv ?? '').slice(0, 8)}`, p.value, '', '', `z=${p.z} (n=${p.obs})`, p.sourceUrl ?? '']);
     for (const w of newWinners) rows.push(['D jauns uzvarētājs', `daļa ${w.lotId}`, w.value ?? '', w.registered, w.winnerName ?? w.winnerId ?? '', `${w.ageMonths} mēn. vecs`, w.sourceUrl ?? '']);
     const safe = (buyer.buyerName ?? buyer.buyerId).replace(/[^a-zA-Z0-9]+/g, '_').slice(0, 40);
-    downloadCsv(`karogotie_${safe}.csv`, ['Indikators', 'Iepirkums', 'Summa EUR', 'Datums', 'Uzvarētājs', 'Detaļa', 'IUB saite'], rows);
+    downloadCsv(`karogotie_${safe}.csv`, ['Indikators', 'Iepirkums', 'Summa EUR', 'Datums', 'Uzvarētājs', 'Detaļa', 'EIS saite'], rows);
   }
   const nat = nationalSingleBidRate;
   const combKey = (buyer.combinedLevel ?? 'gray') as 'red' | 'yellow' | 'green' | 'gray';
@@ -70,10 +75,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
             <div style={{ marginTop: 10, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}><RiskBadge band={combKey} label={combLabel} /><button className="filter-btn" onClick={exportFlagged}>⬇ Karogotie CSV</button></div>
           </div>
           <div className="bigscore">
-            <div
-              className="ring"
-              style={{ background: `conic-gradient(${barColor[combKey]} ${(buyer.combinedScore ?? 0) * 3.6}deg, var(--ring-track) 0)` }}
-            >
+            <div className="ring" style={{ background: `conic-gradient(${barColor[combKey]} ${(buyer.combinedScore ?? 0) * 3.6}deg, var(--ring-track) 0)` }}>
               <div className="ring-inner">
                 <span className="n" style={{ color: barColor[combKey] }}>{buyer.combinedScore ?? '–'}</span>
                 <span className="ring-max">/100</span>
@@ -99,13 +101,13 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
           <div className="card">
             <p className="muted small" style={{ marginTop: 0 }}>Šobrīd atvērti šī pasūtītāja iepirkumi (termiņš vēl nav pagājis).</p>
             {activeTenders.map((t) => (
-              <div className={`lot ${t.sourceUrl ? 'row-link' : ''}`} key={t.id} onClick={() => openUrl(t.sourceUrl)}>
+              <Flag url={t.sourceUrl} key={t.id}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                   <span className="small" style={{ flex: 1 }}>{t.name ?? '—'}</span>
-                  {t.sourceUrl && <a className="iublink small" href={t.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>Skatīt →</a>}
+                  {t.sourceUrl && <span className="iublink small">Skatīt →</span>}
                 </div>
                 <div className="why">Termiņš {t.deadline}{t.deadlineTime ? ` ${t.deadlineTime}` : ''} · CPV {(t.cpv ?? '').slice(0, 8)}</div>
-              </div>
+              </Flag>
             ))}
           </div>
         </>
@@ -165,10 +167,19 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
                   </div>
                   <ul className="member-list">
                     {g.items.map((m) => (
-                      <li key={m.id} className={m.sourceUrl ? 'row-link' : undefined} onClick={() => openUrl(m.sourceUrl)}>
-                        <span className="mono">{eur(m.value)}</span>
-                        <span className="muted small">{m.date}</span>
-                        {m.sourceUrl && <a className="iublink small" href={m.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ marginLeft: 'auto' }}>Skatīt →</a>}
+                      <li key={m.id}>
+                        {m.sourceUrl ? (
+                          <a className="memrow" href={m.sourceUrl} target="_blank" rel="noopener noreferrer">
+                            <span className="mono">{eur(m.value)}</span>
+                            <span className="muted small">{m.date}</span>
+                            <span className="iublink small" style={{ marginLeft: 'auto' }}>Skatīt →</span>
+                          </a>
+                        ) : (
+                          <div className="memrow">
+                            <span className="mono">{eur(m.value)}</span>
+                            <span className="muted small">{m.date}</span>
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -189,19 +200,19 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
         </div>
         {priceFlags.length === 0 && <p className="muted">Nav vērtības izlēcēju.</p>}
         {priceFlags.map((p) => (
-          <div className={`lot ${p.sourceUrl ? 'row-link' : ''}`} key={p.lotId} onClick={() => openUrl(p.sourceUrl)}>
+          <Flag url={p.sourceUrl} key={p.lotId}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <div>
                 <RiskBadge band={p.z >= 2 ? 'red' : 'yellow'} label={`z = ${p.z}`} />
                 <span className="muted small mono" style={{ marginLeft: 8 }}>CPV {(p.cpv ?? '').slice(0, 8)}</span>
               </div>
-              {p.sourceUrl && <a className="iublink" href={p.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>Skatīt iepirkumu →</a>}
+              {p.sourceUrl && <span className="iublink">Skatīt iepirkumu →</span>}
             </div>
             <div className="why">
               Līgumvērtība {eur(p.value)} — par {p.z} standartnovirzēm virs vidējā šajā CPV kategorijā
               (salīdzināts ar {p.obs} līdzīgiem līgumiem).
             </div>
-          </div>
+          </Flag>
         ))}
       </div>
 
@@ -222,19 +233,19 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
           Avots: Uzņēmumu reģistra atvērtie dati (reģistrācijas datumi).
         </div>
         {newWinners.map((w) => (
-          <div className={`lot ${w.sourceUrl ? 'row-link' : ''}`} key={w.lotId} onClick={() => openUrl(w.sourceUrl)}>
+          <Flag url={w.sourceUrl} key={w.lotId}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <div>
                 <RiskBadge band={w.veryNew ? 'red' : 'yellow'} label={`${w.ageMonths} mēn. vecs`} />
                 <span className="small" style={{ marginLeft: 8 }}>{w.winnerName ?? w.winnerId}</span>
               </div>
-              {w.sourceUrl && <a className="iublink" href={w.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>Skatīt iepirkumu →</a>}
+              {w.sourceUrl && <span className="iublink">Skatīt iepirkumu →</span>}
             </div>
             <div className="why">
               Uzvarētājs reģistrēts {w.registered} — tikai {w.ageMonths} mēnešus pirms līguma iegūšanas
               {w.value != null ? ` (līgums ${eur(w.value)})` : ''}. Nesen dibināts uzņēmums, kas uzreiz iegūst līgumu, ir saistīto pušu riska signāls.
             </div>
-          </div>
+          </Flag>
         ))}
       </div>
 
@@ -243,21 +254,19 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
       <div className="card">
         {buyer.flaggedLots.length === 0 && <p className="muted">Nav karogotu iepirkumu šajā datu periodā.</p>}
         {buyer.flaggedLots.map((lot) => (
-          <div className={`lot ${lot.detail?.sourceUrl ? 'row-link' : ''}`} key={lot.lotId} onClick={() => openUrl(lot.detail?.sourceUrl)}>
+          <Flag url={lot.detail?.sourceUrl} key={lot.lotId}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <div>
                 <RiskBadge band={lot.level === 'red' ? 'red' : 'yellow'} label={lot.level === 'red' ? 'Sarkans' : 'Dzeltens'} />
                 <span className="muted small mono" style={{ marginLeft: 8 }}>daļa {lot.lotId}</span>
               </div>
-              {lot.detail?.sourceUrl && (
-                <a className="iublink" href={lot.detail.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>Skatīt iepirkumu →</a>
-              )}
+              {lot.detail?.sourceUrl && <span className="iublink">Skatīt iepirkumu →</span>}
             </div>
             <div className="why">
               Saņemts {lot.detail?.receivedBids ?? '?'} piedāvājums — konkurences trūkums. Atsevišķs viens
               pretendents ir dzeltens karogs; sarkans iedegtos kombinācijā ar citu signālu.
             </div>
-          </div>
+          </Flag>
         ))}
       </div>
 

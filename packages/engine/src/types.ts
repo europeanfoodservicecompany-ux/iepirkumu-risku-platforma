@@ -105,7 +105,7 @@ export const DEFAULT_C_CONFIG: CConfig = {
   cpvDigits: 4,
   minObs: 5,
   yellowZ: 1,
-  redZ: 2,
+  redZ: 2.5,
 };
 
 export type CpvStat = { mean: number; std: number; count: number };
@@ -121,7 +121,7 @@ export type EConfig = {
 // tāpēc augsts īpatsvars pie viena pasūtītāja ir integritātes signāls. Sliekšņi konfigurējami.
 export const DEFAULT_E_CONFIG: EConfig = {
   nonCompetitiveTypes: ['neg-wo-call'],
-  minSample: 10,
+  minSample: 15,
   yellowShare: 0.15,
   redShare: 0.35,
 };

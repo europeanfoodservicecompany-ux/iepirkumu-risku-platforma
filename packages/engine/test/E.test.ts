@@ -21,12 +21,12 @@ test('E lot: atklāta procedūra → nav riska', () => {
 });
 test('E buyer: augsts ne-konkurences īpatsvars → sarkans', () => {
   const lots = [
-    ...Array.from({ length: 5 }, (_, i) => lot({ id: 'n' + i, procedureType: 'neg-wo-call' })),
-    ...Array.from({ length: 5 }, (_, i) => lot({ id: 'o' + i, procedureType: 'open' })),
-  ]; // share 0.5 >= redShare 0.35
+    ...Array.from({ length: 8 }, (_, i) => lot({ id: 'n' + i, procedureType: 'neg-wo-call' })),
+    ...Array.from({ length: 8 }, (_, i) => lot({ id: 'o' + i, procedureType: 'open' })),
+  ]; // 16 >= minSample 15; share 0.5 >= redShare 0.35
   const r = e.processBuyer('B', lots, ctx);
   assert.equal(r.level, 'red');
-  assert.equal(r.detail?.nonCompetitiveLots, 5);
+  assert.equal(r.detail?.nonCompetitiveLots, 8);
 });
 test('E buyer: < min_sample → NoData', () => {
   const lots = Array.from({ length: 5 }, (_, i) => lot({ id: 'x' + i, procedureType: 'neg-wo-call' }));

@@ -157,7 +157,10 @@ footer strong { color: var(--ink); }
 
 /* Kopas dalībnieku (konkrēto līgumu) saraksts */
 .member-list { list-style: none; margin: 10px 0 0; padding: 8px 0 0; border-top: 1px dashed var(--line); display: flex; flex-direction: column; gap: 6px; }
-.member-list li { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.member-list li { font-size: 13px; }
+.memrow { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; padding: 3px 4px; border-radius: 6px; }
+a.memrow:hover { background: #f3f7f4; }
+a.memrow:hover .iublink { text-decoration: underline; }
 .member-list li .mono { min-width: 90px; font-weight: 600; }
 
 /* Salami līgumu grupas pa uzvarētājiem */
@@ -191,7 +194,8 @@ mark { background: #ffe6a8; color: inherit; border-radius: 3px; padding: 0 1px; 
 .m-ind { max-width: 760px; font-size: 14px; margin: 8px 0; padding: 10px 12px; background: #faf7f1; border: 1px solid var(--line); border-radius: 8px; }
 .m-ind .tag { margin-right: 8px; }
 
-/* Klikšķināmas rindas (atver IUB oriģinālu) */
+/* Klikšķināmas rindas (atver konkrēto iepirkumu) */
+a.lot { display: block; text-decoration: none; color: inherit; }
 .row-link { cursor: pointer; }
 .row-link:hover { background: #f3f7f4; border-color: var(--brand2); }
 .iublink { color: var(--brand2); font-weight: 600; white-space: nowrap; }
