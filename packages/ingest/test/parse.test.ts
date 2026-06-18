@@ -16,7 +16,7 @@ test('parsē reālus IUB result paziņojumus uz lots', () => {
   const l = lots[0];
   assert.equal(typeof l.id, 'string');
   assert.match(l.buyerId, /^\d{6,}$/, 'buyerId = reģistrācijas numurs');
-  assert.ok(l.sourceUrl?.startsWith('https://info.iub.gov.lv/lv/eforms/'), 'saite uz IUB oriģinālu');
+  assert.ok(lots.some((x) => (x.sourceUrl ?? '').includes('eis.gov.lv')), 'vismaz dažām daļām EIS saite');
 });
 
 test('winnerChosen un receivedBids tiek korekti izvilkti', () => {

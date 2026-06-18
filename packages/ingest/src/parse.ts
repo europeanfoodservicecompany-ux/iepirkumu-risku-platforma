@@ -20,14 +20,16 @@ function asArray<T>(x: T | T[] | null | undefined): T[] {
 }
 
 // Atrod pasūtītāju no organizationData (var būt dict vai saraksts; lomas: buyer / cpb-*).
-function pickBuyer(notice: AnyObj): { id: string | null; name: string | null } {
+function pickBuyer(notice: AnyObj): { id: string | null; name: string | null; client: string | null } {
   const orgs = asArray<AnyObj>(notice.organizationData);
-  if (orgs.length === 0) return { id: null, name: null };
+  if (orgs.length === 0) return { id: null, name: null, client: null };
   const buyer =
     orgs.find((o) => o?.role === 'buyer') ??
     orgs.find((o) => typeof o?.role === 'string' && o.role.startsWith('cpb')) ??
     orgs[0];
-  return { id: buyer?.identifier ?? null, name: buyer?.name ?? null };
+  const client = typeof buyer?.websiteURIClient === 'string' && buyer.websiteURIClient.includes('eis.gov.lv')
+    ? buyer.websiteURIClient : null;
+  return { id: buyer?.identifier ?? null, name: buyer?.name ?? null, client };
 }
 
 // dd/mm/yyyy → ISO (yyyy-mm-dd); citādi null.
@@ -72,6 +74,16 @@ function extractWinner(lot: AnyObj): { winnerId: string | null; winnerName: stri
   return { winnerId: bestId, winnerName: bestName, awardValue: hasValue ? total : null };
 }
 
+// EIS (Elektronisko iepirkumu sistēma) deep-link uz konkrēto iepirkumu — strādājoša publiska saite.
+// Atrodas lot.contracts[].url (piem. https://www.eis.gov.lv/EKEIS/Supplier/Procurement/<id>).
+function extractEisUrl(lot: AnyObj): string | null {
+  const contracts = Array.isArray(lot.contracts) ? lot.contracts : asArray<AnyObj>(lot.contracts);
+  for (const c of contracts) {
+    if (c && typeof c.url === 'string' && c.url.startsWith('http')) return c.url;
+  }
+  return null;
+}
+
 // Parsē vienu paziņojumu uz lots masīvu. Apstrādā tikai 'result' veidlapas
 // (tikai tajās ir rezultāts un saņemto piedāvājumu statistika).
 export function parseNotice(notice: AnyObj, baseUrl = IUB_NOTICE_BASE_URL): Lot[] {
@@ -83,13 +95,15 @@ export function parseNotice(notice: AnyObj, baseUrl = IUB_NOTICE_BASE_URL): Lot[
   const procedureId: string | null = notice.procurementProcedureIdentifier ?? null;
   const cpv: string | null = notice.cpvType ?? null;
   const procedureType: string | null = notice.tenderingProcess?.procedureType ?? null;
-  const sourceUrl = noticeId ? `${baseUrl}${noticeId}` : null;
+  void baseUrl; // info.iub deep-links nedarbojas; izmantojam EIS saites
 
+  const winner_clientFallback = buyer.client;
   const out: Lot[] = [];
   for (const lot of asArray<AnyObj>(notice.lots)) {
     const result = lot.result ?? {};
     const stats = lot.tenderingProcess?.receivedSubmissionsStatistics ?? {};
     const winner = extractWinner(lot);
+    const eisUrl = extractEisUrl(lot);
     const lotId: string = String(lot.id ?? `${noticeId}:${lot.sequenceNumber ?? out.length}`);
     out.push({
       id: lotId,
@@ -105,7 +119,7 @@ export function parseNotice(notice: AnyObj, baseUrl = IUB_NOTICE_BASE_URL): Lot[
       winnerName: winner.winnerName,
       procedureType,
       noticeDate: parseDate(result.decisionDate),
-      sourceUrl,
+      sourceUrl: eisUrl ?? winner_clientFallback,
     });
   }
   return out;
@@ -144,7 +158,7 @@ export function parseActiveTenders(notices: AnyObj[], baseUrl = IUB_NOTICE_BASE_
       deadline: parseDate(tp.deadlineReceiptTendersEndDate),
       deadlineTime: typeof tp.deadlineReceiptTendersEndTime === 'string' ? tp.deadlineReceiptTendersEndTime : null,
       estimatedValue: estimated,
-      sourceUrl: noticeId ? `${baseUrl}${noticeId}` : null,
+      sourceUrl: buyer.client ?? null,
       publishedDate: null,
     });
   }

@@ -80,7 +80,7 @@ export function ActiveView({ data, buyers, onSelectBuyer }: {
                 <td className="small"><button className="btn-link" onClick={() => onSelectBuyer(t.buyerId)}>{t.buyerName ?? t.buyerId}</button></td>
                 <td>{r && r.score !== null ? <span className={`badge ${band}`}><span className="dot" />{r.score}</span> : <span className="muted small">–</span>}</td>
                 <td>{nonComp ? <span className="badge red"><span className="dot" />bez konkursa</span> : <span className="muted small">{t.procedureType ?? '–'}</span>}</td>
-                <td>{t.sourceUrl && <a href={t.sourceUrl} target="_blank" rel="noopener noreferrer" className="small">IUB →</a>}</td>
+                <td>{t.sourceUrl && <a href={t.sourceUrl} target="_blank" rel="noopener noreferrer" className="small">Skatīt →</a>}</td>
               </tr>
             );
           })}

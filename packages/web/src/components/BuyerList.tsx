@@ -39,17 +39,25 @@ function Highlight({ text, term }: { text: string; term: string }) {
 
 export function BuyerList({ buyers, query, onSelect }: { buyers: IndexBuyer[]; query: string; onSelect: (id: string) => void }) {
   const [filter, setFilter] = useState<Filter>('scored');
+  const [ind, setInd] = useState<'all' | IndKey>('all');
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'combined', dir: 'desc' });
   const [limit, setLimit] = useState(PAGE);
   const term = query.trim().toLowerCase();
 
   const filtered = useMemo(() => buyers.filter((b) => {
+    if (term && !matches(b, term)) return false;
+    if (ind !== 'all') {
+      // Atlasa pēc konkrēta indikatora kolonnas
+      if (b.scores[ind] === null) return false;
+      if (filter === 'red' && b.levels[ind] !== 'red') return false;
+      if (filter === 'yellow' && b.levels[ind] !== 'yellow') return false;
+      return true;
+    }
     if (filter === 'red' && !hasLevel(b, 'red')) return false;
     if (filter === 'yellow' && !hasLevel(b, 'yellow')) return false;
     if (filter === 'scored' && b.combinedScore === null) return false;
-    if (term && !matches(b, term)) return false;
     return true;
-  }), [buyers, term, filter]);
+  }), [buyers, term, filter, ind]);
 
   const rows = useMemo(() => {
     const val = (b: IndexBuyer): number | string | null =>
@@ -79,6 +87,10 @@ export function BuyerList({ buyers, query, onSelect }: { buyers: IndexBuyer[]; q
     setLimit(PAGE);
     setSort((s) => s.key === key ? { key, dir: s.dir === 'desc' ? 'asc' : 'desc' } : { key, dir: key === 'name' ? 'asc' : 'desc' });
   }
+  function pickInd(k: 'all' | IndKey) {
+    setInd(k); setLimit(PAGE);
+    setSort({ key: k === 'all' ? 'combined' : k, dir: 'desc' });
+  }
   const caret = (key: SortKey) => sort.key === key ? (sort.dir === 'desc' ? ' ▼' : ' ▲') : '';
 
   const filters: { k: Filter; l: string }[] = [
@@ -95,8 +107,19 @@ export function BuyerList({ buyers, query, onSelect }: { buyers: IndexBuyer[]; q
         ))}
       </div>
 
+      <div className="controls" style={{ marginTop: -4 }}>
+        <span className="muted small" style={{ alignSelf: 'center' }}>Indikators:</span>
+        <button className={`filter-btn ${ind === 'all' ? 'active' : ''}`} onClick={() => pickInd('all')}>Kopējais</button>
+        {IND.map((i) => (
+          <button key={i.key} className={`filter-btn ${ind === i.key ? 'active' : ''}`} title={i.tip} onClick={() => pickInd(i.key)}>{i.key}</button>
+        ))}
+      </div>
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <p className="muted small" style={{ margin: 0 }}>{rows.length} pasūtītāji{term ? ` (filtrs: “${query}”)` : ''}. Klikšķini uz kolonnas, lai sakārtotu.</p>
+        <p className="muted small" style={{ margin: 0 }}>
+          {rows.length} pasūtītāji{term ? ` (meklē: “${query}”)` : ''}
+          {ind !== 'all' ? ` · kārtoti pēc ${ind}` : ''}. Klikšķini uz kolonnas, lai sakārtotu.
+        </p>
         {rows.length > 0 && <button className="filter-btn" onClick={exportCsv}>⬇ Lejupielādēt CSV</button>}
       </div>
 
@@ -110,7 +133,7 @@ export function BuyerList({ buyers, query, onSelect }: { buyers: IndexBuyer[]; q
                 <th className="sortable" style={{ width: 64 }} onClick={() => toggleSort('combined')} title="Kopējais svērtais risks (0–100)">Risks{caret('combined')}</th>
                 <th className="sortable" onClick={() => toggleSort('name')}>Pasūtītājs{caret('name')}</th>
                 {IND.map((i) => (
-                  <th key={i.key} className="sortable" style={{ width: 70 }} title={i.tip} onClick={() => toggleSort(i.key)}>{i.label}{caret(i.key)}</th>
+                  <th key={i.key} className={`sortable ${ind === i.key ? 'col-active' : ''}`} style={{ width: 70 }} title={i.tip} onClick={() => toggleSort(i.key)}>{i.label}{caret(i.key)}</th>
                 ))}
               </tr>
             </thead>

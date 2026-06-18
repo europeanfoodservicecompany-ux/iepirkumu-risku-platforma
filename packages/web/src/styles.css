@@ -211,3 +211,6 @@ mark { background: #ffe6a8; color: inherit; border-radius: 3px; padding: 0 1px; 
 .crumbs { display:flex; align-items:center; gap:8px; margin:18px 0 6px; font-size:14px; flex-wrap:wrap; }
 .crumb-sep { color:var(--muted); }
 .crumb-cur { font-weight:600; }
+
+/* Izvēlētā indikatora kolonna */
+th.col-active { color: var(--brand-ink); background: #eaf3ee; }

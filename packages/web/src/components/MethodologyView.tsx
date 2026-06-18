@@ -37,6 +37,15 @@ export function MethodologyView() {
         rīcību (bid-rotation) nevar pierādīt. Izceļ tirgus, ko vērts nodot Konkurences padomei.
       </p>
 
+      <h3 className="section-title">Uz kā balstās metodoloģija</h3>
+      <p>Indikatori un sliekšņi nav izdomāti — tie pārņemti no starptautiski validētiem iepirkumu integritātes ietvariem:</p>
+      <div className="m-ind"><strong>OCP “Red Flags for Integrity” (Open Contracting Partnership).</strong> Starptautiska atvērto iepirkumu iniciatīva. Tās “sarkano karogu” katalogs definē tipiskās riska pazīmes (viens pretendents, sliekšņa tuvums, īsi termiņi) un pamatprincipu: karogs <strong>prioritizē izpēti, nepierāda pārkāpumu</strong>. No tā ņemtas indikatoru definīcijas. <a href="https://www.open-contracting.org/" target="_blank" rel="noopener noreferrer">open-contracting.org</a></div>
+      <div className="m-ind"><strong>Cardinal (OCP).</strong> Atvērtā koda dzinējs, kas rēķina šos karogus uz OCDS datu standarta — kalpo kā gatavu formulu atsauce.</div>
+      <div className="m-ind"><strong>Fazekas / DIGIWHIST / Opentender.</strong> Pētnieka Mihály Fazekas akadēmiskais darbs un ES projekts DIGIWHIST izveidoja Korupcijas riska indeksu (CRI) no “elementārajiem” integritātes indikatoriem. Galvenās atziņas, ko izmantojam: <strong>viena pretendenta īpatsvars ir visplašāk validētais proxy</strong>, un kompozītu indeksu bieži veido ar <strong>vienādiem/caurspīdīgiem svariem</strong>; indikators jāvērtē pret reālo nacionālo bāzi, ne ideālu nulli. Platforma <a href="https://opentender.eu/" target="_blank" rel="noopener noreferrer">opentender.eu</a> aptver ES, t.sk. Latviju.</div>
+      <div className="m-ind"><strong>Pasaules Banka / GI-ACE.</strong> Pētījumos viena pretendenta gadījumi (“single bidding”) validēti kā galvenais korupcijas riska proxy 40+ valstīs — pamats nacionālās bāzes pieejai (B1).</div>
+      <div className="m-ind"><strong>DOZORRO / Prozorro (Ukraina).</strong> Viena no pasaulē attīstītākajām sistēmām. No tās pārņemta <strong>modulārā arhitektūra</strong> (katrs indikators = atsevišķa, testējama klase) un princips, ka precīzos sliekšņus periodiski pārkalibrē un nepublicē tā, lai tie kļūtu par apiešanas instrukciju.</div>
+      <p>Kā tas savienojas šajā rīkā: <strong>B1/B2</strong> = konkurences indikatori (Fazekas CRI kodols), <strong>A</strong> = sliekšņa apiešana/sadalīšana (OCP), <strong>C</strong> = cenu/vērtības novirze (statistiska z-score pieeja), <strong>E</strong> = procedūras integritāte, <strong>D</strong> = saistītās puses. <strong>Kopējais risks</strong> ir to svērta kombinācija, jo pētījumi rāda, ka atsevišķi karogi ir vāji, bet to sakritība — spēcīga.</p>
+
       <h3 className="section-title">Ierobežojumi</h3>
       <ul className="m-list">
         <li>Pieejamas tikai <strong>uzvarētāju</strong>, ne zaudējušo pretendentu identitātes → karteļus nevar pierādīt.</li>
