@@ -186,3 +186,9 @@ mark { background: #ffe6a8; color: inherit; border-radius: 3px; padding: 0 1px; 
 .m-list li { margin: 5px 0; font-size: 14px; }
 .m-ind { max-width: 760px; font-size: 14px; margin: 8px 0; padding: 10px 12px; background: #faf7f1; border: 1px solid var(--line); border-radius: 8px; }
 .m-ind .tag { margin-right: 8px; }
+
+/* Klikšķināmas rindas (atver IUB oriģinālu) */
+.row-link { cursor: pointer; }
+.row-link:hover { background: #f3f7f4; border-color: var(--brand2); }
+.iublink { color: var(--brand2); font-weight: 600; white-space: nowrap; }
+.row-link:hover .iublink { text-decoration: underline; }
