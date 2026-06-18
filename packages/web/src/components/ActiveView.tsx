@@ -56,14 +56,14 @@ export function ActiveView({ data, buyers, onSelectBuyer }: {
         <button className="filter-btn" onClick={exportCsv}>⬇ CSV</button>
       </div>
       <p className="muted small">{rows.length} atvērti konkursi. Sakārtoti pēc termiņa (tuvākais augšā).</p>
-      <div className="table-wrap"><table>
+      <div className="table-wrap"><table className="act-table">
         <thead>
           <tr>
             <th style={{ width: 104 }} className="small">Termiņš</th>
             <th>Iepirkums</th>
             <th>Pasūtītājs</th>
-            <th style={{ width: 96 }} className="small">Pasūt. risks</th>
-            <th style={{ width: 104 }} className="small">Procedūra</th>
+            <th style={{ width: 96 }} className="small col-sec">Pasūt. risks</th>
+            <th style={{ width: 104 }} className="small col-sec">Procedūra</th>
             <th style={{ width: 64 }}></th>
           </tr>
         </thead>
@@ -78,8 +78,8 @@ export function ActiveView({ data, buyers, onSelectBuyer }: {
                 <td className="small mono">{t.deadline}<div className="muted" style={{ fontSize: 11 }}>{dl !== null ? (dl <= 0 ? 'šodien' : `pēc ${dl} d.`) : ''}</div></td>
                 <td className="small">{t.name ?? '—'}<div className="muted mono" style={{ fontSize: 11 }}>CPV {(t.cpv ?? '').slice(0, 8)}{t.estimatedValue != null ? ` · ${eur(t.estimatedValue)}` : ''}</div></td>
                 <td className="small"><button className="btn-link" onClick={() => onSelectBuyer(t.buyerId)}>{t.buyerName ?? t.buyerId}</button></td>
-                <td>{r && r.score !== null ? <span className={`badge ${band}`}><span className="dot" />{r.score}</span> : <span className="muted small">–</span>}</td>
-                <td>{nonComp ? <span className="badge red"><span className="dot" />bez konkursa</span> : <span className="muted small">{t.procedureType ?? '–'}</span>}</td>
+                <td className="col-sec">{r && r.score !== null ? <span className={`badge ${band}`}><span className="dot" />{r.score}</span> : <span className="muted small">–</span>}</td>
+                <td className="col-sec">{nonComp ? <span className="badge red"><span className="dot" />bez konkursa</span> : <span className="muted small">{t.procedureType ?? '–'}</span>}</td>
                 <td>{t.sourceUrl && <a href={t.sourceUrl} target="_blank" rel="noopener noreferrer" className="small">Skatīt →</a>}</td>
               </tr>
             );

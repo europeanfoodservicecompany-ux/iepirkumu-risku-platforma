@@ -12,6 +12,8 @@ import { MethodologyView } from './components/MethodologyView.tsx';
 import { Disclaimer } from './components/Disclaimer.tsx';
 
 const BASE = import.meta.env.BASE_URL;
+// Atbildes tiesības / kļūdu ziņošana — nomaini uz vēlamo e-pastu (vai iztukšo, lai paslēptu).
+const REPORT_EMAIL = 'europeanfoodservicecompany@gmail.com';
 
 type View = 'buyers' | 'sectors' | 'markets' | 'active' | 'method';
 
@@ -164,6 +166,12 @@ function Shell({ children, nav }: { children: React.ReactNode; nav?: React.React
       <main className="container">{children}</main>
       <footer className="container">
         <div>Izpētes prioritizēšanas rīks · metodoloģija balstīta uz OCP “Red Flags” un Fazekas/DIGIWHIST integritātes indikatoriem.</div>
+        {REPORT_EMAIL && (
+          <div style={{ marginTop: 6 }}>
+            Pamanīji neprecizitāti? Katram karogam ir saite uz oriģinālu pārbaudei. Labojumi un jautājumi:{' '}
+            <a href={`mailto:${REPORT_EMAIL}?subject=Iepirkumu%20risku%20platforma`}>{REPORT_EMAIL}</a>
+          </div>
+        )}
         <div style={{ marginTop: 6 }}>Izstrādāja <strong>Jānis Rupeiks</strong> Liepājā, lai glābtu valsti 🙂</div>
         <div style={{ marginTop: 4, fontStyle: 'italic' }}>„Acti labores jucundi" — padarītie darbi ir patīkami.</div>
       </footer>

@@ -21,6 +21,12 @@ jobs:
       - name: Instalēt atkarības
         run: npm install
 
+      - name: Palaist testus
+        run: node --test packages/engine/test/*.test.ts packages/ingest/test/*.test.ts
+
+      - name: Pārbaudīt tipus (frontend)
+        run: npm --workspace packages/web run typecheck
+
       - name: Ievākt jaunākos IUB datus un pārrēķināt indikatorus (rolling 365 dienas)
         run: node packages/ingest/src/run.ts --days 365
 

@@ -8,7 +8,7 @@ function MarketRow({ m }: { m: MarketStat }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="lot">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }} onClick={() => setOpen((o) => !o)}>
+      <div role="button" tabIndex={0} aria-expanded={open} style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }} onClick={() => setOpen((o) => !o)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen((o) => !o); } }}>
         <span className="risk-circle" style={{ background: 'transparent', boxShadow: `inset 0 0 0 2px ${col(m.level)}`, color: col(m.level), width: 38, height: 38 }}>{m.score}</span>
         <div style={{ flex: 1 }}>
           <strong>{m.label}</strong>

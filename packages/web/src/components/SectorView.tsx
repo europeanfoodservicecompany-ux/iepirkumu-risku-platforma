@@ -20,14 +20,14 @@ export function SectorView({ data }: { data: SectorsData }) {
         Salīdzinājumam — nacionālais vidējais ir <strong>{pct(nat, 1)}</strong>. Rāda nozares ar vismaz 10 iepirkumiem.
       </p>
       <div style={{ marginBottom: 12 }}><button className="filter-btn" onClick={exportCsv}>⬇ Lejupielādēt CSV</button></div>
-      <div className="table-wrap"><table>
+      <div className="table-wrap"><table className="sec-table">
         <thead>
           <tr>
             <th>Nozare (CPV)</th>
             <th style={{ width: 230 }} className="small">Viena pretendenta īpatsvars</th>
-            <th style={{ width: 90 }} className="small">Līgumi</th>
-            <th style={{ width: 120 }} className="small">Kopvērtība</th>
-            <th style={{ width: 90 }} className="small">Pasūtītāji</th>
+            <th style={{ width: 90 }} className="small col-sec">Līgumi</th>
+            <th style={{ width: 120 }} className="small col-sec">Kopvērtība</th>
+            <th style={{ width: 90 }} className="small col-sec">Pasūtītāji</th>
           </tr>
         </thead>
         <tbody>
@@ -44,9 +44,9 @@ export function SectorView({ data }: { data: SectorsData }) {
                     <strong className="mono small" style={{ color: col, width: 42, textAlign: 'right' }}>{pct(s.singleBidRate, 0)}</strong>
                   </div>
                 </td>
-                <td className="mono small">{s.contracts}</td>
-                <td className="mono small">{eur(s.awardedValue)}</td>
-                <td className="mono small">{s.buyers}</td>
+                <td className="mono small col-sec">{s.contracts}</td>
+                <td className="mono small col-sec">{eur(s.awardedValue)}</td>
+                <td className="mono small col-sec">{s.buyers}</td>
               </tr>
             );
           })}

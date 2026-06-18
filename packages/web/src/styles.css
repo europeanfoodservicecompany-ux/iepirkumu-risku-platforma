@@ -219,3 +219,14 @@ mark { background: #ffe6a8; color: inherit; border-radius: 3px; padding: 0 1px; 
 
 /* Izvēlētā indikatora kolonna */
 th.col-active { color: var(--brand-ink); background: #eaf3ee; }
+
+/* Pieejamība — redzams fokuss */
+a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible, tr.clickable:focus-visible {
+  outline: 2px solid var(--brand2); outline-offset: 2px; border-radius: 4px;
+}
+tr.clickable:focus-visible { outline-offset: -2px; }
+
+@media (max-width: 720px) {
+  .col-sec { display: none; }
+  .sec-table, .act-table { min-width: 0; }
+}

@@ -139,7 +139,7 @@ export function BuyerList({ buyers, query, onSelect }: { buyers: IndexBuyer[]; q
             </thead>
             <tbody>
               {shown.map((b) => (
-                <tr key={b.buyerId} className="clickable" onClick={() => onSelect(b.buyerId)}>
+                <tr key={b.buyerId} className="clickable" tabIndex={0} role="button" aria-label={b.buyerName ?? b.buyerId} onClick={() => onSelect(b.buyerId)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(b.buyerId); } }}>
                   <td><span className={`risk-circle ${scoreKey(b.combinedScore)}`}>{b.combinedScore ?? '–'}</span></td>
                   <td><Highlight text={b.buyerName ?? b.buyerId} term={term} /><div className="muted small mono">{b.buyerId}</div></td>
                   {IND.map((i) => <td key={i.key} className="col-ind"><MiniBadge score={b.scores[i.key]} level={b.levels[i.key]} /></td>)}
