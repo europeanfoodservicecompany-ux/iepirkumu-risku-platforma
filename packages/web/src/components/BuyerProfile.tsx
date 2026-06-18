@@ -102,7 +102,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
               <div className={`lot ${t.sourceUrl ? 'row-link' : ''}`} key={t.id} onClick={() => openUrl(t.sourceUrl)}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                   <span className="small" style={{ flex: 1 }}>{t.name ?? '—'}</span>
-                  {t.sourceUrl && <span className="iublink small">Skatīt →</span>}
+                  {t.sourceUrl && <a className="iublink small" href={t.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>Skatīt →</a>}
                 </div>
                 <div className="why">Termiņš {t.deadline}{t.deadlineTime ? ` ${t.deadlineTime}` : ''} · CPV {(t.cpv ?? '').slice(0, 8)}</div>
               </div>
@@ -168,7 +168,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
                       <li key={m.id} className={m.sourceUrl ? 'row-link' : undefined} onClick={() => openUrl(m.sourceUrl)}>
                         <span className="mono">{eur(m.value)}</span>
                         <span className="muted small">{m.date}</span>
-                        {m.sourceUrl && <span className="iublink small" style={{ marginLeft: 'auto' }}>Skatīt →</span>}
+                        {m.sourceUrl && <a className="iublink small" href={m.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ marginLeft: 'auto' }}>Skatīt →</a>}
                       </li>
                     ))}
                   </ul>
@@ -195,7 +195,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
                 <RiskBadge band={p.z >= 2 ? 'red' : 'yellow'} label={`z = ${p.z}`} />
                 <span className="muted small mono" style={{ marginLeft: 8 }}>CPV {(p.cpv ?? '').slice(0, 8)}</span>
               </div>
-              {p.sourceUrl && <span className="iublink">Skatīt iepirkumu →</span>}
+              {p.sourceUrl && <a className="iublink" href={p.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>Skatīt iepirkumu →</a>}
             </div>
             <div className="why">
               Līgumvērtība {eur(p.value)} — par {p.z} standartnovirzēm virs vidējā šajā CPV kategorijā
@@ -228,7 +228,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
                 <RiskBadge band={w.veryNew ? 'red' : 'yellow'} label={`${w.ageMonths} mēn. vecs`} />
                 <span className="small" style={{ marginLeft: 8 }}>{w.winnerName ?? w.winnerId}</span>
               </div>
-              {w.sourceUrl && <span className="iublink">Skatīt iepirkumu →</span>}
+              {w.sourceUrl && <a className="iublink" href={w.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>Skatīt iepirkumu →</a>}
             </div>
             <div className="why">
               Uzvarētājs reģistrēts {w.registered} — tikai {w.ageMonths} mēnešus pirms līguma iegūšanas
@@ -250,7 +250,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
                 <span className="muted small mono" style={{ marginLeft: 8 }}>daļa {lot.lotId}</span>
               </div>
               {lot.detail?.sourceUrl && (
-                <span className="iublink">Skatīt iepirkumu →</span>
+                <a className="iublink" href={lot.detail.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>Skatīt iepirkumu →</a>
               )}
             </div>
             <div className="why">

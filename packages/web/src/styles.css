@@ -201,9 +201,10 @@ mark { background: #ffe6a8; color: inherit; border-radius: 3px; padding: 0 1px; 
 
 /* Pastāvīga navigācijas josla (lipīga) */
 .mainnav { background:#fff; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:30; box-shadow:0 1px 4px rgba(16,32,48,.05); }
-.nav-inner { display:flex; gap:2px; overflow-x:auto; }
+.nav-inner { display:flex; gap:2px; flex-wrap:wrap; }
 .navtab { background:none; border:none; border-bottom:3px solid transparent; margin-bottom:-1px;
-  padding:14px 16px; cursor:pointer; font-family:inherit; font-size:14px; font-weight:600; color:var(--muted); white-space:nowrap; }
+  padding:13px 14px; cursor:pointer; font-family:inherit; font-size:14px; font-weight:600; color:var(--muted); white-space:nowrap; }
+@media (max-width:560px){ .navtab { padding:11px 10px; font-size:13px; } }
 .navtab:hover { color:var(--ink); background:#f7f3ec; }
 .navtab.active { color:var(--brand-ink); border-bottom-color:var(--brand2); }
 
