@@ -1,0 +1,22 @@
+{
+  "name": "iepirkumu-risku-platforma",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Publisko iepirkumu risku analīzes platforma — MVP karkass (B1 indikators).",
+  "type": "module",
+  "workspaces": [
+    "packages/engine",
+    "packages/ingest",
+    "packages/web"
+  ],
+  "scripts": {
+    "test": "node --test packages/engine/test/*.test.ts packages/ingest/test/*.test.ts",
+    "pipeline": "node packages/ingest/src/run.ts",
+    "web:dev": "npm --workspace packages/web run dev",
+    "web:build": "npm --workspace packages/web run build",
+    "deploy": "npm run web:build && npx wrangler pages deploy packages/web/dist --project-name iepirkumu-risku-platforma"
+  },
+  "engines": {
+    "node": ">=22.6"
+  }
+}

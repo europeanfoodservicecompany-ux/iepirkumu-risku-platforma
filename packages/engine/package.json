@@ -1,0 +1,12 @@
+{
+  "name": "@irp/engine",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Indikatoru dzinējs (DOZORRO modulārais klašu modelis). Pirmais indikators: B1 — viena pretendenta īpatsvars.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.ts"
+  }
+}

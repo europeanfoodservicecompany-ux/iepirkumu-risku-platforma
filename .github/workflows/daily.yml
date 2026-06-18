@@ -1,0 +1,35 @@
+name: Ikdienas datu atjaunošana un izvietošana
+
+# Palaižas katru dienu 05:30 UTC (08:30 EET) un manuāli pēc pieprasījuma.
+on:
+  schedule:
+    - cron: '30 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  refresh-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Izgūt kodu
+        uses: actions/checkout@v4
+
+      - name: Uzstādīt Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Instalēt atkarības
+        run: npm install
+
+      - name: Ievākt jaunākos IUB datus un pārrēķināt indikatorus (rolling 365 dienas)
+        run: node packages/ingest/src/run.ts --days 365
+
+      - name: Uzbūvēt frontendu
+        run: npm run web:build
+
+      - name: Izvietot uz Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy packages/web/dist --project-name=iepirkumu-risku-platforma

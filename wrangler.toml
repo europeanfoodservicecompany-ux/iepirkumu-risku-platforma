@@ -1,0 +1,5 @@
+# Cloudflare Pages konfigurācija.
+# Izvieto ar:  npm run deploy   (vai:  npx wrangler pages deploy packages/web/dist)
+name = "iepirkumu-risku-platforma"
+pages_build_output_dir = "packages/web/dist"
+compatibility_date = "2026-06-18"

@@ -1,0 +1,11 @@
+{
+  "name": "@irp/ingest",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "IUB e-veidlapu datu ievākšana, parsēšana (eForms → lots) un pipeline.",
+  "scripts": {
+    "pipeline": "node src/run.ts",
+    "fetch": "node src/fetch.ts",
+    "test": "node --test test/*.test.ts"
+  }
+}
