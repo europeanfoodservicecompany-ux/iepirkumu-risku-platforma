@@ -41,11 +41,11 @@ export function MethodologyView() {
         ne viens izolēts rādītājs. Krāsas: zaļš 0–29, dzeltens 30–59, sarkans 60–100.
       </p>
 
-      <h3 className="section-title">Slēgtie tirgi (karteļa netieša pazīme)</h3>
+      <h3 className="section-title">Slēgtie tirgi (vāja konkurence tirgū)</h3>
       <p>
         Tirgus (CPV) līmenī: augsta uzvarētāju koncentrācija (HHI) + augsta viena-pretendenta likme.
-        Tā ir tikai <strong>netieša</strong> pazīme — IUB nepublicē zaudētāju identitātes, tāpēc saskaņotu
-        rīcību (bid-rotation) nevar pierādīt. Izceļ tirgus, ko vērts nodot Konkurences padomei.
+        Tā ir tikai <strong>netieša</strong> pazīme par vāju konkurenci vai iespējami saskaņotām darbībām — IUB nepublicē
+        zaudējušos pretendentus, tāpēc to pierādīt nevar. Izceļ tirgus, ko, iespējams, vērts aplūkot tuvāk.
       </p>
 
       <h3 className="section-title">Uz kā balstās metodoloģija</h3>
@@ -59,7 +59,7 @@ export function MethodologyView() {
 
       <h3 className="section-title">Ierobežojumi</h3>
       <ul className="m-list">
-        <li>Pieejamas tikai <strong>uzvarētāju</strong>, ne zaudējušo pretendentu identitātes → karteļus nevar pierādīt.</li>
+        <li>Pieejamas tikai <strong>uzvarētāju</strong>, ne zaudējušo pretendentu identitātes → iespējami saskaņotas darbības nevar pierādīt.</li>
         <li>Dati satur līgumu <strong>kopsummas</strong>, ne vienības cenas → C mēra vērtības, ne tīru pārmaksu.</li>
         <li>Sliekšņi un svari ir <strong>sākotnēji ieteikumi</strong>, kalibrējami uz reāliem datiem; pārkalibrējami administratorā.</li>
         <li>Pilnvērtīgi strukturēti dati pieejami no 2023. gada; retākās CPV kategorijās salīdzināmo datu bāze ir plānāka.</li>

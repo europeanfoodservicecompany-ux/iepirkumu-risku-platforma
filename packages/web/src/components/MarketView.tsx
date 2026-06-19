@@ -45,11 +45,12 @@ export function MarketView({ data }: { data: MarketsData }) {
     <div className="card">
       <p style={{ marginTop: 0 }}>
         <strong>Slēgtie tirgi</strong> — CPV kategorijas, kur nedaudzi piegādātāji kontrolē lielāko līgumvērtības daļu
-        (augsts HHI) un ir augsta viena pretendenta likme. Tā ir <strong>netieša</strong> saskaņotas rīcības/karteļa pazīme.
+        (augsts HHI) un ir augsta viena pretendenta likme. Tā ir <strong>netieša</strong> pazīme par vāju konkurenci vai
+        iespējami saskaņotām darbībām.
       </p>
       <div className="disclaimer" style={{ marginBottom: 14 }}>
-        <strong>Piezīme:</strong> IUB dati nepublicē zaudētāju identitātes, tāpēc bid-rotation nevar pierādīt.
-        Šie rādītāji izceļ tirgus, ko vērts nodot izvērtēšanai Konkurences padomei — tie nav karteļa pierādījums.
+        <strong>Piezīme:</strong> IUB dati nepublicē zaudējušos pretendentus, tāpēc saskaņotas darbības pierādīt nevar.
+        Šie rādītāji izceļ tirgus ar vāju konkurenci, ko, iespējams, vērts aplūkot tuvāk — tie nav pārkāpuma pierādījums.
       </div>
       <div style={{ marginBottom: 12 }}><button className="filter-btn" onClick={exportCsv}>⬇ Lejupielādēt CSV</button></div>
       {data.markets.map((m) => <MarketRow key={m.cpv} m={m} />)}

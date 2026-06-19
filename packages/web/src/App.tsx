@@ -168,6 +168,7 @@ export function App() {
               Dati: publicēti {index.meta.coverage}
               {index.meta.lots ? ` · ${index.meta.lots.toLocaleString('lv-LV')} iepirkumi` : ''}
               {index.meta.buyers ? ` · ${index.meta.buyers} pasūtītāji` : ''}
+              {' · '}<strong>atjaunojas automātiski katru dienu</strong>
             </p>
           )}
           <div className="section"><GlobalSearch buyers={index.buyers} query={query} setQuery={setQuery} onSelect={setSelected} /></div>
