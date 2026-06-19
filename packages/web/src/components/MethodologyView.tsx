@@ -15,6 +15,16 @@ export function MethodologyView() {
         <li>Aptvertais periods redzams sākumlapā; pabeigtie (ar rezultātu) iepirkumi tiek vērtēti, notiekošie konkursi rādīti atsevišķi.</li>
       </ul>
 
+      <h3 className="section-title">Par līgumvērtībām</h3>
+      <p>
+        Vērtības ņemtas no līguma datiem. Lielos ietvara/bloka iepirkumos IUB datos viena un tā pati summa
+        bieži atkārtojas daudzos “lots”, mākslīgi uzpūšot kopvērtību — tāpēc <strong>atkārtotas vērtības vienā
+        procedūrā kopsummās neieskaitām</strong> (skaitļi un riska indikatori netiek skarti). Ietvara līgumiem ar
+        vairākiem līdzuzvarētājiem IUB nesniedz vērtības sadalījumu pa piegādātājiem, tāpēc <strong>šāda kopējā
+        summa piegādātāja vērtībā netiek ieskaitīta</strong> (labāk iztrūkst, nekā nepareizi attiecināts). Tādēļ
+        atsevišķu piegādātāju vērtības var būt nedaudz nenovērtētas.
+      </p>
+
       <h3 className="section-title">Indikatori</h3>
       <div className="m-ind"><span className="tag">B1</span><strong>Viena pretendenta īpatsvars.</strong> Cik % pasūtītāja iepirkumu (atklātā/slēgtā procedūrā ar izvēlētu uzvarētāju) saņēma tikai vienu piedāvājumu. Attiecināts pret nacionālo vidējo (~24–26%). Dzeltens no 1,3×, sarkans no 1,7× virs vidējā.</div>
       <div className="m-ind"><span className="tag">B2</span><strong>Uzvarētāju koncentrācija.</strong> Cik koncentrēti līgumi (pēc vērtības) nonāk pie nedaudziem uzvarētājiem — Herfindāla–Hiršmana indekss (HHI) + lielākā uzvarētāja daļa.</div>

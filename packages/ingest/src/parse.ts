@@ -53,10 +53,16 @@ function extractWinner(lot: AnyObj): { winnerId: string | null; winnerName: stri
   const contracts = Array.isArray(lot.contracts) ? lot.contracts : asArray<AnyObj>(lot.contracts);
   let total = 0; let hasValue = false;
   let bestId: string | null = null; let bestName: string | null = null; let bestVal = -1;
-  const consider = (winnersArr: any, partiesKey: string, companyKey: string) => {
+  // Piezīme: ietvara līgumiem ar vairākiem līdzuzvarētājiem winner.tenderValue ir tukšs un
+  // contract.tenderPaymentValue ir KOPĒJS bez sadalījuma — to nevar korekti attiecināt uz vienu
+  // uzvarētāju (mūsu modelis: viens līgums = viens uzvarētājs), tāpēc šādu vērtību NEIESKAITĀM
+  // (labāk iztrūkst, nekā nepareizi uzpūsts). Skaidrots metodoloģijā.
+  // Atgriež true, ja pievienoja kādu vērtību (lai nedubultotu winners + actualWinners).
+  const consider = (winnersArr: any, partiesKey: string, companyKey: string): boolean => {
+    let added = false;
     for (const w of asArray<AnyObj>(winnersArr)) {
       const v = num(w?.tenderValue?.amount ?? w?.tenderValue);
-      if (v !== null) { total += v; hasValue = true; }
+      if (v !== null) { total += v; hasValue = true; added = true; }
       for (const p of asArray<AnyObj>(w?.[partiesKey])) {
         const id = p?.[companyKey] ?? p?.companyId;
         if (typeof id === 'string' && id.trim() !== '') {
@@ -65,10 +71,14 @@ function extractWinner(lot: AnyObj): { winnerId: string | null; winnerName: stri
         }
       }
     }
+    return added;
   };
+  // winners un actualWinners ir VIENS UN TAS PATS darījums (plānotā vs faktiskā vērtība) —
+  // tos NEDRĪKST summēt. Izmantojam winners (sakrīt ar IUB noticeContractValue); ja tur nav
+  // vērtības, krītam atpakaļ uz actualWinners.
   for (const c of contracts) {
-    consider(c?.winners, 'winnerBusinessParties', 'companyId');
-    consider(c?.actualWinners, 'actualWinnerBusinessParties', 'companyId');
+    const got = consider(c?.winners, 'winnerBusinessParties', 'companyId');
+    if (!got) consider(c?.actualWinners, 'actualWinnerBusinessParties', 'companyId');
   }
   consider(lot.winners, 'winnerBusinessParties', 'companyId');
   return { winnerId: bestId, winnerName: bestName, awardValue: hasValue ? total : null };

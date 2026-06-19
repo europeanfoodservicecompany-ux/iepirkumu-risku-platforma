@@ -37,8 +37,8 @@ export function SupplierProfile({ winner, onSelectBuyer }: { winner: WinnerDetai
             </div>
           </div>
           <div className="bigscore">
-            <div className="bigval mono">{eur(w.awardedValue)}</div>
-            <div className="l">Uzvarēto līgumu kopvērtība</div>
+            <div className="bigval mono">≈ {eur(w.awardedValue)}</div>
+            <div className="l">Uzvarēto līgumu kopvērtība (aptuvena)</div>
           </div>
         </div>
       </div>
@@ -56,6 +56,14 @@ export function SupplierProfile({ winner, onSelectBuyer }: { winner: WinnerDetai
             : `Lielākais pasūtītājs: ${w.topBuyerName ?? '–'} (${pct(w.topBuyerShare, 0)} no vērtības).`}
           {' '}Karogs nav pierādījums — augsta viena-pretendenta daļa var nozīmēt arī specifisku tirgu.
         </p>
+      </div>
+
+      <div className="card">
+        <div className="disclaimer">
+          <strong>Vērtības ir aptuvenas (≈).</strong> IUB atvērtie dati par lieliem un ietvara iepirkumiem mēdz būt nepilnīgi
+          vai paši sev pretrunā (piem. viena procedūra ar diviem dažādiem kopskaitļiem), tāpēc summas var atšķirties no faktiskajām.
+          Skaitļus izmanto lieluma salīdzināšanai, ne precīzai uzskaitei. Riska pazīmes balstās uz līgumu skaitu un attiecībām, ne absolūtām summām.
+        </div>
       </div>
 
       <h3 className="section-title">Līgumi pa pasūtītājiem ({w.byBuyer.length})</h3>

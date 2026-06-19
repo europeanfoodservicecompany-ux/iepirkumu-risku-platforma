@@ -74,6 +74,10 @@ export function SupplierView({ data, onSelect }: { data: WinnersIndex; onSelect:
         augsta <strong>viena pretendenta daļa</strong> (uzvar bez konkurences) un <strong>atkarība no viena pasūtītāja</strong>.
         Tās ir norādes, ne pierādījums.
       </p>
+      <div className="disclaimer" style={{ marginBottom: 12 }}>
+        <strong>Vērtības ir aptuvenas (≈).</strong> IUB atvērtie dati par lieliem un ietvara iepirkumiem mēdz būt nepilnīgi
+        vai paši sev pretrunā, tāpēc kopvērtības var atšķirties no faktiskajām. Izmanto tās lielumu salīdzināšanai, ne precīzai uzskaitei.
+      </div>
 
       <div className="controls" style={{ gap: 8 }}>
         <input className="search-input" style={{ flex: '1 1 220px', minWidth: 180 }} placeholder="Meklēt piegādātāju (nosaukums vai reģ. nr.)"
@@ -105,7 +109,7 @@ export function SupplierView({ data, onSelect }: { data: WinnersIndex; onSelect:
             <thead>
               <tr>
                 <th className="sortable" onClick={() => toggle('name')}>Piegādātājs{caret('name')}</th>
-                <th className="sortable" style={{ width: 110, textAlign: 'right' }} onClick={() => toggle('value')} title="Uzvarēto līgumu kopvērtība">Vērtība{caret('value')}</th>
+                <th className="sortable" style={{ width: 110, textAlign: 'right' }} onClick={() => toggle('value')} title="Uzvarēto līgumu kopvērtība (aptuvena — IUB dati par lieliem iepirkumiem nepilnīgi)">Vērtība ≈{caret('value')}</th>
                 <th className="sortable col-ind" style={{ width: 64, textAlign: 'right' }} onClick={() => toggle('contracts')}>Līgumi{caret('contracts')}</th>
                 <th className="sortable col-ind" style={{ width: 64, textAlign: 'right' }} onClick={() => toggle('buyers')} title="Atšķirīgu pasūtītāju skaits">Pasūt.{caret('buyers')}</th>
                 <th className="sortable" style={{ width: 80, textAlign: 'right' }} onClick={() => toggle('singleBid')} title="Cik bieži uzvar kā vienīgais pretendents">1 pret.{caret('singleBid')}</th>
