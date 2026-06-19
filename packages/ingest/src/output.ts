@@ -18,7 +18,7 @@ export function writeDataset(dataDir: string, output: EngineOutput, lots: Lot[],
   for (const l of lots) {
     if (!l.winnerChosen) continue;
     const e = enr.get(l.buyerId) ?? { value: 0, sectorVal: new Map(), nuts: new Map() };
-    e.value += l.awardValue ?? 0;
+    if (!l.dupValue) e.value += l.awardValue ?? 0;
     if (l.cpv) { const c = l.cpv.replace(/[^0-9]/g, '').slice(0, 2); if (c) e.sectorVal.set(c, (e.sectorVal.get(c) ?? 0) + (l.awardValue ?? 0) + 1); }
     if (l.nutsCode) e.nuts.set(l.nutsCode, (e.nuts.get(l.nutsCode) ?? 0) + 1);
     enr.set(l.buyerId, e);

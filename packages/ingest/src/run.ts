@@ -13,7 +13,7 @@ import type { Lot } from '../../engine/src/types.ts';
 import { parseNotices, parseActiveTenders, filterOpenTenders, parseModifications, groupModificationsByBuyer } from './parse.ts';
 import { loadRegistrationMap } from './ur.ts';
 import { writeDataset } from './output.ts';
-import { runEngine } from '../../engine/src/index.ts';
+import { runEngine, markDuplicateValues } from '../../engine/src/index.ts';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '../../..');
@@ -69,6 +69,8 @@ async function loadLots(): Promise<{ lots: Lot[]; source: string; coverage: stri
 }
 
 const { lots, source, coverage, notices } = await loadLots();
+const dupMarked = markDuplicateValues(lots);
+console.log(`Atzīmēti vērtību dublikāti (ietvara/bloka atkārtojumi): ${dupMarked}`);
 
 // UR reģistrācijas dati D indikatoram (ja pieejami).
 const UR_PATH = join(ROOT, 'data', 'ur_registration.json');

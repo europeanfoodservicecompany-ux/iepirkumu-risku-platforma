@@ -21,6 +21,24 @@ export function computeNationalBaseline(
   return { singleBidLots, winnerChosenLots, singleBidRate };
 }
 
+// Atzīmē atkārtotas līgumvērtības vienā procedūrā kā dublikātus (dupValue=true).
+// IUB datos lielos ietvara/bloka iepirkumos viena un tā pati vērtība bieži atkārtojas daudzos
+// "lots", kaut IUB paša noticeContractValue.sum ir mazāks → summēšana pa lots krasi uzpūš vērtību.
+// Tāpēc vērtību AGREGĀTOS (piegādātāju/pasūtītāju/nozaru kopvērtība) atkārtojumus neieskaita.
+// Skaitļi (līgumu skaits, viena-pretendenta likme, riska indikatori) NETIEK skarti.
+export function markDuplicateValues(lots: Lot[]): number {
+  const seen = new Set<string>();
+  let marked = 0;
+  for (const l of lots) {
+    l.dupValue = false;
+    if (!l.winnerChosen || !l.procedureId || !l.winnerId || !l.awardValue || l.awardValue <= 0) continue;
+    const key = `${l.procedureId}|${l.winnerId}|${Math.round(l.awardValue)}`;
+    if (seen.has(key)) { l.dupValue = true; marked++; }
+    else seen.add(key);
+  }
+  return marked;
+}
+
 export function groupByBuyer(lots: Lot[]): Map<string, Lot[]> {
   const m = new Map<string, Lot[]>();
   for (const lot of lots) {
@@ -92,7 +110,7 @@ export function computeSectorStats(lots: Lot[], b1AppliesTo: (l: Lot) => boolean
     const cpv2 = l.cpv.replace(/[^0-9]/g, '').slice(0, 2);
     if (!cpv2) continue;
     const a = m.get(cpv2) ?? m.set(cpv2, { contracts: 0, singleBid: 0, value: 0, buyers: new Set() }).get(cpv2)!;
-    a.value += l.awardValue ?? 0;
+    if (!l.dupValue) a.value += l.awardValue ?? 0;
     a.buyers.add(l.buyerId);
     if (b1AppliesTo(l)) {
       a.contracts++;
@@ -225,7 +243,7 @@ export type WinnerDetail = {
 export function computeWinners(lots: Lot[]): WinnerDetail[] {
   const m = new Map<string, Lot[]>();
   for (const l of lots) {
-    if (!l.winnerChosen || !l.winnerId) continue;
+    if (!l.winnerChosen || !l.winnerId || l.dupValue) continue; // dublikātus (atkārtotas ietvara vērtības) neieskaita
     (m.get(l.winnerId) ?? m.set(l.winnerId, []).get(l.winnerId)!).push(l);
   }
   const out: WinnerDetail[] = [];

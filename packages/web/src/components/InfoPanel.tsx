@@ -25,6 +25,10 @@ const INDICATORS = [
     tag: 'D', name: 'Saistītās puses',
     text: 'Vai līgumus iegūst tikko dibināti uzņēmumi (reģistrēti īsi pirms uzvaras). Avots: Uzņēmumu reģistrs. Var liecināt par fiktīvu pretendentu vai saistītām pusēm.',
   },
+  {
+    tag: 'G', name: 'Līguma grozījumi',
+    text: 'Vai līgumi pēc uzvaras tiek grozīti ar papildu darbiem vai izpildītāja maiņu — klasiska “uzvar lēti, pēc tam uzpūš” shēma. Daudzi grozījumi ir likumīgi, tāpēc skaita tikai būtiskos.',
+  },
 ];
 
 export function InfoPanel() {
@@ -55,9 +59,9 @@ export function InfoPanel() {
 
           <div className="legend">
             <span className="badge green"><span className="dot" />Zaļš 0–29 · zems</span>
-            <span className="badge yellow"><span className="dot" />Dzeltens 30–69 · vērts pārbaudīt</span>
-            <span className="badge red"><span className="dot" />Sarkans 70–100 · augsts</span>
-            <span className="muted small">Kopējais “Risks” = augstākais no trim indikatoriem.</span>
+            <span className="badge yellow"><span className="dot" />Dzeltens 30–59 · vērts pārbaudīt</span>
+            <span className="badge red"><span className="dot" />Sarkans 60–100 · augsts</span>
+            <span className="muted small">Kopējais “Risks” = svērta indikatoru kombinācija; augstu risku rada vairāku signālu sakritība, ne viens atsevišķs rādītājs.</span>
           </div>
         </div>
       )}

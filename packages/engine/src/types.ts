@@ -17,6 +17,7 @@ export type Lot = {
   noticeDate?: string | null;  // ISO datums (no lot.result.decisionDate)
   sourceUrl?: string | null;   // saite uz IUB oriģinālu
   nutsCode?: string | null;    // pasūtītāja reģions (organizationData.nutsCode, NUTS3)
+  dupValue?: boolean;          // vērtība atkārtojas tajā pašā procedūrā (ietvara/bloka dublikāts) — neieskaita summās
 };
 
 export type RiskStatus = 'RiskFound' | 'RiskNotFound' | 'NoData' | 'NotApplicable';
