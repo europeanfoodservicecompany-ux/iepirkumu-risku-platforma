@@ -50,6 +50,13 @@ export type RiskResult = {
     newWinnerAwards?: number;
     veryNewAwards?: number;
     newWinners?: { lotId: string; winnerId: string; winnerName: string | null; registered: string; ageMonths: number; value: number | null; veryNew: boolean; sourceUrl: string | null }[];
+    // G (līguma grozījumi / scope creep)
+    contracts?: number;
+    modifiedContracts?: number;
+    substantiveContracts?: number;
+    substantiveRate?: number;
+    byReasonCode?: Record<string, number>;
+    modifications?: { procedureId: string | null; reasonCode: string | null; reasonDescription: string | null; description: string | null; value: number | null; winnerName: string | null; sourceUrl: string | null; name: string | null }[];
   };
 };
 
@@ -59,13 +66,14 @@ export type BuyerSummary = {
   riskScore: number | null;  // augstākais starp indikatoriem
   combinedScore: number | null; // svērtais kopējais risks
   combinedLevel: 'red' | 'yellow' | 'green' | null;
-  layerScores: { A: number | null; B: number | null; C: number | null; D: number | null; E: number | null };
+  layerScores: { A: number | null; B: number | null; C: number | null; D: number | null; E: number | null; G: number | null };
   result: RiskResult;        // B1
   b2: RiskResult;            // B2 — uzvarētāju koncentrācija
   a: RiskResult;             // A — iepirkumu sadalīšana
   c: RiskResult;             // C — cenu/vērtības novirze
   e: RiskResult;             // E — procedūras integritāte
   d: RiskResult;             // D — saistītās puses
+  g: RiskResult;             // G — līguma grozījumi (scope creep)
   flaggedLots: RiskResult[];
 };
 
@@ -78,13 +86,13 @@ export type EngineOutput = {
 };
 
 // ── Indekss + detaļas pēc pieprasījuma ──
-export type IndKey = 'B1' | 'B2' | 'A' | 'C' | 'E' | 'D';
+export type IndKey = 'B1' | 'B2' | 'A' | 'C' | 'E' | 'D' | 'G';
 export type IndexBuyer = {
   buyerId: string;
   buyerName: string | null;
   combinedScore: number | null;
   combinedLevel: 'red' | 'yellow' | 'green' | null;
-  layerScores: { A: number | null; B: number | null; C: number | null; D: number | null; E: number | null };
+  layerScores: { A: number | null; B: number | null; C: number | null; D: number | null; E: number | null; G: number | null };
   levels: Record<IndKey, RiskLevel>;
   scores: Record<IndKey, number | null>;
 };

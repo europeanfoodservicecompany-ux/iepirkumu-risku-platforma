@@ -12,13 +12,14 @@ const IND: { key: IndKey; label: string; tip: string }[] = [
   { key: 'C', label: 'C', tip: 'C — Cenu/vērtības novirze: neparasti augsta līgumvērtība attiecīgajā CPV kategorijā.' },
   { key: 'E', label: 'E', tip: 'E — Procedūras integritāte: sarunu procedūra bez iepriekšējas konkurences izsludināšanas.' },
   { key: 'D', label: 'D', tip: 'D — Saistītās puses: līgumi tikko dibinātiem uzņēmumiem (UR reģistrācijas dati).' },
+  { key: 'G', label: 'G', tip: 'G — Līguma grozījumi: papildu darbi vai izpildītāja maiņa pēc uzvaras (cenas/apjoma uzpūšana).' },
 ];
 
 const PAGE = 60;
 
 function scoreKey(score: number | null): string {
   if (score === null) return 'gray';
-  if (score >= 70) return 'red';
+  if (score >= 60) return 'red';   // kopējais slieksnis 60 (6 slāņi)
   if (score >= 30) return 'yellow';
   return 'green';
 }
@@ -78,8 +79,8 @@ export function BuyerList({ buyers, query, onSelect }: { buyers: IndexBuyer[]; q
   function exportCsv() {
     downloadCsv(
       `iepirkumu-risks-pasutitaji.csv`,
-      ['Reģ.nr.', 'Pasūtītājs', 'Kopējais risks', 'B1', 'B2', 'A', 'C', 'E', 'D'],
-      rows.map((b) => [b.buyerId, b.buyerName ?? '', b.combinedScore, b.scores.B1, b.scores.B2, b.scores.A, b.scores.C, b.scores.E, b.scores.D]),
+      ['Reģ.nr.', 'Pasūtītājs', 'Kopējais risks', 'B1', 'B2', 'A', 'C', 'E', 'D', 'G'],
+      rows.map((b) => [b.buyerId, b.buyerName ?? '', b.combinedScore, b.scores.B1, b.scores.B2, b.scores.A, b.scores.C, b.scores.E, b.scores.D, b.scores.G]),
     );
   }
 

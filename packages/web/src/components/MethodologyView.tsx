@@ -22,12 +22,13 @@ export function MethodologyView() {
       <div className="m-ind"><span className="tag">C</span><strong>Cenu/vērtības novirze.</strong> Līgumvērtības logaritmiskais z-score pret nacionālo sadalījumu tajā pašā CPV (≥5 salīdzināmi līgumi). <em>Mēra vērtības, ne vienības cenas novirzi</em> — augsta vērtība var nozīmēt arī lielāku iepirkumu.</div>
       <div className="m-ind"><span className="tag">E</span><strong>Procedūras integritāte.</strong> Sarunu procedūras bez iepriekšējas konkurences izsludināšanas (neg-wo-call) īpatsvars — valstī tas ir reti (~2%), tāpēc augsts īpatsvars izceļas.</div>
       <div className="m-ind"><span className="tag">D</span><strong>Saistītās puses.</strong> Uzvarētāji, kas reģistrēti īsi (&lt;6 mēneši) pirms līguma iegūšanas — klasisks saistīto pušu / fiktīva pretendenta signāls (UR reģistrācijas dati).</div>
+      <div className="m-ind"><span className="tag">G</span><strong>Līguma grozījumi (pēc uzvaras).</strong> Cik liela pasūtītāja līgumu daļa pēc uzvaras tiek grozīta ar <em>papildu darbiem/piegādēm</em> (add-wss) vai <em>izpildītāja maiņu</em> (mod-repl) — klasiska „uzvar lēti, pēc tam uzpūš ar papildu vienošanos" shēma (IUB cont-modif paziņojumi, PIL 61. p.). Daudzi grozījumi ir likumīgi (termiņa pagarinājums, indeksācija) — tāpēc skaita tikai būtiskos un tikai īpatsvaru. Grozījuma summa nav tīrs pieaugums, tāpēc to nerāda kā %.</div>
 
       <h3 className="section-title">Kopējais svērtais risks</h3>
       <p>
-        Kopējais rādītājs ir slāņu svērta kombinācija: B 30% (max no B1/B2), A 25%, C 20%, D 15%, E 10%.
+        Kopējais rādītājs ir slāņu svērta kombinācija: B 26% (max no B1/B2), A 22%, C 17%, G 15%, D 12%, E 8%.
         Trūkstošs slānis dod 0 ieguldījumu — tā <strong>augstu risku rada vairāku signālu sakritība</strong>,
-        ne viens izolēts rādītājs. Krāsas: zaļš 0–29, dzeltens 30–69, sarkans 70–100.
+        ne viens izolēts rādītājs. Krāsas: zaļš 0–29, dzeltens 30–59, sarkans 60–100.
       </p>
 
       <h3 className="section-title">Slēgtie tirgi (karteļa netieša pazīme)</h3>
@@ -44,7 +45,7 @@ export function MethodologyView() {
       <div className="m-ind"><strong>Fazekas / DIGIWHIST / Opentender.</strong> Pētnieka Mihály Fazekas akadēmiskais darbs un ES projekts DIGIWHIST izveidoja Korupcijas riska indeksu (CRI) no “elementārajiem” integritātes indikatoriem. Galvenās atziņas, ko izmantojam: <strong>viena pretendenta īpatsvars ir visplašāk validētais proxy</strong>, un kompozītu indeksu bieži veido ar <strong>vienādiem/caurspīdīgiem svariem</strong>; indikators jāvērtē pret reālo nacionālo bāzi, ne ideālu nulli. Platforma <a href="https://opentender.eu/" target="_blank" rel="noopener noreferrer">opentender.eu</a> aptver ES, t.sk. Latviju.</div>
       <div className="m-ind"><strong>Pasaules Banka / GI-ACE.</strong> Pētījumos viena pretendenta gadījumi (“single bidding”) validēti kā galvenais korupcijas riska proxy 40+ valstīs — pamats nacionālās bāzes pieejai (B1).</div>
       <div className="m-ind"><strong>DOZORRO / Prozorro (Ukraina).</strong> Viena no pasaulē attīstītākajām sistēmām. No tās pārņemta <strong>modulārā arhitektūra</strong> (katrs indikators = atsevišķa, testējama klase) un princips, ka precīzos sliekšņus periodiski pārkalibrē un nepublicē tā, lai tie kļūtu par apiešanas instrukciju.</div>
-      <p>Kā tas savienojas šajā rīkā: <strong>B1/B2</strong> = konkurences indikatori (Fazekas CRI kodols), <strong>A</strong> = sliekšņa apiešana/sadalīšana (OCP), <strong>C</strong> = cenu/vērtības novirze (statistiska z-score pieeja), <strong>E</strong> = procedūras integritāte, <strong>D</strong> = saistītās puses. <strong>Kopējais risks</strong> ir to svērta kombinācija, jo pētījumi rāda, ka atsevišķi karogi ir vāji, bet to sakritība — spēcīga.</p>
+      <p>Kā tas savienojas šajā rīkā: <strong>B1/B2</strong> = konkurences indikatori (Fazekas CRI kodols), <strong>A</strong> = sliekšņa apiešana/sadalīšana (OCP), <strong>C</strong> = cenu/vērtības novirze (statistiska z-score pieeja), <strong>E</strong> = procedūras integritāte, <strong>D</strong> = saistītās puses, <strong>G</strong> = līguma grozījumi pēc uzvaras (scope creep). <strong>Kopējais risks</strong> ir to svērta kombinācija, jo pētījumi rāda, ka atsevišķi karogi ir vāji, bet to sakritība — spēcīga.</p>
 
       <h3 className="section-title">Ierobežojumi</h3>
       <ul className="m-list">

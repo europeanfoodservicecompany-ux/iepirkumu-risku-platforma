@@ -10,7 +10,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, join } from 'node:path';
 import type { Lot } from '../../engine/src/types.ts';
-import { parseNotices, parseActiveTenders, filterOpenTenders } from './parse.ts';
+import { parseNotices, parseActiveTenders, filterOpenTenders, parseModifications, groupModificationsByBuyer } from './parse.ts';
 import { loadRegistrationMap } from './ur.ts';
 import { writeDataset } from './output.ts';
 import { runEngine } from '../../engine/src/index.ts';
@@ -33,8 +33,19 @@ async function loadLots(): Promise<{ lots: Lot[]; source: string; coverage: stri
     const notices = JSON.parse(readFileSync(SAMPLE_RAW, 'utf8'));
     return { lots: dedupeById(parseNotices(notices)), source: 'raw paraugs (iub_sample.json)', coverage: 'paraugs' };
   }
+  if (args[0] === '--since' && args[1]) {
+    // VISA vēsture: no fiksēta sākuma datuma līdz vakardienai (lieto automātiskā atjaunošana).
+    // Tā aptvērums vienmēr aug un nekad nepamet sākumu (IUB dati sākas 2023-10-25).
+    const iso = (d: Date) => d.toISOString().slice(0, 10);
+    const from = args[1];
+    const to = iso(new Date(Date.now() - 86400000));
+    const { fetchRange } = await import('./fetch.ts');
+    console.log(`Ievācu visu vēsturi: ${from} … ${to}`);
+    const notices = await fetchRange(from, to);
+    return { lots: dedupeById(parseNotices(notices)), source: 'IUB visa vēsture', coverage: `${from} … ${to}`, notices };
+  }
   if (args[0] === '--days' && args[1]) {
-    // Slīdošais logs: pēdējās N dienas līdz vakardienai (lieto automātiskā atjaunošana).
+    // Slīdošais logs: pēdējās N dienas līdz vakardienai.
     const n = parseInt(args[1], 10);
     const to = new Date(Date.now() - 86400000);
     const from = new Date(to.getTime() - (n - 1) * 86400000);
@@ -69,7 +80,16 @@ if (existsSync(UR_PATH)) {
   console.log('UR dati nav atrasti (D indikators būs "nepietiek datu"). Skat. packages/ingest/src/ur.ts.');
 }
 
-const output = runEngine(lots, { companyReg });
+// Līguma grozījumi (cont-modif) G indikatoram — tikai fetch ceļā (jēlpaziņojumi pieejami).
+let modifications = new Map();
+if (notices) {
+  const mods = parseModifications(notices);
+  modifications = groupModificationsByBuyer(mods);
+  writeFileSync(join(DATA, 'modifications.json'), JSON.stringify({ count: mods.length, modifications: mods }));
+  console.log(`Līguma grozījumi (cont-modif): ${mods.length}`);
+}
+
+const output = runEngine(lots, { companyReg, modifications });
 (output as any).meta = { source, generatedAt: new Date().toISOString(), lots: lots.length };
 
 if (!existsSync(DATA)) mkdirSync(DATA, { recursive: true });

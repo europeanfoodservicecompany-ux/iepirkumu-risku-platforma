@@ -28,7 +28,7 @@ jobs:
         run: npm --workspace packages/web run typecheck
 
       - name: Ievākt jaunākos IUB datus un pārrēķināt indikatorus (rolling 365 dienas)
-        run: node packages/ingest/src/run.ts --days 365
+        run: node packages/ingest/src/run.ts --since 2023-10-25
 
       - name: Uzbūvēt frontendu
         run: npm run web:build

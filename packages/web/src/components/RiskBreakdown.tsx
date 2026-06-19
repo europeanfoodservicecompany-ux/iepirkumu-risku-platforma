@@ -12,6 +12,7 @@ const ROWS: { key: keyof BuyerSummary; label: string }[] = [
   { key: 'c', label: 'C · Vērtības novirze' },
   { key: 'e', label: 'E · Procedūra' },
   { key: 'd', label: 'D · Saistītās puses' },
+  { key: 'g', label: 'G · Līguma grozījumi' },
 ];
 
 export function RiskBreakdown({ buyer }: { buyer: BuyerSummary }) {

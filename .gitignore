@@ -9,3 +9,7 @@ packages/web/dist/
 # Vite temp
 *.timestamp-*.mjs
 packages/web/public/data/
+
+# Lielie atvasinātie datu faili (CI tos pārģenerē; frontend tos nelasa) — nebloķē Pages 25 MiB limitu
+data/lots.json
+data/engine_output.json

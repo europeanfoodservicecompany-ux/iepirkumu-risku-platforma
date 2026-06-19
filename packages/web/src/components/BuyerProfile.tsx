@@ -1,5 +1,5 @@
 import type { BuyerDetail, RiskResult, ActiveTender } from '../types.ts';
-import { buyerBand, buyerSummary, b2Summary, aSummary, cSummary, eSummary, dSummary, pct, fmtRatio, eur, downloadCsv } from '../format.ts';
+import { buyerBand, buyerSummary, b2Summary, aSummary, cSummary, eSummary, dSummary, gSummary, pct, fmtRatio, eur, downloadCsv } from '../format.ts';
 import { RiskBadge } from './RiskBadge.tsx';
 import { RiskBreakdown } from './RiskBreakdown.tsx';
 import { Disclaimer } from './Disclaimer.tsx';
@@ -51,6 +51,8 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
   const eRes = buyer.e;
   const dRes = buyer.d;
   const newWinners = dRes.detail?.newWinners ?? [];
+  const gRes = buyer.g;
+  const gMods = gRes.detail?.modifications ?? [];
 
   function exportFlagged() {
     const rows: (string | number | null)[][] = [];
@@ -58,6 +60,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
     for (const c of (aRes.detail?.clusters ?? [])) for (const m of c.members) rows.push(['A sadalīšana', `CPV ${c.cpv4}`, m.value ?? '', m.date ?? '', m.winnerName ?? m.winnerId ?? '', `kopa €${c.sum} (${c.sumRatio}× slieksnis)`, m.sourceUrl ?? '']);
     for (const p of priceFlags) rows.push(['C vērtības novirze', `CPV ${(p.cpv ?? '').slice(0, 8)}`, p.value, '', '', `z=${p.z} (n=${p.obs})`, p.sourceUrl ?? '']);
     for (const w of newWinners) rows.push(['D jauns uzvarētājs', `daļa ${w.lotId}`, w.value ?? '', w.registered, w.winnerName ?? w.winnerId ?? '', `${w.ageMonths} mēn. vecs`, w.sourceUrl ?? '']);
+    for (const m of gMods) rows.push(['G līguma grozījums', m.name ?? '', m.value ?? '', '', m.winnerName ?? '', `${m.reasonCode ?? ''} — ${m.reasonDescription ?? ''}`, m.sourceUrl ?? '']);
     const safe = (buyer.buyerName ?? buyer.buyerId).replace(/[^a-zA-Z0-9]+/g, '_').slice(0, 40);
     downloadCsv(`karogotie_${safe}.csv`, ['Indikators', 'Iepirkums', 'Summa EUR', 'Datums', 'Uzvarētājs', 'Detaļa', 'EIS saite'], rows);
   }
@@ -90,7 +93,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
       <div className="card">
         <RiskBreakdown buyer={buyer} />
         <div className="muted small" style={{ marginTop: 12 }}>
-          Kopējais risks ir svērta indikatoru kombinācija (B 30%, A 25%, C 20%, D 15%, E 10%).
+          Kopējais risks ir svērta indikatoru kombinācija (B 26%, A 22%, C 17%, G 15%, D 12%, E 8%).
           Augstu risku rada vairāku signālu sakritība, ne viens atsevišķs rādītājs.
         </div>
       </div>
@@ -244,6 +247,39 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
             <div className="why">
               Uzvarētājs reģistrēts {w.registered} — tikai {w.ageMonths} mēnešus pirms līguma iegūšanas
               {w.value != null ? ` (līgums ${eur(w.value)})` : ''}. Nesen dibināts uzņēmums, kas uzreiz iegūst līgumu, ir saistīto pušu riska signāls.
+            </div>
+          </Flag>
+        ))}
+      </div>
+
+      {/* ── G — Līguma grozījumi (scope creep) ── */}
+      <h3 className="section-title">G · Līguma grozījumi pēc uzvaras (slānis G)</h3>
+      <div className="card">
+        <p style={{ marginTop: 0 }}>{gSummary(gRes)}</p>
+        {gRes.status !== 'NoData' && (
+          <>
+            <div className="kv"><span>Līgumi ar būtiskiem grozījumiem (papildu darbi / izpildītāja maiņa)</span>
+              <strong className="mono">{gRes.detail?.substantiveContracts ?? 0} / {gRes.detail?.contracts ?? 0}</strong></div>
+            <div className="kv"><span>Visi grozītie līgumi</span><span className="mono">{gRes.detail?.modifiedContracts ?? 0}</span></div>
+          </>
+        )}
+        <div className="disclaimer" style={{ margin: '12px 0' }}>
+          <strong>Piezīme:</strong> daudzi grozījumi ir likumīgi (termiņa pagarinājums, indeksācija). Signāls ir
+          tieši <em>papildu darbi/piegādes</em> un <em>izpildītāja maiņa</em> — klasiska „uzvar lēti, pēc tam uzpūš" shēma.
+          Grozījuma paziņojumā norādītā summa nav tīrs pieaugums, tāpēc to nerādām kā %.
+        </div>
+        {gMods.map((m, i) => (
+          <Flag url={m.sourceUrl} key={i}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+              <div>
+                <RiskBadge band={m.reasonCode === 'add-wss' || m.reasonCode === 'mod-repl' ? 'red' : 'yellow'}
+                  label={m.reasonCode === 'add-wss' ? 'Papildu darbi' : m.reasonCode === 'mod-repl' ? 'Izpildītāja maiņa' : (m.reasonCode ?? 'Grozījums')} />
+                <span className="small" style={{ marginLeft: 8 }}>{m.name ?? '—'}</span>
+              </div>
+              {m.sourceUrl && <span className="iublink small">Skatīt →</span>}
+            </div>
+            <div className="why">
+              {m.reasonDescription ?? 'Līguma grozījums'}{m.winnerName ? ` · ${m.winnerName}` : ''}{m.value != null ? ` · ${eur(m.value)}` : ''}
             </div>
           </Flag>
         ))}

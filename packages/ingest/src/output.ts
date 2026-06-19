@@ -19,8 +19,8 @@ export function writeDataset(dataDir: string, output: EngineOutput, lots: Lot[],
       buyerId: b.buyerId, buyerName: b.buyerName,
       combinedScore: b.combinedScore, combinedLevel: b.combinedLevel,
       layerScores: b.layerScores,
-      levels: { B1: b.result.level, B2: b.b2.level, A: b.a.level, C: b.c.level, E: b.e.level, D: b.d.level },
-      scores: { B1: b.result.score, B2: b.b2.score, A: b.a.score, C: b.c.score, E: b.e.score, D: b.d.score },
+      levels: { B1: b.result.level, B2: b.b2.level, A: b.a.level, C: b.c.level, E: b.e.level, D: b.d.level, G: b.g.level },
+      scores: { B1: b.result.score, B2: b.b2.score, A: b.a.score, C: b.c.score, E: b.e.score, D: b.d.score, G: b.g.score },
     })),
   };
   writeFileSync(join(dataDir, 'index.json'), JSON.stringify(index));

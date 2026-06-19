@@ -158,7 +158,7 @@ function Shell({ children, nav }: { children: React.ReactNode; nav?: React.React
         <div className="container">
           <a href="#/" className="brand">
             <h1>Publisko iepirkumu risku platforma</h1>
-            <p>Indikatori B1, B2, A, C, E, D · dati: Iepirkumu uzraudzības birojs un Uzņēmumu reģistrs</p>
+            <p>Indikatori B1, B2, A, C, E, D, G · dati: Iepirkumu uzraudzības birojs un Uzņēmumu reģistrs</p>
           </a>
         </div>
       </header>

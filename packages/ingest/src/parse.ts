@@ -1,4 +1,4 @@
-import type { Lot } from '../../engine/src/types.ts';
+import type { Lot, Modification } from '../../engine/src/types.ts';
 
 // ── eForms → lots parsētājs ──
 // Balstīts uz REĀLO IUB atvērto datu struktūru (open.iub.gov.lv), pārbaudītu pret
@@ -165,6 +165,71 @@ export function parseActiveTenders(notices: AnyObj[], baseUrl = IUB_NOTICE_BASE_
     });
   }
   return out;
+}
+
+// ── Līguma grozījumi no 'cont-modif' paziņojumiem ──
+// Reālā formāta atziņa: iemesls — tenderResult.modificationReasonCode
+//   (add-wss=papildu darbi/piegādes, mod-repl=izpildītāja maiņa, mod-cir=neparedzami apstākļi,
+//    mod-nons=nebūtisks, mod-rev=pārskatīšanas klauzula, mod-minv=de minimis).
+// Uzvarētājs/vērtība — draftContract.winners[]. Sasaiste ar oriģinālu — procurementProcedureIdentifier.
+function eisFrom(obj: AnyObj): string | null {
+  const stack = [obj];
+  while (stack.length) {
+    const o = stack.pop();
+    if (!o || typeof o !== 'object') continue;
+    for (const v of Object.values(o)) {
+      if (typeof v === 'string' && v.includes('eis.gov.lv') && v.startsWith('http')) return v;
+      if (v && typeof v === 'object') stack.push(v as AnyObj);
+    }
+  }
+  return null;
+}
+
+export function parseModifications(notices: AnyObj[]): Modification[] {
+  const out: Modification[] = [];
+  for (const n of notices) {
+    if (n?.formType !== 'cont-modif') continue;
+    const buyer = pickBuyer(n);
+    if (!buyer.id) continue;
+    const tr = n.tenderResult ?? {};
+    const winners = asArray<AnyObj>(n.draftContract?.winners);
+    let value: number | null = null;
+    let winnerName: string | null = null;
+    let bestVal = -1;
+    for (const w of winners) {
+      const v = num(w?.tenderValue?.amount ?? w?.tenderValue);
+      if (v !== null) value = (value ?? 0) + v;
+      const party = asArray<AnyObj>(w?.businessParty)[0];
+      const nm = party?.name;
+      if ((v ?? 0) > bestVal && typeof nm === 'string' && nm) { bestVal = v ?? 0; winnerName = nm; }
+    }
+    const desc = typeof tr.modificationDescription === 'string' ? tr.modificationDescription.slice(0, 400) : null;
+    out.push({
+      procedureId: n.procurementProcedureIdentifier ?? null,
+      buyerId: buyer.id,
+      buyerName: buyer.name,
+      cpv: n.cpvType ?? null,
+      reasonCode: tr.modificationReasonCode ?? null,
+      reasonDescription: typeof tr.modificationReasonDescription === 'string' ? tr.modificationReasonDescription : null,
+      description: desc,
+      value,
+      winnerName,
+      sourceUrl: eisFrom(n) ?? buyer.client,
+      date: parseDate(n.tenderResult?.decisionDate ?? n.dispatchDate ?? null),
+      name: n.name ?? n.procurementProject?.description ?? null,
+    });
+  }
+  return out;
+}
+
+// Grupē grozījumus pēc pasūtītāja reģ. nr. (dzinēja kontekstam).
+export function groupModificationsByBuyer(mods: Modification[]): Map<string, Modification[]> {
+  const m = new Map<string, Modification[]>();
+  for (const x of mods) {
+    if (!m.has(x.buyerId)) m.set(x.buyerId, []);
+    m.get(x.buyerId)!.push(x);
+  }
+  return m;
 }
 
 // Tikai vēl atvērtie (iesniegšanas termiņš nākotnē vai šodien).

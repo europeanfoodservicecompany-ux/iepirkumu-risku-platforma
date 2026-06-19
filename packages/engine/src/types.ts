@@ -140,10 +140,47 @@ export const DEFAULT_D_CONFIG: DConfig = {
 
 export type CompanyInfo = { registered: string | null; type: string | null };
 
+// Līguma grozījums pēc uzvaras (IUB cont-modif paziņojums).
+export type Modification = {
+  procedureId: string | null;  // sasaiste ar oriģinālo līgumu (procurementProcedureIdentifier)
+  buyerId: string;             // pasūtītāja reģ. nr.
+  buyerName: string | null;
+  cpv: string | null;
+  reasonCode: string | null;   // add-wss, mod-cir, mod-nons, mod-rev, mod-minv, mod-repl
+  reasonDescription: string | null; // īsais iemesls
+  description: string | null;  // garais pamatojums (saīsināts)
+  value: number | null;        // grozījumā norādītā līgumvērtība (NB: ne tīrs pieaugums)
+  winnerName: string | null;
+  sourceUrl: string | null;
+  date: string | null;
+  name: string | null;         // līguma/iepirkuma nosaukums
+};
+
+export type GConfig = {
+  substantiveCodes: string[];   // būtiskie grozījumu kodi (papildu darbi, izpildītāja maiņa)
+  minContracts: number;         // min atšķirīgu līgumu skaits (saucējs)
+  yellowRate: number;           // būtiski-grozīto līgumu īpatsvars → dzeltens
+  redRate: number;              // → sarkans
+  minSubstantiveYellow: number; // skaita aizsargs pret vienreizēju troksni
+  minSubstantiveRed: number;
+};
+
+// Līguma grozījumi: papildu darbi (add-wss) un izpildītāja maiņa (mod-repl) ir būtiskākie
+// "scope creep" signāli (uzvar ar zemu cenu → vēlāk uzpūš ar papildu darbiem). Sliekšņi balstīti
+// reālā gada sadalījumā: papildu-darbu līmenis p95≈3,5%, p99≈9%. Skaita aizsargs filtrē 1/N troksni.
+export const DEFAULT_G_CONFIG: GConfig = {
+  substantiveCodes: ['add-wss', 'mod-repl'],
+  minContracts: 10,
+  yellowRate: 0.035,
+  redRate: 0.09,
+  minSubstantiveYellow: 2,
+  minSubstantiveRed: 3,
+};
+
 // Slāņu svari kopējam riskam. B slānis = max(B1, B2). Sākotnēji metodoloģijas ieteiktie svari;
 // akadēmiskā prakse (Fazekas) iesaka sākt ar vienādiem svariem — tāpēc tie ir KONFIGURĒJAMI.
-export type Weights = { A: number; B: number; C: number; D: number; E: number };
-export const DEFAULT_WEIGHTS: Weights = { A: 0.25, B: 0.30, C: 0.20, D: 0.15, E: 0.10 };
+export type Weights = { A: number; B: number; C: number; D: number; E: number; G: number };
+export const DEFAULT_WEIGHTS: Weights = { A: 0.22, B: 0.26, C: 0.17, D: 0.12, E: 0.08, G: 0.15 };
 
 export type EngineContext = {
   nationalAvg: number; // nacionālais viena-pretendenta īpatsvars (0..1)
@@ -154,5 +191,7 @@ export type EngineContext = {
   cpvStats: Map<string, CpvStat>; // CPV → ln(vērtības) vidējais/std/skaits
   e: EConfig;
   d: DConfig;
+  g: GConfig;
   companyReg: Map<string, CompanyInfo>; // uzvarētāja reģ.nr. → UR reģistrācijas info
+  modifications: Map<string, Modification[]>; // pasūtītāja reģ.nr. → līguma grozījumi
 };

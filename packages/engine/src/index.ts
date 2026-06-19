@@ -1,8 +1,8 @@
 import type {
-  Lot, RiskResult, B1Config, B2Config, AConfig, CConfig, EConfig, DConfig, CompanyInfo, Weights, EngineContext,
+  Lot, RiskResult, B1Config, B2Config, AConfig, CConfig, EConfig, DConfig, GConfig, CompanyInfo, Modification, Weights, EngineContext,
 } from './types.ts';
 import {
-  DEFAULT_B1_CONFIG, DEFAULT_B2_CONFIG, DEFAULT_A_CONFIG, DEFAULT_C_CONFIG, DEFAULT_E_CONFIG, DEFAULT_D_CONFIG, DEFAULT_WEIGHTS,
+  DEFAULT_B1_CONFIG, DEFAULT_B2_CONFIG, DEFAULT_A_CONFIG, DEFAULT_C_CONFIG, DEFAULT_E_CONFIG, DEFAULT_D_CONFIG, DEFAULT_G_CONFIG, DEFAULT_WEIGHTS,
 } from './types.ts';
 import { IndicatorB1 } from './indicators/B1.ts';
 import { IndicatorB2 } from './indicators/B2.ts';
@@ -10,6 +10,7 @@ import { IndicatorA } from './indicators/A.ts';
 import { IndicatorC } from './indicators/C.ts';
 import { IndicatorE } from './indicators/E.ts';
 import { IndicatorD } from './indicators/D.ts';
+import { IndicatorG } from './indicators/G.ts';
 import { computeNationalBaseline, computeCpvPriceStats, groupByBuyer, type NationalBaseline } from './aggregate.ts';
 
 export * from './types.ts';
@@ -19,6 +20,7 @@ export { IndicatorA } from './indicators/A.ts';
 export { IndicatorC } from './indicators/C.ts';
 export { IndicatorE } from './indicators/E.ts';
 export { IndicatorD } from './indicators/D.ts';
+export { IndicatorG } from './indicators/G.ts';
 export { computeNationalBaseline, computeCpvPriceStats, computeSectorStats, computeClosedMarkets, groupByBuyer } from './aggregate.ts';
 
 export type BuyerSummary = {
@@ -27,13 +29,14 @@ export type BuyerSummary = {
   riskScore: number | null;     // augstākais starp indikatoriem
   combinedScore: number | null; // svērtais kopējais risks (rangam un galvenajam rādītājam)
   combinedLevel: 'red' | 'yellow' | 'green' | null;
-  layerScores: { A: number | null; B: number | null; C: number | null; D: number | null; E: number | null };
+  layerScores: { A: number | null; B: number | null; C: number | null; D: number | null; E: number | null; G: number | null };
   result: RiskResult;        // B1
   b2: RiskResult;            // B2 — uzvarētāju koncentrācija
   a: RiskResult;             // A  — iepirkumu sadalīšana
   c: RiskResult;             // C  — cenu/vērtības novirze
   e: RiskResult;             // E  — procedūras integritāte
   d: RiskResult;             // D  — saistītās puses
+  g: RiskResult;             // G  — līguma grozījumi (scope creep)
   flaggedLots: RiskResult[]; // karogotie iepirkumi (B1 lot līmenis)
 };
 
@@ -53,7 +56,7 @@ function maxScore(...rs: RiskResult[]): number | null {
 // Kopējais svērtais risks. B slānis = max(B1, B2). Renormalizē svarus pār slāņiem, kuriem ir
 // rādītājs (trūkstošs slānis nedz pazemina, nedz dilst — tas vienkārši netiek ieskaitīts).
 function combine(
-  layers: { A: number | null; B: number | null; C: number | null; D: number | null; E: number | null },
+  layers: { A: number | null; B: number | null; C: number | null; D: number | null; E: number | null; G: number | null },
   w: Weights,
 ): { score: number | null; level: 'red' | 'yellow' | 'green' | null } {
   const keys = Object.keys(w) as (keyof Weights)[];
@@ -64,17 +67,20 @@ function combine(
   const totalW = keys.reduce((a, k) => a + w[k], 0);
   const sum = keys.reduce((a, k) => a + w[k] * (layers[k] ?? 0), 0);
   const score = Math.round(sum / totalW);
-  const level = score >= 70 ? 'red' : score >= 30 ? 'yellow' : 'green';
+  // Sarkans=60, dzeltens=30. Slieksnis 60 (ne 70), jo svērtais vidējais ir pār 6 slāņiem ar
+  // "trūkstošais=0" principu — augstu kopējo sasniedz tikai vairāku signālu sakritība (≥3 slāņi).
+  const level = score >= 60 ? 'red' : score >= 30 ? 'yellow' : 'green';
   return { score, level };
 }
 
 export type EngineConfig = {
-  b1?: B1Config; b2?: B2Config; a?: AConfig; c?: CConfig; e?: EConfig; d?: DConfig;
+  b1?: B1Config; b2?: B2Config; a?: AConfig; c?: CConfig; e?: EConfig; d?: DConfig; g?: GConfig;
   companyReg?: Map<string, CompanyInfo>;
+  modifications?: Map<string, Modification[]>;
   weights?: Weights;
 };
 
-// Galvenā plūsma: aprēķina visus indikatorus (B1, B2, A, C, E, D) pasūtītājiem.
+// Galvenā plūsma: aprēķina visus indikatorus (B1, B2, A, C, E, D, G) pasūtītājiem.
 export function runEngine(lots: Lot[], cfg: EngineConfig = {}): EngineOutput {
   const b1 = new IndicatorB1();
   const b2 = new IndicatorB2();
@@ -82,6 +88,7 @@ export function runEngine(lots: Lot[], cfg: EngineConfig = {}): EngineOutput {
   const c = new IndicatorC();
   const e = new IndicatorE();
   const d = new IndicatorD();
+  const g = new IndicatorG();
   const weights = cfg.weights ?? DEFAULT_WEIGHTS;
   const national = computeNationalBaseline(lots, (l) => b1.appliesTo(l));
   const cConfig = cfg.c ?? DEFAULT_C_CONFIG;
@@ -94,7 +101,9 @@ export function runEngine(lots: Lot[], cfg: EngineConfig = {}): EngineOutput {
     cpvStats: computeCpvPriceStats(lots, cConfig.cpvDigits, cConfig.minObs),
     e: cfg.e ?? DEFAULT_E_CONFIG,
     d: cfg.d ?? DEFAULT_D_CONFIG,
+    g: cfg.g ?? DEFAULT_G_CONFIG,
     companyReg: cfg.companyReg ?? new Map(),
+    modifications: cfg.modifications ?? new Map(),
   };
 
   const lotResults = lots.map((l) => b1.processLot(l, ctx));
@@ -108,6 +117,7 @@ export function runEngine(lots: Lot[], cfg: EngineConfig = {}): EngineOutput {
     const rC = c.processBuyer(buyerId, buyerLots, ctx);
     const rE = e.processBuyer(buyerId, buyerLots, ctx);
     const rD = d.processBuyer(buyerId, buyerLots, ctx);
+    const rG = g.processBuyer(buyerId, buyerLots, ctx);
     const flaggedLots = buyerLots
       .map((l) => b1.processLot(l, ctx))
       .filter((r) => r.status === 'RiskFound');
@@ -117,16 +127,17 @@ export function runEngine(lots: Lot[], cfg: EngineConfig = {}): EngineOutput {
       C: rC.score,
       D: rD.score,
       E: rE.score,
+      G: rG.score,
     };
     const comb = combine(layerScores, weights);
     buyers.push({
       buyerId,
       buyerName: buyerLots.find((l) => l.buyerName)?.buyerName ?? null,
-      riskScore: maxScore(r1, r2, rA, rC, rE, rD),
+      riskScore: maxScore(r1, r2, rA, rC, rE, rD, rG),
       combinedScore: comb.score,
       combinedLevel: comb.level,
       layerScores,
-      result: r1, b2: r2, a: rA, c: rC, e: rE, d: rD,
+      result: r1, b2: r2, a: rA, c: rC, e: rE, d: rD, g: rG,
       flaggedLots,
     });
   }

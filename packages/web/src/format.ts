@@ -91,6 +91,15 @@ export function dSummary(r: RiskResult): string {
   return `${n} līgum${n === 1 ? 's' : 'i'} piešķirt${n === 1 ? 's' : 'i'} uzņēmumam, kas reģistrēts īsi pirms uzvaras${(d.veryNewAwards ?? 0) > 0 ? ' (t.sk. ļoti jauns uzņēmums)' : ''} — saistīto pušu riska signāls.`;
 }
 
+// Kopsavilkums G (līguma grozījumi / scope creep).
+export function gSummary(r: RiskResult): string {
+  const d = r.detail ?? {};
+  if (r.status === 'NoData') return 'Nepietiek līgumu grozījumu analīzei.';
+  const n = d.substantiveContracts ?? 0;
+  if (n === 0 || r.score === 0) return 'Nav konstatēti būtiski līguma grozījumi (papildu darbi / izpildītāja maiņa).';
+  return `${n} no ${d.contracts ?? '?'} līgumiem pēc uzvaras grozīti ar papildu darbiem vai izpildītāja maiņu (${pct(d.substantiveRate, 0)}). Var liecināt par cenas/apjoma uzpūšanu pēc uzvaras — jāpārbauda.`;
+}
+
 // Krāsas josla no rādītāja + līmeņa (indeksa datiem, kur nav pilna RiskResult).
 export function bandFromScore(score: number | null, level: 'red' | 'yellow' | null): BandKey {
   if (score === null) return 'gray';
