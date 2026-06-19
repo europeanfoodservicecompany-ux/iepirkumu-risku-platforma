@@ -93,8 +93,38 @@ export type IndexBuyer = {
   combinedScore: number | null;
   combinedLevel: 'red' | 'yellow' | 'green' | null;
   layerScores: { A: number | null; B: number | null; C: number | null; D: number | null; E: number | null; G: number | null };
+  value?: number;
+  sectorCpv2?: string | null;
+  sectorLabel?: string | null;
+  region?: string | null;
   levels: Record<IndKey, RiskLevel>;
   scores: Record<IndKey, number | null>;
+};
+
+// ── Piegādātāji (uzvarētāji) ──
+export type WinnerIndexEntry = {
+  winnerId: string; fileId: string; winnerName: string | null;
+  contracts: number; value: number; buyers: number;
+  singleBidRate: number; topBuyerShare: number;
+  sectorCpv2: string | null; sectorLabel: string | null;
+};
+export type WinnersIndex = { meta?: { coverage?: string }; winners: WinnerIndexEntry[] };
+
+export type WinnerLot = {
+  lotId: string; buyerId: string; buyerName: string | null; value: number | null;
+  date: string | null; receivedBids: number | null; singleBid: boolean; cpv: string | null; sourceUrl: string | null;
+};
+export type WinnerByBuyer = {
+  buyerId: string; buyerName: string | null; contracts: number; value: number; singleBid: number; lots: WinnerLot[];
+};
+export type WinnerDetail = {
+  winnerId: string; fileId: string; winnerName: string | null;
+  contracts: number; awardedValue: number; buyers: number;
+  singleBidLots: number; singleBidRate: number;
+  topBuyerId: string | null; topBuyerName: string | null; topBuyerShare: number;
+  sectorCpv2: string | null; sectorLabel: string | null;
+  byBuyer: WinnerByBuyer[];
+  meta?: { coverage?: string };
 };
 export type IndexData = {
   meta?: { coverage?: string; source?: string; generatedAt?: string; lots?: number; buyers?: number };

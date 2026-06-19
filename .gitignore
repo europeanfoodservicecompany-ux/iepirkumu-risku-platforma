@@ -13,3 +13,5 @@ packages/web/public/data/
 # Lielie atvasinātie datu faili (CI tos pārģenerē; frontend tos nelasa) — nebloķē Pages 25 MiB limitu
 data/lots.json
 data/engine_output.json
+# Piegādātāju detaļu faili (6700+; CI pārģenerē, deploy ņem no dist) — netur git
+data/winners/

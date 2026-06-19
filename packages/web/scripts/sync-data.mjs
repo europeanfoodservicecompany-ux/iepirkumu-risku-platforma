@@ -16,13 +16,21 @@ if (!existsSync(join(src, 'index.json'))) {
 mkdirSync(join(destDir, 'buyers'), { recursive: true });
 
 copyFileSync(join(src, 'index.json'), join(destDir, 'index.json'));
-if (existsSync(join(src, 'sectors.json'))) copyFileSync(join(src, 'sectors.json'), join(destDir, 'sectors.json'));
-if (existsSync(join(src, 'markets.json'))) copyFileSync(join(src, 'markets.json'), join(destDir, 'markets.json'));
-if (existsSync(join(src, 'active.json'))) copyFileSync(join(src, 'active.json'), join(destDir, 'active.json'));
+for (const f of ['sectors.json', 'markets.json', 'active.json', 'winners-index.json']) {
+  if (existsSync(join(src, f))) copyFileSync(join(src, f), join(destDir, f));
+}
 
 let n = 0;
 for (const f of readdirSync(join(src, 'buyers'))) {
   copyFileSync(join(src, 'buyers', f), join(destDir, 'buyers', f));
   n++;
 }
-console.log(`Dati nokopēti: index.json, sectors.json, ${n} pasūtītāju faili → web/public/data/`);
+let wn = 0;
+if (existsSync(join(src, 'winners'))) {
+  mkdirSync(join(destDir, 'winners'), { recursive: true });
+  for (const f of readdirSync(join(src, 'winners'))) {
+    copyFileSync(join(src, 'winners', f), join(destDir, 'winners', f));
+    wn++;
+  }
+}
+console.log(`Dati nokopēti: index.json, ${n} pasūtītāju faili, ${wn} piegādātāju faili → web/public/data/`);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { IndexData, SectorsData, MarketsData, ActiveData, BuyerDetail } from './types.ts';
+import type { IndexData, SectorsData, MarketsData, ActiveData, BuyerDetail, WinnersIndex, WinnerDetail } from './types.ts';
 import { pct } from './format.ts';
 import { InfoPanel } from './components/InfoPanel.tsx';
 import { BuyerList } from './components/BuyerList.tsx';
@@ -8,6 +8,8 @@ import { BuyerProfile } from './components/BuyerProfile.tsx';
 import { SectorView } from './components/SectorView.tsx';
 import { MarketView } from './components/MarketView.tsx';
 import { ActiveView } from './components/ActiveView.tsx';
+import { SupplierView } from './components/SupplierView.tsx';
+import { SupplierProfile } from './components/SupplierProfile.tsx';
 import { MethodologyView } from './components/MethodologyView.tsx';
 import { Disclaimer } from './components/Disclaimer.tsx';
 
@@ -15,21 +17,23 @@ const BASE = import.meta.env.BASE_URL;
 // Atbildes tiesības / kļūdu ziņošana — nomaini uz vēlamo e-pastu (vai iztukšo, lai paslēptu).
 const REPORT_EMAIL = 'europeanfoodservicecompany@gmail.com';
 
-type View = 'buyers' | 'sectors' | 'markets' | 'active' | 'method';
+type View = 'buyers' | 'suppliers' | 'sectors' | 'markets' | 'active' | 'method';
 
 const TABS: { v: View; label: string }[] = [
   { v: 'buyers', label: 'Pasūtītāji' },
+  { v: 'suppliers', label: 'Piegādātāji' },
   { v: 'sectors', label: 'Nozares' },
   { v: 'markets', label: 'Slēgtie tirgi' },
   { v: 'active', label: 'Aktuālie konkursi' },
   { v: 'method', label: 'Metodoloģija' },
 ];
 
-function parseHash(): { view: View; buyerId: string | null } {
+function parseHash(): { view: View; buyerId: string | null; winnerId: string | null } {
   const h = window.location.hash.replace(/^#\/?/, '');
-  if (h.startsWith('buyer/')) return { view: 'buyers', buyerId: decodeURIComponent(h.slice(6)) };
-  if (h === 'sectors' || h === 'markets' || h === 'active' || h === 'method') return { view: h, buyerId: null };
-  return { view: 'buyers', buyerId: null };
+  if (h.startsWith('buyer/')) return { view: 'buyers', buyerId: decodeURIComponent(h.slice(6)), winnerId: null };
+  if (h.startsWith('winner/')) return { view: 'suppliers', buyerId: null, winnerId: decodeURIComponent(h.slice(7)) };
+  if (h === 'suppliers' || h === 'sectors' || h === 'markets' || h === 'active' || h === 'method') return { view: h, buyerId: null, winnerId: null };
+  return { view: 'buyers', buyerId: null, winnerId: null };
 }
 
 export function App() {
@@ -38,13 +42,18 @@ export function App() {
   const [markets, setMarkets] = useState<MarketsData | null>(null);
   const [active, setActive] = useState<ActiveData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [winners, setWinners] = useState<WinnersIndex | null>(null);
   const [route, setRoute] = useState(parseHash());
   const view = route.view;
   const selected = route.buyerId;
+  const selectedWinner = route.winnerId;
   const setView = (v: View) => { window.location.hash = v === 'buyers' ? '#/' : `#/${v}`; };
   const setSelected = (id: string | null) => { window.location.hash = id ? `#/buyer/${encodeURIComponent(id)}` : '#/'; };
+  const setWinner = (fid: string | null) => { window.location.hash = fid ? `#/winner/${encodeURIComponent(fid)}` : '#/suppliers'; };
   const [detail, setDetail] = useState<BuyerDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [winnerDetail, setWinnerDetail] = useState<WinnerDetail | null>(null);
+  const [winnerLoading, setWinnerLoading] = useState(false);
   const [query, setQuery] = useState('');
 
   useEffect(() => {
@@ -71,7 +80,16 @@ export function App() {
     if (view === 'sectors' && !sectors) fetch(`${BASE}data/sectors.json`, { cache: 'no-cache' }).then((r) => r.json()).then(setSectors).catch(() => {});
     if (view === 'markets' && !markets) fetch(`${BASE}data/markets.json`, { cache: 'no-cache' }).then((r) => r.json()).then(setMarkets).catch(() => {});
     if ((view === 'active' || selected) && !active) fetch(`${BASE}data/active.json`, { cache: 'no-cache' }).then((r) => r.json()).then(setActive).catch(() => {});
-  }, [view, sectors, markets, active, selected]);
+    if ((view === 'suppliers' || selectedWinner) && !winners) fetch(`${BASE}data/winners-index.json`, { cache: 'no-cache' }).then((r) => r.json()).then(setWinners).catch(() => {});
+  }, [view, sectors, markets, active, selected, selectedWinner, winners]);
+
+  useEffect(() => {
+    if (!selectedWinner) { setWinnerDetail(null); return; }
+    setWinnerLoading(true); setWinnerDetail(null);
+    fetch(`${BASE}data/winners/${selectedWinner}.json`, { cache: 'no-cache' })
+      .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(setWinnerDetail).catch(() => setWinnerDetail(null)).finally(() => setWinnerLoading(false));
+  }, [selectedWinner]);
 
   const nav = (
     <nav className="mainnav" aria-label="Galvenā navigācija">
@@ -109,6 +127,22 @@ export function App() {
     );
   }
 
+  // ── Piegādātāja profils ──
+  if (selectedWinner) {
+    return (
+      <Shell nav={nav}>
+        <nav className="crumbs" aria-label="Atrašanās vieta">
+          <button className="btn-link" onClick={() => setWinner(null)}>Piegādātāji</button>
+          <span className="crumb-sep">/</span>
+          <span className="crumb-cur">{winnerDetail?.winnerName ?? selectedWinner}</span>
+        </nav>
+        {winnerLoading && <div className="loading">Ielādē piegādātāja datus…</div>}
+        {winnerDetail && <SupplierProfile winner={winnerDetail} onSelectBuyer={setSelected} />}
+        {!winnerLoading && !winnerDetail && <div className="loading">Neizdevās ielādēt piegādātāja datus.</div>}
+      </Shell>
+    );
+  }
+
   // ── Sadaļu skati ──
   return (
     <Shell nav={nav}>
@@ -141,6 +175,7 @@ export function App() {
         </>
       )}
 
+      {view === 'suppliers' && <div className="section">{winners ? <SupplierView data={winners} onSelect={setWinner} /> : <div className="loading">Ielādē piegādātājus…</div>}</div>}
       {view === 'sectors' && <div className="section">{sectors ? <SectorView data={sectors} /> : <div className="loading">Ielādē nozares…</div>}</div>}
       {view === 'markets' && <div className="section">{markets ? <MarketView data={markets} /> : <div className="loading">Ielādē tirgus…</div>}</div>}
       {view === 'active' && <div className="section">{active ? <ActiveView data={active} buyers={index.buyers} onSelectBuyer={setSelected} /> : <div className="loading">Ielādē konkursus…</div>}</div>}

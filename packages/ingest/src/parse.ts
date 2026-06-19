@@ -20,16 +20,16 @@ function asArray<T>(x: T | T[] | null | undefined): T[] {
 }
 
 // Atrod pasūtītāju no organizationData (var būt dict vai saraksts; lomas: buyer / cpb-*).
-function pickBuyer(notice: AnyObj): { id: string | null; name: string | null; client: string | null } {
+function pickBuyer(notice: AnyObj): { id: string | null; name: string | null; client: string | null; nutsCode: string | null } {
   const orgs = asArray<AnyObj>(notice.organizationData);
-  if (orgs.length === 0) return { id: null, name: null, client: null };
+  if (orgs.length === 0) return { id: null, name: null, client: null, nutsCode: null };
   const buyer =
     orgs.find((o) => o?.role === 'buyer') ??
     orgs.find((o) => typeof o?.role === 'string' && o.role.startsWith('cpb')) ??
     orgs[0];
   const client = typeof buyer?.websiteURIClient === 'string' && buyer.websiteURIClient.includes('eis.gov.lv')
     ? buyer.websiteURIClient : null;
-  return { id: buyer?.identifier ?? null, name: buyer?.name ?? null, client };
+  return { id: buyer?.identifier ?? null, name: buyer?.name ?? null, client, nutsCode: typeof buyer?.nutsCode === 'string' ? buyer.nutsCode : null };
 }
 
 // dd/mm/yyyy → ISO (yyyy-mm-dd); citādi null.
@@ -120,6 +120,7 @@ export function parseNotice(notice: AnyObj, baseUrl = IUB_NOTICE_BASE_URL): Lot[
       procedureType,
       noticeDate: parseDate(result.decisionDate),
       sourceUrl: eisUrl ?? winner_clientFallback,
+      nutsCode: buyer.nutsCode,
     });
   }
   return out;

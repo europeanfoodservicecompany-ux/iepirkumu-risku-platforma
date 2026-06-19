@@ -234,3 +234,9 @@ tr.clickable:focus-visible { outline-offset: -2px; }
   .col-sec { display: none; }
   .sec-table, .act-table { min-width: 0; }
 }
+
+/* Piegādātāju skats */
+.search-input { padding: 11px 14px; border: 1px solid var(--line); border-radius: 10px; font-size: 16px; font-family: inherit; background: #fff; }
+.search-input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--ring-track); }
+select.filter-btn { -webkit-appearance: none; appearance: none; padding-right: 26px; }
+.bigval { font-size: 26px; font-weight: 800; color: var(--brand-ink); line-height: 1.1; }

@@ -176,3 +176,86 @@ export function computeClosedMarkets(
 
 function clampN(x: number, lo: number, hi: number): number { return Math.max(lo, Math.min(hi, x)); }
 function round2(x: number, dp: number): number { const f = Math.pow(10, dp); return Math.round(x * f) / f; }
+
+// ── CPV divīzijas un reģiona palīgi (lieto arī izvade) ──
+export function sectorLabel(cpv2: string): string { return CPV_DIVISIONS[cpv2] ?? `CPV ${cpv2}`; }
+
+const LV_REGIONS: Record<string, string> = {
+  LV00A: 'Rīga', LV006: 'Rīga', LV007: 'Pierīga', LV003: 'Kurzeme',
+  LV005: 'Latgale', LV008: 'Zemgale', LV009: 'Vidzeme',
+};
+export function regionLabel(nuts: string | null | undefined): string | null {
+  if (!nuts) return null;
+  return LV_REGIONS[nuts] ?? (nuts.startsWith('LV') ? 'Cits (LV)' : null);
+}
+
+// Galvenā CPV divīzija sarakstam pēc uzvarēto līgumu vērtības.
+function topSector(lots: Lot[]): { cpv2: string; label: string } | null {
+  const val = new Map<string, number>();
+  for (const l of lots) {
+    if (!l.cpv) continue;
+    const c = l.cpv.replace(/[^0-9]/g, '').slice(0, 2);
+    if (!c) continue;
+    val.set(c, (val.get(c) ?? 0) + (l.awardValue ?? 0) + 1); // +1 lai skaitās arī bez vērtības
+  }
+  let best: string | null = null, bv = -1;
+  for (const [c, v] of val) if (v > bv) { bv = v; best = c; }
+  return best ? { cpv2: best, label: sectorLabel(best) } : null;
+}
+
+// ── Piegādātāju (uzvarētāju) agregāts ──
+// Pasūtītāja vietā skats no piegādātāja puses: visi tā uzvarētie līgumi pār VISIEM pasūtītājiem.
+// Signāli: viena-pretendenta daļa (cik bieži uzvar bez konkurences), atkarība no viena pasūtītāja.
+export type WinnerLot = {
+  lotId: string; buyerId: string; buyerName: string | null; value: number | null;
+  date: string | null; receivedBids: number | null; singleBid: boolean; cpv: string | null; sourceUrl: string | null;
+};
+export type WinnerByBuyer = {
+  buyerId: string; buyerName: string | null; contracts: number; value: number; singleBid: number; lots: WinnerLot[];
+};
+export type WinnerDetail = {
+  winnerId: string; winnerName: string | null;
+  contracts: number; awardedValue: number; buyers: number;
+  singleBidLots: number; singleBidRate: number;
+  topBuyerId: string | null; topBuyerName: string | null; topBuyerShare: number; // atkarība (pēc vērtības)
+  sectorCpv2: string | null; sectorLabel: string | null;
+  byBuyer: WinnerByBuyer[];
+};
+
+export function computeWinners(lots: Lot[]): WinnerDetail[] {
+  const m = new Map<string, Lot[]>();
+  for (const l of lots) {
+    if (!l.winnerChosen || !l.winnerId) continue;
+    (m.get(l.winnerId) ?? m.set(l.winnerId, []).get(l.winnerId)!).push(l);
+  }
+  const out: WinnerDetail[] = [];
+  for (const [winnerId, wl] of m) {
+    const winnerName = wl.find((l) => l.winnerName)?.winnerName ?? null;
+    const contracts = wl.length;
+    const awardedValue = wl.reduce((s, l) => s + (l.awardValue ?? 0), 0);
+    const singleBidLots = wl.filter((l) => l.receivedBids === 1).length;
+    // grupē pa pasūtītājiem
+    const bm = new Map<string, WinnerByBuyer>();
+    for (const l of wl) {
+      const g = bm.get(l.buyerId) ?? { buyerId: l.buyerId, buyerName: l.buyerName ?? null, contracts: 0, value: 0, singleBid: 0, lots: [] };
+      g.contracts++; g.value += l.awardValue ?? 0; if (l.receivedBids === 1) g.singleBid++;
+      g.lots.push({ lotId: l.id, buyerId: l.buyerId, buyerName: l.buyerName ?? null, value: l.awardValue ?? null,
+        date: l.noticeDate ?? null, receivedBids: l.receivedBids, singleBid: l.receivedBids === 1, cpv: l.cpv ?? null, sourceUrl: l.sourceUrl ?? null });
+      bm.set(l.buyerId, g);
+    }
+    const byBuyer = [...bm.values()].sort((a, b) => b.value - a.value);
+    for (const g of byBuyer) g.lots.sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
+    const top = byBuyer[0];
+    const topBuyerShare = awardedValue > 0 && top ? top.value / awardedValue : (top ? top.contracts / contracts : 0);
+    const sec = topSector(wl);
+    out.push({
+      winnerId, winnerName, contracts, awardedValue: Math.round(awardedValue), buyers: bm.size,
+      singleBidLots, singleBidRate: round2(contracts > 0 ? singleBidLots / contracts : 0, 3),
+      topBuyerId: top?.buyerId ?? null, topBuyerName: top?.buyerName ?? null, topBuyerShare: round2(topBuyerShare, 3),
+      sectorCpv2: sec?.cpv2 ?? null, sectorLabel: sec?.label ?? null,
+      byBuyer,
+    });
+  }
+  // Kārto pēc uzvarēto līgumu vērtības (lielākie piegādātāji augšā).
+  return out.sort((a, b) => b.awardedValue - a.awardedValue);
+}

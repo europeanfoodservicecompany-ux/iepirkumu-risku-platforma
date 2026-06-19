@@ -21,7 +21,8 @@ export { IndicatorC } from './indicators/C.ts';
 export { IndicatorE } from './indicators/E.ts';
 export { IndicatorD } from './indicators/D.ts';
 export { IndicatorG } from './indicators/G.ts';
-export { computeNationalBaseline, computeCpvPriceStats, computeSectorStats, computeClosedMarkets, groupByBuyer } from './aggregate.ts';
+export { computeNationalBaseline, computeCpvPriceStats, computeSectorStats, computeClosedMarkets, computeWinners, groupByBuyer, sectorLabel, regionLabel } from './aggregate.ts';
+export type { WinnerDetail, WinnerByBuyer, WinnerLot } from './aggregate.ts';
 
 export type BuyerSummary = {
   buyerId: string;

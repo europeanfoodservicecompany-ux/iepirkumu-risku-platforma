@@ -16,6 +16,7 @@ export type Lot = {
   procedureType?: string | null; // BT-105: tenderingProcess.procedureType
   noticeDate?: string | null;  // ISO datums (no lot.result.decisionDate)
   sourceUrl?: string | null;   // saite uz IUB oriģinālu
+  nutsCode?: string | null;    // pasūtītāja reģions (organizationData.nutsCode, NUTS3)
 };
 
 export type RiskStatus = 'RiskFound' | 'RiskNotFound' | 'NoData' | 'NotApplicable';
