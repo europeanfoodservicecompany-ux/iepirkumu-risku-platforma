@@ -120,8 +120,8 @@ export function SupplierView({ data, onSelect }: { data: WinnersIndex; onSelect:
                   <td className="mono" style={{ textAlign: 'right' }}>{eur(w.value)}</td>
                   <td className="mono col-ind" style={{ textAlign: 'right' }}>{w.contracts}</td>
                   <td className="mono col-ind" style={{ textAlign: 'right' }}>{w.buyers}</td>
-                  <td className="mono" style={{ textAlign: 'right', color: w.singleBidRate >= 0.7 ? 'var(--red)' : w.singleBidRate >= 0.4 ? 'var(--yellow)' : 'inherit' }}>{pct(w.singleBidRate, 0)}</td>
-                  <td className="mono col-ind" style={{ textAlign: 'right', color: w.topBuyerShare >= 0.8 && w.buyers <= 2 ? 'var(--red)' : 'inherit' }}>{pct(w.topBuyerShare, 0)}</td>
+                  <td className="mono" style={{ textAlign: 'right', color: w.contracts >= 5 && w.singleBidRate >= 0.7 ? 'var(--red)' : w.contracts >= 5 && w.singleBidRate >= 0.4 ? 'var(--yellow)' : 'inherit' }}>{pct(w.singleBidRate, 0)}</td>
+                  <td className="mono col-ind" style={{ textAlign: 'right', color: w.contracts >= 5 && w.topBuyerShare >= 0.8 && w.buyers <= 2 ? 'var(--red)' : 'inherit' }}>{pct(w.topBuyerShare, 0)}</td>
                 </tr>
               ))}
             </tbody>

@@ -10,8 +10,10 @@ function Flag({ url, children }: { url?: string | null; children: React.ReactNod
 
 export function SupplierProfile({ winner, onSelectBuyer }: { winner: WinnerDetail; onSelectBuyer: (id: string) => void }) {
   const w = winner;
-  const sbHigh = w.singleBidRate >= 0.7;
-  const depHigh = w.topBuyerShare >= 0.8 && w.buyers <= 2;
+  // Karogus rāda tikai ar pietiekamu paraugu (≥5 līgumi) — citādi 1 līgums = 100% maldina.
+  const enough = w.contracts >= 5;
+  const sbHigh = enough && w.singleBidRate >= 0.7;
+  const depHigh = enough && w.topBuyerShare >= 0.8 && w.buyers <= 2;
 
   function exportCsv() {
     const rows: (string | number | null)[][] = [];

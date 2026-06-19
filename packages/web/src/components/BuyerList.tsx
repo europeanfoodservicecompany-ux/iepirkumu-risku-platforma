@@ -17,6 +17,14 @@ const IND: { key: IndKey; label: string; tip: string }[] = [
 
 const PAGE = 60;
 
+const VALUE_BANDS: { k: string; l: string; min: number; max: number }[] = [
+  { k: 'all', l: 'Jebkura vērtība', min: 0, max: Infinity },
+  { k: 's', l: '< 100 tūkst.', min: 0, max: 100000 },
+  { k: 'm', l: '100 tūkst. – 1 milj.', min: 100000, max: 1000000 },
+  { k: 'l', l: '1 – 10 milj.', min: 1000000, max: 10000000 },
+  { k: 'xl', l: '> 10 milj.', min: 10000000, max: Infinity },
+];
+
 function scoreKey(score: number | null): string {
   if (score === null) return 'gray';
   if (score >= 60) return 'red';   // kopējais slieksnis 60 (6 slāņi)
@@ -41,12 +49,31 @@ function Highlight({ text, term }: { text: string; term: string }) {
 export function BuyerList({ buyers, query, onSelect }: { buyers: IndexBuyer[]; query: string; onSelect: (id: string) => void }) {
   const [filter, setFilter] = useState<Filter>('scored');
   const [ind, setInd] = useState<'all' | IndKey>('all');
+  const [secF, setSecF] = useState('all');
+  const [bandF, setBandF] = useState('all');
+  const [regF, setRegF] = useState('all');
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'combined', dir: 'desc' });
   const [limit, setLimit] = useState(PAGE);
   const term = query.trim().toLowerCase();
 
+  // Nozaru un reģionu saraksti no datiem (filtru izvēlnēm).
+  const sectors = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const b of buyers) if (b.sectorCpv2) m.set(b.sectorCpv2, b.sectorLabel ?? b.sectorCpv2);
+    return [...m.entries()].sort((a, b) => a[1].localeCompare(b[1], 'lv'));
+  }, [buyers]);
+  const regions = useMemo(() => {
+    const s = new Set<string>();
+    for (const b of buyers) if (b.region) s.add(b.region);
+    return [...s].sort((a, b) => a.localeCompare(b, 'lv'));
+  }, [buyers]);
+
+  const vb = VALUE_BANDS.find((x) => x.k === bandF)!;
   const filtered = useMemo(() => buyers.filter((b) => {
     if (term && !matches(b, term)) return false;
+    if (secF !== 'all' && b.sectorCpv2 !== secF) return false;
+    if (regF !== 'all' && b.region !== regF) return false;
+    if (bandF !== 'all') { const v = b.value ?? 0; if (v < vb.min || v >= vb.max) return false; }
     if (ind !== 'all') {
       // Atlasa pēc konkrēta indikatora kolonnas
       if (b.scores[ind] === null) return false;
@@ -58,7 +85,7 @@ export function BuyerList({ buyers, query, onSelect }: { buyers: IndexBuyer[]; q
     if (filter === 'yellow' && !hasLevel(b, 'yellow')) return false;
     if (filter === 'scored' && b.combinedScore === null) return false;
     return true;
-  }), [buyers, term, filter, ind]);
+  }), [buyers, term, filter, ind, secF, regF, bandF, vb]);
 
   const rows = useMemo(() => {
     const val = (b: IndexBuyer): number | string | null =>
@@ -114,6 +141,22 @@ export function BuyerList({ buyers, query, onSelect }: { buyers: IndexBuyer[]; q
         {IND.map((i) => (
           <button key={i.key} className={`filter-btn ${ind === i.key ? 'active' : ''}`} title={i.tip} onClick={() => pickInd(i.key)}>{i.key}</button>
         ))}
+      </div>
+
+      <div className="controls" style={{ marginTop: -4 }}>
+        <select className="filter-btn" value={secF} onChange={(e) => { setSecF(e.target.value); setLimit(PAGE); }} aria-label="Nozare">
+          <option value="all">Visas nozares</option>
+          {sectors.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+        </select>
+        <select className="filter-btn" value={regF} onChange={(e) => { setRegF(e.target.value); setLimit(PAGE); }} aria-label="Reģions">
+          <option value="all">Visi reģioni</option>
+          {regions.map((r) => <option key={r} value={r}>{r}</option>)}
+        </select>
+        <select className="filter-btn" value={bandF} onChange={(e) => { setBandF(e.target.value); setLimit(PAGE); }} aria-label="Iepirkumu vērtība">
+          {VALUE_BANDS.map((b) => <option key={b.k} value={b.k}>{b.l}</option>)}
+        </select>
+        {(secF !== 'all' || regF !== 'all' || bandF !== 'all') &&
+          <button className="filter-btn" onClick={() => { setSecF('all'); setRegF('all'); setBandF('all'); setLimit(PAGE); }}>✕ Notīrīt</button>}
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
