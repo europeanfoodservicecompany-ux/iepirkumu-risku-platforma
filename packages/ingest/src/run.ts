@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve, join } from 'node:path';
 import type { Lot } from '../../engine/src/types.ts';
 import { parseNotices, parseActiveTenders, filterOpenTenders, parseModifications, groupModificationsByBuyer } from './parse.ts';
-import { loadRegistrationMap } from './ur.ts';
+import { loadRegistrationMap, buildRegistrationMap } from './ur.ts';
 import { writeDataset } from './output.ts';
 import { runEngine, markDuplicateValues } from '../../engine/src/index.ts';
 
@@ -72,9 +72,20 @@ const { lots, source, coverage, notices } = await loadLots();
 const dupMarked = markDuplicateValues(lots);
 console.log(`Atzīmēti vērtību dublikāti (ietvara/bloka atkārtojumi): ${dupMarked}`);
 
-// UR reģistrācijas dati D indikatoram (ja pieejami).
+// UR reģistrācijas dati D indikatoram. Atjauno tikai tīkla (fetch) ceļā: lejupielādē UR reģistru
+// un saglabā kompaktu karti TIKAI pašreizējiem uzvarētājiem (tā D segums nenoveco, kā tas notiktu ar
+// statisku karti). Ja lejupielāde neizdodas — izmanto esošo failu.
 const UR_PATH = join(ROOT, 'data', 'ur_registration.json');
 let companyReg = new Map();
+if (notices) {
+  const winnerCodes = new Set(lots.map((l) => l.winnerId).filter((x): x is string => !!x));
+  try {
+    console.log(`Atjaunoju UR reģistrācijas datus ${winnerCodes.size} uzvarētājiem…`);
+    await buildRegistrationMap(winnerCodes, UR_PATH);
+  } catch (e) {
+    console.warn(`UR atjaunošana neizdevās (${String(e)}); izmantoju esošo failu.`);
+  }
+}
 if (existsSync(UR_PATH)) {
   companyReg = loadRegistrationMap(UR_PATH);
   console.log(`UR reģistrācijas dati: ${companyReg.size} uzņēmumi`);
