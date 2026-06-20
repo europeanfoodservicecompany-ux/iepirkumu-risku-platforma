@@ -75,6 +75,8 @@ export type BuyerSummary = {
   d: RiskResult;             // D — saistītās puses
   g: RiskResult;             // G — līguma grozījumi (scope creep)
   flaggedLots: RiskResult[];
+  topSuppliers?: { winnerId: string; fileId: string | null; name: string | null; value: number; contracts: number; singleBidRate: number }[];
+  sharedOwnerGroups?: { person: string; winners: { fileId: string | null; name: string | null; value: number; contracts: number }[] }[];
 };
 
 export type EngineOutput = {
@@ -94,6 +96,8 @@ export type IndexBuyer = {
   combinedLevel: 'red' | 'yellow' | 'green' | null;
   layerScores: { A: number | null; B: number | null; C: number | null; D: number | null; E: number | null; G: number | null };
   value?: number;
+  singleBidRate?: number | null;
+  contracts?: number | null;
   sectorCpv2?: string | null;
   sectorLabel?: string | null;
   region?: string | null;
@@ -117,6 +121,12 @@ export type WinnerLot = {
 export type WinnerByBuyer = {
   buyerId: string; buyerName: string | null; contracts: number; value: number; singleBid: number; lots: WinnerLot[];
 };
+export type BeneficialOwner = { name: string; id: string; nat: string | null };
+export type Officer = { name: string; id: string; role: string };
+export type RelatedWinner = { fileId: string | null; name: string | null; value: number; contracts: number; via: string; role?: string };
+export type PersonCompany = { fileId: string | null; name: string | null; value: number; contracts: number; role: string };
+export type PersonEntry = { name: string; id: string; companyCount: number; totalValue: number; roles: string[]; companies: PersonCompany[] };
+export type PersonsData = { meta?: { coverage?: string }; persons: PersonEntry[] };
 export type WinnerDetail = {
   winnerId: string; fileId: string; winnerName: string | null;
   contracts: number; awardedValue: number; buyers: number;
@@ -124,6 +134,9 @@ export type WinnerDetail = {
   topBuyerId: string | null; topBuyerName: string | null; topBuyerShare: number;
   sectorCpv2: string | null; sectorLabel: string | null;
   byBuyer: WinnerByBuyer[];
+  beneficialOwners?: BeneficialOwner[];
+  officers?: Officer[];
+  relatedWinners?: RelatedWinner[];
   meta?: { coverage?: string };
 };
 export type IndexData = {
@@ -132,14 +145,31 @@ export type IndexData = {
   buyers: IndexBuyer[];
 };
 
+export type SectorEntity = {
+  id: string; name: string | null; contracts: number; value: number; singleBidRate: number;
+};
 export type SectorStat = {
   cpv2: string; label: string; contracts: number; singleBid: number;
   singleBidRate: number; awardedValue: number; buyers: number;
+  suppliers?: number;
+  topBuyers?: SectorEntity[]; topSuppliers?: SectorEntity[];
 };
 export type SectorsData = {
   meta?: { coverage?: string };
   national: { singleBidRate: number };
   sectors: SectorStat[];
+};
+
+export type OverviewData = {
+  meta?: { coverage?: string };
+  national: { singleBidRate: number };
+  totals: { procurements: number; awardedValue: number; buyers: number; suppliers: number };
+  riskDistribution: { red: number; yellow: number; green: number; none: number };
+  topSectors: { cpv2: string; label: string; singleBidRate: number; contracts: number }[];
+  topRiskBuyers: { buyerId: string; buyerName: string | null; combinedScore: number | null; combinedLevel: string | null }[];
+  regions?: { key: string; contracts: number; singleBidRate: number; value: number; buyers: number; red: number }[];
+  topFlows?: { buyer: string; supplier: string; value: number }[];
+  timeline: { month: string; contracts: number; singleBidRate: number; value: number }[];
 };
 
 // Pilnās pasūtītāja detaļas (buyers/<id>.json) — kā BuyerSummary.

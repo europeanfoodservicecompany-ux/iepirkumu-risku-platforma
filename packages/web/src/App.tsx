@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
-import type { IndexData, SectorsData, MarketsData, ActiveData, BuyerDetail, WinnersIndex, WinnerDetail } from './types.ts';
+import { useEffect, useState, useRef } from 'react';
+import type { IndexData, SectorsData, MarketsData, ActiveData, BuyerDetail, WinnersIndex, WinnerDetail, OverviewData, PersonsData } from './types.ts';
 import { pct } from './format.ts';
+import { OverviewView } from './components/OverviewView.tsx';
+import { AnalysisView } from './components/AnalysisView.tsx';
 import { InfoPanel } from './components/InfoPanel.tsx';
 import { BuyerList } from './components/BuyerList.tsx';
 import { GlobalSearch } from './components/GlobalSearch.tsx';
@@ -9,6 +11,7 @@ import { SectorView } from './components/SectorView.tsx';
 import { MarketView } from './components/MarketView.tsx';
 import { ActiveView } from './components/ActiveView.tsx';
 import { SupplierView } from './components/SupplierView.tsx';
+import { PersonView } from './components/PersonView.tsx';
 import { SupplierProfile } from './components/SupplierProfile.tsx';
 import { MethodologyView } from './components/MethodologyView.tsx';
 import { Disclaimer } from './components/Disclaimer.tsx';
@@ -17,11 +20,14 @@ const BASE = import.meta.env.BASE_URL;
 // Atbildes tiesības / kļūdu ziņošana — nomaini uz vēlamo e-pastu (vai iztukšo, lai paslēptu).
 const REPORT_EMAIL = 'janis.rupeiks@inbox.lv';
 
-type View = 'buyers' | 'suppliers' | 'sectors' | 'markets' | 'active' | 'method';
+type View = 'overview' | 'analysis' | 'buyers' | 'suppliers' | 'persons' | 'sectors' | 'markets' | 'active' | 'method';
 
 const TABS: { v: View; label: string }[] = [
+  { v: 'overview', label: 'Pārskats' },
+  { v: 'analysis', label: 'Analīze' },
   { v: 'buyers', label: 'Pasūtītāji' },
   { v: 'suppliers', label: 'Piegādātāji' },
+  { v: 'persons', label: 'Personas' },
   { v: 'sectors', label: 'Nozares' },
   { v: 'markets', label: 'Slēgtie tirgi' },
   { v: 'active', label: 'Aktuālie konkursi' },
@@ -32,23 +38,25 @@ function parseHash(): { view: View; buyerId: string | null; winnerId: string | n
   const h = window.location.hash.replace(/^#\/?/, '');
   if (h.startsWith('buyer/')) return { view: 'buyers', buyerId: decodeURIComponent(h.slice(6)), winnerId: null };
   if (h.startsWith('winner/')) return { view: 'suppliers', buyerId: null, winnerId: decodeURIComponent(h.slice(7)) };
-  if (h === 'suppliers' || h === 'sectors' || h === 'markets' || h === 'active' || h === 'method') return { view: h, buyerId: null, winnerId: null };
-  return { view: 'buyers', buyerId: null, winnerId: null };
+  if (h === 'analysis' || h === 'buyers' || h === 'suppliers' || h === 'persons' || h === 'sectors' || h === 'markets' || h === 'active' || h === 'method') return { view: h, buyerId: null, winnerId: null };
+  return { view: 'overview', buyerId: null, winnerId: null };
 }
 
 export function App() {
   const [index, setIndex] = useState<IndexData | null>(null);
+  const [overview, setOverview] = useState<OverviewData | null>(null);
   const [sectors, setSectors] = useState<SectorsData | null>(null);
   const [markets, setMarkets] = useState<MarketsData | null>(null);
   const [active, setActive] = useState<ActiveData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [winners, setWinners] = useState<WinnersIndex | null>(null);
+  const [persons, setPersons] = useState<PersonsData | null>(null);
   const [route, setRoute] = useState(parseHash());
   const view = route.view;
   const selected = route.buyerId;
   const selectedWinner = route.winnerId;
-  const setView = (v: View) => { window.location.hash = v === 'buyers' ? '#/' : `#/${v}`; };
-  const setSelected = (id: string | null) => { window.location.hash = id ? `#/buyer/${encodeURIComponent(id)}` : '#/'; };
+  const setView = (v: View) => { window.location.hash = v === 'overview' ? '#/' : `#/${v}`; };
+  const setSelected = (id: string | null) => { window.location.hash = id ? `#/buyer/${encodeURIComponent(id)}` : '#/buyers'; };
   const setWinner = (fid: string | null) => { window.location.hash = fid ? `#/winner/${encodeURIComponent(fid)}` : '#/suppliers'; };
   const [detail, setDetail] = useState<BuyerDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -56,7 +64,9 @@ export function App() {
   const [winnerLoading, setWinnerLoading] = useState(false);
   const [query, setQuery] = useState('');
   const [sectorFilter, setSectorFilter] = useState<string | null>(null); // nozares filtrs (no Nozaru cilnes)
-  const pickSector = (cpv2: string) => { setSectorFilter(cpv2); setView('buyers'); };
+  const [regionFilter, setRegionFilter] = useState<string | null>(null); // reģiona filtrs (no Pārskata kartes)
+  const pickSector = (cpv2: string) => { setRegionFilter(null); setSectorFilter(cpv2); setView('buyers'); };
+  const pickRegion = (label: string) => { setSectorFilter(null); setRegionFilter(label); setView('buyers'); };
 
   useEffect(() => {
     const onHash = () => { setRoute(parseHash()); window.scrollTo(0, 0); };
@@ -68,6 +78,9 @@ export function App() {
     fetch(`${BASE}data/index.json`, { cache: 'no-cache' })
       .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(setIndex).catch((e) => setError(String(e)));
+    fetch(`${BASE}data/overview.json`, { cache: 'no-cache' })
+      .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(setOverview).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -80,9 +93,10 @@ export function App() {
 
   useEffect(() => {
     if (view === 'sectors' && !sectors) fetch(`${BASE}data/sectors.json`, { cache: 'no-cache' }).then((r) => r.json()).then(setSectors).catch(() => {});
-    if (view === 'markets' && !markets) fetch(`${BASE}data/markets.json`, { cache: 'no-cache' }).then((r) => r.json()).then(setMarkets).catch(() => {});
+    if ((view === 'markets' || view === 'analysis') && !markets) fetch(`${BASE}data/markets.json`, { cache: 'no-cache' }).then((r) => r.json()).then(setMarkets).catch(() => {});
     if ((view === 'active' || selected) && !active) fetch(`${BASE}data/active.json`, { cache: 'no-cache' }).then((r) => r.json()).then(setActive).catch(() => {});
     if ((view === 'suppliers' || selectedWinner) && !winners) fetch(`${BASE}data/winners-index.json`, { cache: 'no-cache' }).then((r) => r.json()).then(setWinners).catch(() => {});
+    if (view === 'persons' && !persons) fetch(`${BASE}data/persons-index.json`, { cache: 'no-cache' }).then((r) => r.json()).then(setPersons).catch(() => {});
   }, [view, sectors, markets, active, selected, selectedWinner, winners]);
 
   useEffect(() => {
@@ -122,7 +136,7 @@ export function App() {
           <span className="crumb-cur">{detail?.buyerName ?? selected}</span>
         </nav>
         {detailLoading && <div className="loading">Ielādē pasūtītāja datus…</div>}
-        {detail && <BuyerProfile buyer={detail} nationalSingleBidRate={nat} activeTenders={(active?.tenders ?? []).filter((t) => t.buyerId === selected)} />}
+        {detail && <BuyerProfile buyer={detail} nationalSingleBidRate={nat} activeTenders={(active?.tenders ?? []).filter((t) => t.buyerId === selected)} onSelectWinner={setWinner} />}
         {!detailLoading && !detail && <div className="loading">Neizdevās ielādēt pasūtītāja datus.</div>}
         <div className="section"><Disclaimer /></div>
       </Shell>
@@ -148,6 +162,20 @@ export function App() {
   // ── Sadaļu skati ──
   return (
     <Shell nav={nav}>
+      {view === 'overview' && (
+        <div className="section">
+          {overview
+            ? <OverviewView data={overview} onSelectBuyer={setSelected} onPickSector={pickSector} onPickRegion={pickRegion} onNav={setView} />
+            : <div className="loading">Ielādē pārskatu…</div>}
+        </div>
+      )}
+
+      {view === 'analysis' && (
+        <div className="section">
+          {overview ? <AnalysisView buyers={index.buyers} overview={overview} markets={markets} onSelectBuyer={setSelected} /> : <div className="loading">Ielādē analīzi…</div>}
+        </div>
+      )}
+
       {view === 'buyers' && (
         <>
           <div className="section"><InfoPanel /></div>
@@ -174,12 +202,13 @@ export function App() {
             </p>
           )}
           <div className="section"><GlobalSearch buyers={index.buyers} query={query} setQuery={setQuery} onSelect={setSelected} /></div>
-          <div className="section"><BuyerList buyers={index.buyers} query={query} onSelect={setSelected} sectorFilter={sectorFilter} onClearSector={() => setSectorFilter(null)} /></div>
+          <div className="section"><BuyerList buyers={index.buyers} query={query} onSelect={setSelected} sectorFilter={sectorFilter} onClearSector={() => setSectorFilter(null)} regionFilter={regionFilter} onClearRegion={() => setRegionFilter(null)} /></div>
         </>
       )}
 
       {view === 'suppliers' && <div className="section">{winners ? <SupplierView data={winners} onSelect={setWinner} sectorFilter={sectorFilter} onClearSector={() => setSectorFilter(null)} /> : <div className="loading">Ielādē piegādātājus…</div>}</div>}
-      {view === 'sectors' && <div className="section">{sectors ? <SectorView data={sectors} onSelect={pickSector} /> : <div className="loading">Ielādē nozares…</div>}</div>}
+      {view === 'persons' && <div className="section">{persons ? <PersonView data={persons} onSelectWinner={setWinner} /> : <div className="loading">Ielādē personas…</div>}</div>}
+      {view === 'sectors' && <div className="section">{sectors ? <SectorView data={sectors} onSelect={pickSector} onSelectBuyer={setSelected} /> : <div className="loading">Ielādē nozares…</div>}</div>}
       {view === 'markets' && <div className="section">{markets ? <MarketView data={markets} /> : <div className="loading">Ielādē tirgus…</div>}</div>}
       {view === 'active' && <div className="section">{active ? <ActiveView data={active} buyers={index.buyers} onSelectBuyer={setSelected} /> : <div className="loading">Ielādē konkursus…</div>}</div>}
       {view === 'method' && <div className="section"><MethodologyView /></div>}
@@ -190,8 +219,31 @@ export function App() {
 }
 
 function Shell({ children, nav }: { children: React.ReactNode; nav?: React.ReactNode }) {
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const loadedVersion = useRef<number | null>(null);
+  useEffect(() => {
+    let stop = false;
+    const check = () => fetch(`${BASE}data/version.json`, { cache: 'no-store' })
+      .then((r) => r.ok ? r.json() : null)
+      .then((v) => {
+        if (!v || stop) return;
+        if (loadedVersion.current == null) loadedVersion.current = v.build;
+        else if (v.build !== loadedVersion.current) setUpdateAvailable(true);
+      }).catch(() => {});
+    check();
+    const onFocus = () => check();
+    window.addEventListener('focus', onFocus);
+    const iv = window.setInterval(check, 5 * 60 * 1000);
+    return () => { stop = true; window.removeEventListener('focus', onFocus); window.clearInterval(iv); };
+  }, []);
   return (
     <>
+      {updateAvailable && (
+        <div className="update-bar" role="status">
+          <span>Pieejama jaunāka versija ar svaigākiem datiem.</span>
+          <button onClick={() => window.location.reload()}>Atjaunot</button>
+        </div>
+      )}
       <header className="top">
         <div className="container">
           <a href="#/" className="brand">

@@ -59,7 +59,9 @@ export function cpvKey(cpv: string | null | undefined, digits: number): string {
 export function computeCpvPriceStats(lots: Lot[], digits: number, minObs: number): Map<string, CpvStat> {
   const buckets = new Map<string, number[]>();
   for (const l of lots) {
-    if (l.winnerChosen && l.awardValue != null && l.awardValue > 0 && l.cpv) {
+    // Dublētas ietvara vērtības (dupValue) NEIEKĻAUJAM sadalījumā — citādi atkārtotas identiskas
+    // vērtības mākslīgi sašaurina/nobīda CPV cenu sadalījumu un kropļo z-score (konsekventi ar citiem skatiem).
+    if (l.winnerChosen && l.awardValue != null && l.awardValue > 0 && l.cpv && !l.dupValue) {
       const k = cpvKey(l.cpv, digits);
       const ln = Math.log(l.awardValue);
       (buckets.get(k) ?? buckets.set(k, []).get(k)!).push(ln);
@@ -94,36 +96,62 @@ const CPV_DIVISIONS: Record<string, string> = {
   '85': 'Veselība, sociālā aprūpe', '90': 'Vide, atkritumi', '92': 'Atpūta, kultūra', '98': 'Citi pakalpojumi',
 };
 
+export type SectorEntity = {
+  id: string; name: string | null;
+  contracts: number;       // līgumi šajā nozarē
+  value: number;           // kopvērtība šajā nozarē
+  singleBidRate: number;   // viena-pretendenta likme (B1 bāze)
+};
 export type SectorStat = {
   cpv2: string; label: string;
   contracts: number;       // open/restricted ar uzvarētāju (B1 bāze)
   singleBid: number; singleBidRate: number;
   awardedValue: number;    // visu uzvarēto līgumu kopvērtība
   buyers: number;          // atšķirīgu pasūtītāju skaits
+  suppliers: number;       // atšķirīgu uzvarētāju skaits
+  topBuyers: SectorEntity[];    // lielākie pasūtītāji nozarē (pēc vērtības)
+  topSuppliers: SectorEntity[]; // lielākie uzvarētāji nozarē (pēc vērtības)
 };
 
 export function computeSectorStats(lots: Lot[], b1AppliesTo: (l: Lot) => boolean): SectorStat[] {
-  type Acc = { contracts: number; singleBid: number; value: number; buyers: Set<string> };
+  type Ent = { name: string | null; contracts: number; b1: number; singleBid: number; value: number };
+  type Acc = {
+    contracts: number; singleBid: number; value: number;
+    buyers: Map<string, Ent>; suppliers: Map<string, Ent>;
+  };
   const m = new Map<string, Acc>();
+  const bump = (map: Map<string, Ent>, id: string | null | undefined, name: string | null, l: Lot, applies: boolean) => {
+    if (!id) return;
+    const e = map.get(id) ?? map.set(id, { name, contracts: 0, b1: 0, singleBid: 0, value: 0 }).get(id)!;
+    e.contracts++;
+    if (!l.dupValue) e.value += l.awardValue ?? 0;
+    if (applies) { e.b1++; if (l.receivedBids === 1) e.singleBid++; }
+    if (!e.name && name) e.name = name;
+  };
   for (const l of lots) {
     if (!l.winnerChosen || !l.cpv) continue;
     const cpv2 = l.cpv.replace(/[^0-9]/g, '').slice(0, 2);
     if (!cpv2) continue;
-    const a = m.get(cpv2) ?? m.set(cpv2, { contracts: 0, singleBid: 0, value: 0, buyers: new Set() }).get(cpv2)!;
+    const a = m.get(cpv2) ?? m.set(cpv2, { contracts: 0, singleBid: 0, value: 0, buyers: new Map(), suppliers: new Map() }).get(cpv2)!;
+    const applies = b1AppliesTo(l);
     if (!l.dupValue) a.value += l.awardValue ?? 0;
-    a.buyers.add(l.buyerId);
-    if (b1AppliesTo(l)) {
-      a.contracts++;
-      if (l.receivedBids === 1) a.singleBid++;
-    }
+    if (applies) { a.contracts++; if (l.receivedBids === 1) a.singleBid++; }
+    bump(a.buyers, l.buyerId, l.buyerName ?? null, l, applies);
+    bump(a.suppliers, l.winnerId, l.winnerName ?? null, l, applies);
   }
+  const top = (map: Map<string, Ent>): SectorEntity[] =>
+    [...map.entries()]
+      .map(([id, e]) => ({ id, name: e.name, contracts: e.contracts, value: Math.round(e.value), singleBidRate: e.b1 > 0 ? Math.round((e.singleBid / e.b1) * 100) / 100 : 0 }))
+      .sort((x, y) => y.value - x.value)
+      .slice(0, 5);
   const out: SectorStat[] = [];
   for (const [cpv2, a] of m) {
     out.push({
       cpv2, label: CPV_DIVISIONS[cpv2] ?? `CPV ${cpv2}`,
       contracts: a.contracts, singleBid: a.singleBid,
       singleBidRate: a.contracts > 0 ? a.singleBid / a.contracts : 0,
-      awardedValue: Math.round(a.value), buyers: a.buyers.size,
+      awardedValue: Math.round(a.value), buyers: a.buyers.size, suppliers: a.suppliers.size,
+      topBuyers: top(a.buyers), topSuppliers: top(a.suppliers),
     });
   }
   // Sakārto pēc viena-pretendenta likmes (vājākā konkurence augšā), tikai ar pietiekamu apjomu.
@@ -159,8 +187,10 @@ export function computeClosedMarkets(
     if (!key) continue;
     const m = markets.get(key) ?? markets.set(key, { contracts: 0, singleBid: 0, value: 0, byValue: false, winners: new Map() }).get(key)!;
     const w = m.winners.get(l.winnerId) ?? { contracts: 0, value: 0, name: l.winnerName ?? null };
-    w.contracts++; w.value += l.awardValue ?? 0; m.winners.set(l.winnerId, w);
-    m.value += l.awardValue ?? 0;
+    // Dublētas ietvara vērtības (dupValue) NEIESKAITĀM vērtībā — konsekventi ar pārējiem skatiem.
+    const v = l.dupValue ? 0 : (l.awardValue ?? 0);
+    w.contracts++; w.value += v; m.winners.set(l.winnerId, w);
+    m.value += v;
     if (b1AppliesTo(l)) { m.contracts++; if (l.receivedBids === 1) m.singleBid++; }
   }
 

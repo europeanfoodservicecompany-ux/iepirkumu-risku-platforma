@@ -46,7 +46,31 @@ export class IndicatorA extends BaseTenderRiskRule {
     const cfg = ctx.a;
     const buyerName = lots.find((l) => l.buyerName)?.buyerName ?? null;
     // Tikai līgumi ar summu, CPV un datumu.
-    const usable = lots.filter((l) => l.winnerChosen && l.awardValue != null && l.cpv && ts(l.noticeDate) !== null);
+    const usable0 = lots.filter((l) => l.winnerChosen && l.awardValue != null && l.cpv && ts(l.noticeDate) !== null);
+    // Sablīvē pa procedūru: vairāki VIENA iepirkuma loti NAV sadalīšana (tā ir viena procedūra ar
+    // vairākiem lotiem, kas ir pilnīgi likumīgi). Apvienojam tos vienā ierakstā (summējam vērtības,
+    // ņemam agrāko datumu), lai A skaita atsevišķas PROCEDŪRAS, ne lotus. Sadalīšana = vairākas
+    // ATSEVIŠĶAS procedūras, ne viens daudzlotu iepirkums.
+    // Iepirkuma identitāte: priekšroka EIS iepirkuma numuram (sourceUrl .../Procurement/<id>), jo
+    // viens EIS iepirkums mēdz parādīties vairākos paziņojumos ar dažādiem iekšējiem procedureId.
+    const procKey = (l: Lot): string | null => {
+      const m = (l.sourceUrl ?? '').match(/Procurement\/(\d+)/);
+      return m ? `eis${m[1]}` : (l.procedureId ?? null);
+    };
+    const byProc = new Map<string, Lot[]>();
+    const usable: Lot[] = [];
+    for (const l of usable0) {
+      const pk = procKey(l);
+      if (pk) { (byProc.get(pk) ?? byProc.set(pk, []).get(pk)!).push(l); }
+      else usable.push(l);
+    }
+    for (const arr of byProc.values()) {
+      if (arr.length === 1) { usable.push(arr[0]); continue; }
+      const sum = arr.reduce((s, l) => s + (l.awardValue ?? 0), 0);
+      const winners = new Set(arr.map((l) => l.winnerId).filter(Boolean));
+      const earliest = arr.reduce((a, b) => (ts(a.noticeDate)! <= ts(b.noticeDate)! ? a : b));
+      usable.push({ ...earliest, awardValue: sum, winnerId: winners.size === 1 ? [...winners][0]! : earliest.winnerId });
+    }
     if (usable.length < 2) {
       return noData('A', 'buyer', buyerId, { detail: { buyerName, usableLots: usable.length, reason: 'nepietiek datu' } });
     }

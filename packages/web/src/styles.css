@@ -235,6 +235,72 @@ tr.clickable:focus-visible { outline-offset: -2px; }
   .sec-table, .act-table { min-width: 0; }
 }
 
+/* Nozares izvēršamais skats */
+.sec-exp-row > td { background: var(--ring-track, #f3f1ea); padding: 0; border-top: none; }
+.sec-exp { padding: 14px 16px 18px; }
+.sec-exp-stats { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+.sec-exp-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 720px) { .sec-exp-cols { grid-template-columns: 1fr; } }
+.sec-exp-h { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); margin-bottom: 6px; }
+.sec-exp-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.sec-exp-table th { text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.sec-exp-table td { font-size: 13px; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.sec-exp-table tr:last-child td { border-bottom: none; }
+.sec-exp-table tr.clickable:hover { background: var(--ring-track, #f3f1ea); cursor: pointer; }
+
+/* Pārskats (overview) */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.kpi-l { font-size: 12px; color: var(--muted); }
+.kpi-v { font-size: 26px; font-weight: 700; color: var(--ink); margin-top: 4px; line-height: 1.1; }
+.ov-row { display: grid; grid-template-columns: 1fr 1.25fr; gap: 12px; }
+@media (max-width: 720px) { .ov-row { grid-template-columns: 1fr; } }
+.ov-card { padding: 16px 18px; }
+.ov-h { font-size: 14px; font-weight: 700; margin: 0 0 12px; color: var(--ink); }
+.ov-secrow { display: flex; align-items: center; gap: 10px; padding: 5px 6px; border-radius: 8px; }
+.ov-secrow:hover { background: var(--ring-track); }
+.ov-secname { font-size: 13px; width: 150px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ov-buyers { display: flex; flex-direction: column; gap: 2px; }
+.ov-buyer { display: flex; align-items: center; gap: 10px; padding: 8px 6px; border-radius: 8px; border-bottom: 1px solid var(--line); }
+.ov-buyer:last-child { border-bottom: none; }
+.ov-buyer:hover { background: var(--ring-track); }
+.ov-bname { flex: 1; font-size: 14px; }
+.risk-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.risk-dot.r { background: var(--red); } .risk-dot.y { background: var(--yellow); }
+.lvmap-region { cursor: pointer; transition: opacity .15s; }
+.lvmap-region:hover { opacity: 0.78; }
+.lvmap-region:focus { outline: none; opacity: 0.78; }
+.lvmap-legrow { display: flex; align-items: center; gap: 8px; padding: 6px; border-radius: 8px; font-size: 13px; border-bottom: 1px solid var(--line); }
+.lvmap-legrow:last-child { border-bottom: none; }
+.lvmap-legrow:hover { background: var(--ring-track); }
+.lvmap-sw { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+@media (max-width: 720px) { .lvmap-wrap { grid-template-columns: 1fr !important; } }
+.heat-tbl { border-collapse: separate; border-spacing: 3px; font-size: 12px; width: 100%; }
+.heat-tbl th { font-weight: 500; color: var(--muted); padding: 3px 6px; }
+.heat-tbl th:first-child { text-align: left; }
+.heat-name { padding: 4px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 230px; }
+.heat-cell { text-align: center; border-radius: 4px; padding: 6px 0; width: 44px; }
+.cal-tbl { border-collapse: separate; border-spacing: 3px; font-size: 12px; }
+.cal-tbl th { font-weight: 500; color: var(--muted); width: 42px; font-size: 11px; }
+.cal-y { font-weight: 500; color: var(--muted); padding-right: 6px; }
+.cal-cell { text-align: center; border-radius: 4px; padding: 8px 0; color: #20302b; min-width: 38px; }
+.flow-row { padding: 9px 6px; border-bottom: 1px solid var(--line); border-radius: 8px; }
+.flow-row:last-child { border-bottom: none; }
+.flow-row.clickable:hover { background: var(--ring-track); }
+.flow-top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.flow-name { font-size: 14px; }
+.flow-bar { height: 7px; background: var(--ring-track); border-radius: 4px; margin: 5px 0; overflow: hidden; }
+.flow-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--brand), var(--brand2)); border-radius: 4px; }
+.update-bar { position: sticky; top: 0; z-index: 50; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 9px 16px; font-size: 14px; flex-wrap: wrap; }
+.update-bar button { background: #fff; color: var(--brand); border: none; border-radius: 8px; padding: 5px 16px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 14px; }
+.update-bar button:hover { background: var(--ring-track); }
+.plg-owner { display: flex; align-items: center; gap: 10px; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+.plg-owner:last-child { border-bottom: none; }
+.plg-av { width: 30px; height: 30px; border-radius: 50%; background: var(--green-bg); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.person-card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+.person-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.person-companies { display: flex; flex-direction: column; }
+
 /* Piegādātāju skats */
 .search-input { padding: 11px 14px; border: 1px solid var(--line); border-radius: 10px; font-size: 16px; font-family: inherit; background: #fff; }
 .search-input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--ring-track); }

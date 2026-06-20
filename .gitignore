@@ -15,3 +15,5 @@ data/lots.json
 data/engine_output.json
 # Piegādātāju detaļu faili (6700+; CI pārģenerē, deploy ņem no dist) — netur git
 data/winners/
+data/plg.csv
+data/officers.csv

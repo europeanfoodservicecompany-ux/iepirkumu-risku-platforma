@@ -18,7 +18,7 @@ export class IndicatorC extends BaseTenderRiskRule {
 
   // z aprēķins vienam līgumam pret tā CPV grupas nacionālo sadalījumu.
   private zFor(lot: Lot, ctx: EngineContext): { z: number; stat: CpvStat } | null {
-    if (!lot.winnerChosen || lot.awardValue == null || lot.awardValue <= 0 || !lot.cpv) return null;
+    if (!lot.winnerChosen || lot.awardValue == null || lot.awardValue <= 0 || !lot.cpv || lot.dupValue) return null;
     const stat = ctx.cpvStats.get(cpvKey(lot.cpv, ctx.c.cpvDigits));
     if (!stat || stat.std <= 0) return null;
     const z = (Math.log(lot.awardValue) - stat.mean) / stat.std;

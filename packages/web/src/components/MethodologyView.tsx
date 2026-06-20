@@ -61,15 +61,34 @@ export function MethodologyView() {
       <ul className="m-list">
         <li>IUB <strong>atvērtajā datu plūsmā</strong> (ko izmanto šī platforma) ir tikai uzvarētājs un piedāvājumu skaits. Pretendentu saraksts ar cenām gan ir publisks katra iepirkuma <strong>atvēršanas protokolā</strong> (EIS pasūtītāja profilā), taču ne kā strukturēti atvērti dati — tāpēc to nevar masveidā analizēt, un saskaņotas darbības šobrīd pierādīt nevar.</li>
         <li>Dati satur līgumu <strong>kopsummas</strong>, ne vienības cenas → C mēra vērtības, ne tīru pārmaksu.</li>
+        <li>IUB avota datos vērtības mēdz būt <strong>kļūdainas</strong>: viens uzvarētājs reizēm ierakstīts vienā līgumā divreiz ar nobīdītu komatu (piem. 178&nbsp;573,54 un 17&nbsp;857&nbsp;354 = tā pati summa ×100), un atsevišķi paziņojumi tiek <strong>republicēti</strong>. Platforma tos automātiski koriģē — atmet 10. pakāpes komata dublikātus, bet patiesi atšķirīgas līguma daļas saglabā un saskaita, kā arī apvieno republicētos paziņojumus. Tāpēc kopvērtības ir <strong>aptuvenas (≈)</strong> un atsevišķi ļoti lieli skaitļi (ietvara griesti, megaprojekti) var atspoguļot IUB pašas ievadītās vērtības.</li>
         <li>Sliekšņi un svari ir <strong>sākotnēji ieteikumi</strong>, kalibrējami uz reāliem datiem; pārkalibrējami administratorā.</li>
         <li>Pilnvērtīgi strukturēti dati pieejami no 2023. gada; retākās CPV kategorijās salīdzināmo datu bāze ir plānāka.</li>
       </ul>
+
+      <h3 className="section-title">Zināmās IUB datu kvalitātes problēmas</h3>
+      <p>
+        Veidojot šo platformu, atklājās virkne sistēmisku problēmu pašos IUB atvērtajos datos. Tās nav mūsu kļūdas —
+        tās ir avota datu trūkumi, kurus šeit dokumentējam caurspīdības labad un kuri būtu jārisina datu publicētājam.
+      </p>
+      <ul className="m-list">
+        <li><strong>Dublikāti (~11%).</strong> No 75 492 parsētajiem ierakstiem 8 081 (11%) bija dublikāti — viens un tas pats iepirkums vairākos paziņojumos vai ar dažādiem iekšējiem ID. Piem. EIS 113795: viens €87 980 līgums ierakstīts divreiz.</li>
+        <li><strong>Komata/mērvienības kļūdas.</strong> Vairāk nekā 50 līgumos summa ierakstīta ×100 par lielu (nobīdīts komats), kopā &gt;€1 miljards fantoma vērtības. Piem. autoceļš P124: €4,4M ierakstīts kā €440M; Allažu bērnu centrs: €2,1M kā €209M; Arbor Medical: €178 573,54 arī kā €17 857 354.</li>
+        <li><strong>Iekšēji pretrunīgi dati.</strong> Vienai procedūrai (d4634f79) IUB pašas <code>noticeContractValue</code> divos paziņojumos atšķiras: €4,4 miljardi pret €438 miljoniem.</li>
+        <li><strong>Trūkstošas vērtības (~3,7%).</strong> 1 930 piešķirtiem līgumiem IUB vispār nepublicē vērtību — ne kopsummu, ne sadalījumu, ne aplēsi. Tai skaitā daudzpiegādātāju ietvariem.</li>
+        <li><strong>Trūkstošas saites (~26%).</strong> 17 535 ierakstiem nav tiešās EIS saites uz konkrēto iepirkumu — tikai pasūtītāja profils vai nekā.</li>
+        <li><strong>Nestrukturēti pretendentu dati.</strong> Atvērtajos datos ir tikai uzvarētājs un piedāvājumu skaits; zaudējušo pretendentu saraksts ar cenām ir tikai katra iepirkuma atvēršanas protokolā (EIS), ne strukturēti — tāpēc saskaņotas darbības masveidā pierādīt nevar.</li>
+      </ul>
+      <p>
+        Ja šie dati būtu publicēti tīri un pilnīgi (unikāli ID, pārbaudītas vērtības, tiešas saites, strukturēti
+        pretendentu dati), šāda analīze būtu daudz precīzāka, un sabiedrība varētu efektīvāk uzraudzīt publisko līdzekļu tērēšanu.
+      </p>
 
       <h3 className="section-title">Juridiskie principi</h3>
       <ul className="m-list">
         <li>Visi dati ir publiski pieejami atvērtie dati; sistēma tos tikai apkopo un analizē.</li>
         <li>Karogs nav apsūdzība — vienmēr redzama atruna par statistisku novirzi.</li>
-        <li>Katra karoga aprēķins ir izsekojams; pie katra ir saite uz IUB oriģinālu pārbaudei.</li>
+        <li>Katra karoga aprēķins ir izsekojams; kur EIS publicē tiešo saiti uz konkrēto iepirkumu, tā ir pievienota pārbaudei (daļai vecāku ierakstu EIS sniedz tikai pasūtītāja profila saiti, ne tiešo — tādos gadījumos saiti nerādām, lai neaizvestu uz sākumskatu).</li>
         <li>Metodoloģija balstīta uz OCP “Red Flags for Integrity” un Fazekas/DIGIWHIST integritātes indikatoriem.</li>
       </ul>
     </div>

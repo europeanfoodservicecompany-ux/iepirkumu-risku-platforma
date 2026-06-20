@@ -12,6 +12,7 @@ import { dirname, resolve, join } from 'node:path';
 import type { Lot } from '../../engine/src/types.ts';
 import { parseNotices, parseActiveTenders, filterOpenTenders, parseModifications, groupModificationsByBuyer, dedupeAwards } from './parse.ts';
 import { loadRegistrationMap, buildRegistrationMap } from './ur.ts';
+import { downloadPlg, downloadOfficers } from './plg.ts';
 import { writeDataset } from './output.ts';
 import { runEngine, markDuplicateValues } from '../../engine/src/index.ts';
 
@@ -87,6 +88,23 @@ if (notices) {
     await buildRegistrationMap(winnerCodes, UR_PATH);
   } catch (e) {
     console.warn(`UR atjaunošana neizdevās (${String(e)}); izmantoju esošo failu.`);
+  }
+}
+// PLG (patiesā labuma guvēji) + amatpersonas (valde, prokūristi) — output.ts tos sasaista ar uzvarētājiem.
+const PLG_PATH = join(ROOT, 'data', 'plg.csv');
+const OFFICERS_PATH = join(ROOT, 'data', 'officers.csv');
+if (notices) {
+  try {
+    console.log('Lejupielādēju patiesā labuma guvēju datus…');
+    await downloadPlg(PLG_PATH);
+  } catch (e) {
+    console.warn(`PLG lejupielāde neizdevās (${String(e)}); izmantoju esošo failu.`);
+  }
+  try {
+    console.log('Lejupielādēju amatpersonu (valde/prokūristi) datus…');
+    await downloadOfficers(OFFICERS_PATH);
+  } catch (e) {
+    console.warn(`Amatpersonu lejupielāde neizdevās (${String(e)}); izmantoju esošo failu.`);
   }
 }
 if (existsSync(UR_PATH)) {

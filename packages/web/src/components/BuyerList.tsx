@@ -46,7 +46,7 @@ function Highlight({ text, term }: { text: string; term: string }) {
   return <>{text.slice(0, i)}<mark>{text.slice(i, i + term.length)}</mark>{text.slice(i + term.length)}</>;
 }
 
-export function BuyerList({ buyers, query, onSelect, sectorFilter, onClearSector }: { buyers: IndexBuyer[]; query: string; onSelect: (id: string) => void; sectorFilter?: string | null; onClearSector?: () => void }) {
+export function BuyerList({ buyers, query, onSelect, sectorFilter, onClearSector, regionFilter, onClearRegion }: { buyers: IndexBuyer[]; query: string; onSelect: (id: string) => void; sectorFilter?: string | null; onClearSector?: () => void; regionFilter?: string | null; onClearRegion?: () => void }) {
   const [filter, setFilter] = useState<Filter>('scored');
   const [ind, setInd] = useState<'all' | IndKey>('all');
   const [secF, setSecF] = useState('all');
@@ -54,6 +54,9 @@ export function BuyerList({ buyers, query, onSelect, sectorFilter, onClearSector
   useEffect(() => { if (sectorFilter) { setSecF(sectorFilter); setFilter('all'); setLimit(PAGE); } }, [sectorFilter]);
   const [bandF, setBandF] = useState('all');
   const [regF, setRegF] = useState('all');
+  void onClearRegion;
+  // Kad ienāk reģiona filtrs no Pārskata kartes — pielieto to.
+  useEffect(() => { if (regionFilter) { setRegF(regionFilter); setFilter('all'); setLimit(PAGE); } }, [regionFilter]);
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'combined', dir: 'desc' });
   const [limit, setLimit] = useState(PAGE);
   const term = query.trim().toLowerCase();

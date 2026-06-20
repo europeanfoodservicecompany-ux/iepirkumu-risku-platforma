@@ -1,0 +1,8 @@
+# Cloudflare Pages cache-control. Hashotie aktīvi (JS/CSS) tiek kešoti ilgi (saturs-hash),
+# bet HTML un versijas marķieris vienmēr jārevalidē, lai lietotāji (t.sk. mobilie) saņem jaunāko.
+/
+  Cache-Control: no-cache, must-revalidate
+/index.html
+  Cache-Control: no-cache, must-revalidate
+/data/version.json
+  Cache-Control: no-cache, must-revalidate

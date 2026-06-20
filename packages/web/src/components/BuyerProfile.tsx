@@ -37,8 +37,8 @@ function ScoreBar({ r }: { r: RiskResult }) {
   );
 }
 
-export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] }: {
-  buyer: BuyerDetail; nationalSingleBidRate: number; activeTenders?: ActiveTender[];
+export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [], onSelectWinner }: {
+  buyer: BuyerDetail; nationalSingleBidRate: number; activeTenders?: ActiveTender[]; onSelectWinner?: (fileId: string) => void;
 }) {
   const r = buyer.result;       // B1
   const b2 = buyer.b2;          // B2
@@ -97,6 +97,56 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
           Augstu risku rada vairāku signālu sakritība, ne viens atsevišķs rādītājs.
         </div>
       </div>
+
+      {buyer.topSuppliers && buyer.topSuppliers.length > 0 && (() => {
+        const sup = buyer.topSuppliers!;
+        const max = Math.max(...sup.map((s) => s.value), 1);
+        return (
+          <>
+            <h3 className="section-title">Kur aiziet nauda — galvenie piegādātāji</h3>
+            <div className="card">
+              <p className="muted small" style={{ marginTop: 0 }}>Lielākie šī pasūtītāja uzvarētāji pēc līgumu kopvērtības (≈, dublikāti izņemti). Klikšķini → piegādātāja profils.</p>
+              {sup.map((s) => {
+                const clickable = !!(s.fileId && onSelectWinner);
+                return (
+                  <div key={s.winnerId} className={`flow-row${clickable ? ' clickable' : ''}`} tabIndex={clickable ? 0 : undefined} role={clickable ? 'button' : undefined}
+                    onClick={clickable ? () => onSelectWinner!(s.fileId!) : undefined}
+                    onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectWinner!(s.fileId!); } } : undefined}>
+                    <div className="flow-top">
+                      <span className="flow-name">{s.name ?? s.winnerId}{clickable && <span className="muted"> →</span>}</span>
+                      <strong className="mono small">{eur(s.value)}</strong>
+                    </div>
+                    <div className="flow-bar"><span style={{ width: `${(s.value / max) * 100}%` }} /></div>
+                    <div className="muted small mono">{s.contracts} līg. · {pct(s.singleBidRate, 0)} viena pretendenta</div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        );
+      })()}
+
+      {buyer.sharedOwnerGroups && buyer.sharedOwnerGroups.length > 0 && (
+        <>
+          <h3 className="section-title">Saistīti uzvarētāji — kopīgs patiesā labuma guvējs</h3>
+          <div className="card">
+            <p className="muted small" style={{ marginTop: 0 }}>Šī pasūtītāja uzvarētāji, kuriem ir <strong>kopīgs patiesā labuma guvējs</strong> — t.i. uzņēmumi, kas tirgū var izskatīties kā atsevišķi pretendenti, bet pieder vieniem cilvēkiem. Iespējama interešu konflikta vai vājas konkurences pazīme. Karogs nav pierādījums.</p>
+            {buyer.sharedOwnerGroups.map((g, i) => (
+              <div className="lot" key={i}>
+                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>
+                  <i className="ti ti-user-shield" style={{ fontSize: 14, verticalAlign: '-2px', marginRight: 5 }} aria-hidden="true" />{g.person} — {g.winners.length} uzvarētāji
+                </div>
+                {g.winners.map((wn, j) => (
+                  <a key={j} className="memrow" href={wn.fileId ? `#/winner/${encodeURIComponent(wn.fileId)}` : undefined}>
+                    <span style={{ flex: 1 }}>{wn.name}{wn.fileId ? <span className="muted"> →</span> : null}</span>
+                    <span className="mono small">{wn.contracts} līg. · {eur(wn.value)}</span>
+                  </a>
+                ))}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {activeTenders.length > 0 && (
         <>

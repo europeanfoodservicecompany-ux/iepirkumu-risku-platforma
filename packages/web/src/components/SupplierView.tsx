@@ -45,7 +45,9 @@ export function SupplierView({ data, onSelect, sectorFilter, onClearSector }: { 
     if (term && !`${w.winnerName ?? ''} ${w.winnerId}`.toLowerCase().includes(term)) return false;
     if (sector !== 'all' && w.sectorCpv2 !== sector) return false;
     if (w.value < vb.min || w.value >= vb.max) return false;
-    if (w.contracts < minContracts) return false;
+    // Kad meklē pēc nosaukuma/reģ.nr, līgumu skaita slieksni neņem vērā — citādi konkrēts
+    // piegādātājs ar <5 līgumiem "pazūd" un izskatās, ka meklēšana nestrādā.
+    if (!term && w.contracts < minContracts) return false;
     return true;
   }), [data, term, sector, band, minContracts, vb]);
 

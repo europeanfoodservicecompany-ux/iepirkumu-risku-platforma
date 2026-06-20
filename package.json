@@ -14,7 +14,7 @@
     "pipeline": "node packages/ingest/src/run.ts",
     "web:dev": "npm --workspace packages/web run dev",
     "web:build": "npm --workspace packages/web run build",
-    "deploy": "npm run web:build && npx wrangler pages deploy packages/web/dist --project-name iepirkumu-risku-platforma"
+    "deploy": "npm run web:build && rm -f packages/web/dist/data/lots.json packages/web/dist/data/engine_output.json && npx wrangler pages deploy packages/web/dist --project-name iepirkumu-risku-platforma --commit-dirty=true"
   },
   "engines": {
     "node": ">=22.6"

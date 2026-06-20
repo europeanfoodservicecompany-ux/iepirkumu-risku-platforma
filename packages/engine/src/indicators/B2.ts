@@ -22,12 +22,14 @@ export class IndicatorB2 extends BaseTenderRiskRule {
     }
 
     // Agregē pa uzvarētājiem: pēc vērtības, ja pieejama; citādi pēc skaita.
-    const totalValue = awarded.reduce((s, l) => s + (l.awardValue ?? 0), 0);
+    // Dublētas ietvara vērtības (dupValue) NEIESKAITĀM — tāpat kā pārējos skatos (pasūtītāji,
+    // piegādātāji, nozares), lai koncentrācija pēc vērtības nebūtu mākslīgi uzpūsta.
+    const totalValue = awarded.reduce((s, l) => s + (l.dupValue ? 0 : (l.awardValue ?? 0)), 0);
     const byValue = totalValue > 0;
     const weights = new Map<string, number>();
     const names = new Map<string, string>();
     for (const l of awarded) {
-      const w = byValue ? (l.awardValue ?? 0) : 1;
+      const w = byValue ? (l.dupValue ? 0 : (l.awardValue ?? 0)) : 1;
       weights.set(l.winnerId!, (weights.get(l.winnerId!) ?? 0) + w);
       if (l.winnerName && !names.has(l.winnerId!)) names.set(l.winnerId!, l.winnerName);
     }

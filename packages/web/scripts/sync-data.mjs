@@ -1,5 +1,5 @@
 // Kopē dzinēja izvadi (index.json, sectors.json, buyers/<id>.json) frontend public/ mapē.
-import { copyFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -16,7 +16,7 @@ if (!existsSync(join(src, 'index.json'))) {
 mkdirSync(join(destDir, 'buyers'), { recursive: true });
 
 copyFileSync(join(src, 'index.json'), join(destDir, 'index.json'));
-for (const f of ['sectors.json', 'markets.json', 'active.json', 'winners-index.json']) {
+for (const f of ['overview.json', 'sectors.json', 'markets.json', 'active.json', 'winners-index.json', 'persons-index.json']) {
   if (existsSync(join(src, f))) copyFileSync(join(src, f), join(destDir, f));
 }
 
@@ -33,4 +33,6 @@ if (existsSync(join(src, 'winners'))) {
     wn++;
   }
 }
+// Versijas marķieris (katrs deploys → jauns laiks). Frontend to pārbauda un piedāvā atjaunot.
+writeFileSync(join(destDir, 'version.json'), JSON.stringify({ build: Date.now() }));
 console.log(`Dati nokopēti: index.json, ${n} pasūtītāju faili, ${wn} piegādātāju faili → web/public/data/`);
