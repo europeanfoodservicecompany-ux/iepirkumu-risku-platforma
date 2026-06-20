@@ -147,6 +147,12 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [] 
       <h3 className="section-title">A · Iepirkumu sadalīšana (slānis A)</h3>
       <div className="card">
         <p style={{ marginTop: 0 }}>{aSummary(aRes)}</p>
+        <div className="disclaimer" style={{ marginBottom: 12 }}>
+          <strong>Piezīme:</strong> līgumi grupēti pēc CPV kategorijas, kas ir plaša — viena CPV grupa var ietvert
+          <em> dažādas</em> vajadzības, ne tikai vienu sadalītu iepirkumu. <strong>Sarkans</strong> tikai tad, ja līgumi
+          nonāk pie viena uzvarētāja vai to ir daudz (≥4); kopas ar dažādiem piegādātājiem ir <strong>dzeltenas</strong> —
+          tās jāpārbauda, vai tiešām ir viena vajadzība.
+        </div>
         {clusters.length === 0 && <p className="muted">Nav atrastu kopu.</p>}
         {clusters.map((c, idx) => (
           <div className="lot" key={idx}>

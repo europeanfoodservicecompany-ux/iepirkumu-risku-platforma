@@ -78,7 +78,10 @@ export class IndicatorA extends BaseTenderRiskRule {
         if (window.length >= 2 && sum > S && near >= 2) {
           const winners = new Set(window.map((l) => l.winnerId).filter(Boolean));
           const sameWinner = winners.size === 1;
-          const red = near >= cfg.redCount || sameWinner || sum > cfg.redSumRatio * S;
+          // Sarkans TIKAI pie spēcīga signāla: viens un tas pats uzvarētājs (sadalīšana par labu
+          // vienam piegādātājam) VAI daudz fragmentu (≥redCount). Tikai liela kopsumma ar DAŽĀDIEM
+          // uzvarētājiem nav sarkans — tās var būt arī divas atšķirīgas vajadzības tajā pašā CPV grupā.
+          const red = sameWinner || near >= cfg.redCount;
           clusters.push({
             cpv4: k,
             members: window.map((l) => ({ id: l.id, value: l.awardValue ?? null, date: l.noticeDate ?? null, winnerId: l.winnerId ?? null, winnerName: l.winnerName ?? null, sourceUrl: l.sourceUrl ?? null })),
