@@ -55,6 +55,8 @@ export function App() {
   const [winnerDetail, setWinnerDetail] = useState<WinnerDetail | null>(null);
   const [winnerLoading, setWinnerLoading] = useState(false);
   const [query, setQuery] = useState('');
+  const [sectorFilter, setSectorFilter] = useState<string | null>(null); // nozares filtrs (no Nozaru cilnes)
+  const pickSector = (cpv2: string) => { setSectorFilter(cpv2); setView('buyers'); };
 
   useEffect(() => {
     const onHash = () => { setRoute(parseHash()); window.scrollTo(0, 0); };
@@ -172,12 +174,12 @@ export function App() {
             </p>
           )}
           <div className="section"><GlobalSearch buyers={index.buyers} query={query} setQuery={setQuery} onSelect={setSelected} /></div>
-          <div className="section"><BuyerList buyers={index.buyers} query={query} onSelect={setSelected} /></div>
+          <div className="section"><BuyerList buyers={index.buyers} query={query} onSelect={setSelected} sectorFilter={sectorFilter} onClearSector={() => setSectorFilter(null)} /></div>
         </>
       )}
 
-      {view === 'suppliers' && <div className="section">{winners ? <SupplierView data={winners} onSelect={setWinner} /> : <div className="loading">Ielādē piegādātājus…</div>}</div>}
-      {view === 'sectors' && <div className="section">{sectors ? <SectorView data={sectors} /> : <div className="loading">Ielādē nozares…</div>}</div>}
+      {view === 'suppliers' && <div className="section">{winners ? <SupplierView data={winners} onSelect={setWinner} sectorFilter={sectorFilter} onClearSector={() => setSectorFilter(null)} /> : <div className="loading">Ielādē piegādātājus…</div>}</div>}
+      {view === 'sectors' && <div className="section">{sectors ? <SectorView data={sectors} onSelect={pickSector} /> : <div className="loading">Ielādē nozares…</div>}</div>}
       {view === 'markets' && <div className="section">{markets ? <MarketView data={markets} /> : <div className="loading">Ielādē tirgus…</div>}</div>}
       {view === 'active' && <div className="section">{active ? <ActiveView data={active} buyers={index.buyers} onSelectBuyer={setSelected} /> : <div className="loading">Ielādē konkursus…</div>}</div>}
       {view === 'method' && <div className="section"><MethodologyView /></div>}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { IndexBuyer, IndKey, RiskLevel } from '../types.ts';
 import { bandFromScore, downloadCsv } from '../format.ts';
 
@@ -46,10 +46,12 @@ function Highlight({ text, term }: { text: string; term: string }) {
   return <>{text.slice(0, i)}<mark>{text.slice(i, i + term.length)}</mark>{text.slice(i + term.length)}</>;
 }
 
-export function BuyerList({ buyers, query, onSelect }: { buyers: IndexBuyer[]; query: string; onSelect: (id: string) => void }) {
+export function BuyerList({ buyers, query, onSelect, sectorFilter, onClearSector }: { buyers: IndexBuyer[]; query: string; onSelect: (id: string) => void; sectorFilter?: string | null; onClearSector?: () => void }) {
   const [filter, setFilter] = useState<Filter>('scored');
   const [ind, setInd] = useState<'all' | IndKey>('all');
   const [secF, setSecF] = useState('all');
+  // Kad ienāk nozares filtrs no Nozaru cilnes — pielieto to.
+  useEffect(() => { if (sectorFilter) { setSecF(sectorFilter); setFilter('all'); setLimit(PAGE); } }, [sectorFilter]);
   const [bandF, setBandF] = useState('all');
   const [regF, setRegF] = useState('all');
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'combined', dir: 'desc' });
@@ -156,7 +158,7 @@ export function BuyerList({ buyers, query, onSelect }: { buyers: IndexBuyer[]; q
           {VALUE_BANDS.map((b) => <option key={b.k} value={b.k}>{b.l}</option>)}
         </select>
         {(secF !== 'all' || regF !== 'all' || bandF !== 'all') &&
-          <button className="filter-btn" onClick={() => { setSecF('all'); setRegF('all'); setBandF('all'); setLimit(PAGE); }}>✕ Notīrīt</button>}
+          <button className="filter-btn" onClick={() => { setSecF('all'); setRegF('all'); setBandF('all'); setLimit(PAGE); onClearSector?.(); }}>✕ Notīrīt</button>}
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>

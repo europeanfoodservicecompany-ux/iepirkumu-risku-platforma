@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { WinnersIndex, WinnerIndexEntry } from '../types.ts';
 import { eur, pct, downloadCsv } from '../format.ts';
 
@@ -21,7 +21,7 @@ function Hi({ text, term }: { text: string; term: string }) {
   return <>{text.slice(0, i)}<mark>{text.slice(i, i + term.length)}</mark>{text.slice(i + term.length)}</>;
 }
 
-export function SupplierView({ data, onSelect }: { data: WinnersIndex; onSelect: (fileId: string) => void }) {
+export function SupplierView({ data, onSelect, sectorFilter, onClearSector }: { data: WinnersIndex; onSelect: (fileId: string) => void; sectorFilter?: string | null; onClearSector?: () => void }) {
   const [query, setQuery] = useState('');
   const [sector, setSector] = useState('all');
   const [band, setBand] = useState('all');
@@ -29,6 +29,9 @@ export function SupplierView({ data, onSelect }: { data: WinnersIndex; onSelect:
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'value', dir: 'desc' });
   const [limit, setLimit] = useState(PAGE);
   const term = query.trim().toLowerCase();
+  void onClearSector;
+  // Kad ienāk nozares filtrs no Nozaru cilnes — pielieto to (un atļauj visus piegādātājus).
+  useEffect(() => { if (sectorFilter) { setSector(sectorFilter); setMinContracts(1); setLimit(PAGE); } }, [sectorFilter]);
 
   // Nozaru saraksts no datiem.
   const sectors = useMemo(() => {

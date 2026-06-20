@@ -7,7 +7,7 @@ function rateColor(rate: number, national: number): string {
   return 'var(--green)';
 }
 
-export function SectorView({ data }: { data: SectorsData }) {
+export function SectorView({ data, onSelect }: { data: SectorsData; onSelect: (cpv2: string) => void }) {
   const nat = data.national.singleBidRate;
   const exportCsv = () => downloadCsv('nozares.csv',
     ['CPV', 'Nozare', 'Viena pretendenta %', 'Līgumi', 'Kopvērtība EUR', 'Pasūtītāji'],
@@ -18,6 +18,7 @@ export function SectorView({ data }: { data: SectorsData }) {
       <p style={{ marginTop: 0 }}>
         Iepirkumu nozares pēc <strong>viena pretendenta īpatsvara</strong> (vājākā konkurence augšā).
         Salīdzinājumam — nacionālais vidējais ir <strong>{pct(nat, 1)}</strong>. Rāda nozares ar vismaz 10 iepirkumiem.
+        Klikšķini uz nozares, lai redzētu tās pasūtītājus.
       </p>
       <div style={{ marginBottom: 12 }}><button className="filter-btn" onClick={exportCsv}>⬇ Lejupielādēt CSV</button></div>
       <div className="table-wrap"><table className="sec-table">
@@ -34,8 +35,9 @@ export function SectorView({ data }: { data: SectorsData }) {
           {data.sectors.map((s) => {
             const col = rateColor(s.singleBidRate, nat);
             return (
-              <tr key={s.cpv2}>
-                <td>{s.label}<div className="muted small mono">CPV {s.cpv2}</div></td>
+              <tr key={s.cpv2} className="clickable" tabIndex={0} role="button" aria-label={s.label}
+                onClick={() => onSelect(s.cpv2)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(s.cpv2); } }}>
+                <td>{s.label}<div className="muted small mono">CPV {s.cpv2} →</div></td>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div className="bar" style={{ flex: 1 }}>
