@@ -136,6 +136,24 @@ export function parseNotice(notice: AnyObj, baseUrl = IUB_NOTICE_BASE_URL): Lot[
   return out;
 }
 
+// Noņem dublētus PIEŠĶĪRUMUS, kas atkārtojas dažādos paziņojumos (republikācija) vai vienā
+// paziņojumā kā bloks. Tie ir viens un tas pats darījums ar atšķirīgu lot.id, tāpēc dedupeById tos
+// nesaķer un tie 2–3× uzpūš gan SKAITĻUS, gan vērtības. Atslēga: procedūra|uzvarētājs|vērtība|datums|CPV.
+// Skar tikai piešķirtos līgumus ar zināmu procedūru un uzvarētāju; pārējos atstāj neskartus.
+export function dedupeAwards(lots: Lot[]): Lot[] {
+  const seen = new Set<string>();
+  const out: Lot[] = [];
+  for (const l of lots) {
+    if (l.winnerChosen && l.procedureId && l.winnerId) {
+      const key = `${l.procedureId}|${l.winnerId}|${Math.round(l.awardValue ?? -1)}|${l.noticeDate ?? ''}|${l.cpv ?? ''}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+    }
+    out.push(l);
+  }
+  return out;
+}
+
 // Parsē veselu paziņojumu masīvu (dienas fails) uz lots.
 export function parseNotices(notices: AnyObj[], baseUrl = IUB_NOTICE_BASE_URL): Lot[] {
   const lots: Lot[] = [];

@@ -49,7 +49,7 @@ export function MarketView({ data }: { data: MarketsData }) {
         iespējami saskaņotām darbībām.
       </p>
       <div className="disclaimer" style={{ marginBottom: 14 }}>
-        <strong>Piezīme:</strong> IUB dati nepublicē zaudējušos pretendentus, tāpēc saskaņotas darbības pierādīt nevar.
+        <strong>Piezīme:</strong> IUB atvērtajos datos nav zaudējušo pretendentu (tie publiski pieejami tikai katra iepirkuma atvēršanas protokolā, ne strukturēti), tāpēc saskaņotas darbības šeit pierādīt nevar.
         Šie rādītāji izceļ tirgus ar vāju konkurenci, ko, iespējams, vērts aplūkot tuvāk — tie nav pārkāpuma pierādījums.
       </div>
       <div style={{ marginBottom: 12 }}><button className="filter-btn" onClick={exportCsv}>⬇ Lejupielādēt CSV</button></div>

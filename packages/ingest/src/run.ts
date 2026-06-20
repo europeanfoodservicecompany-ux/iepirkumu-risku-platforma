@@ -10,7 +10,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, join } from 'node:path';
 import type { Lot } from '../../engine/src/types.ts';
-import { parseNotices, parseActiveTenders, filterOpenTenders, parseModifications, groupModificationsByBuyer } from './parse.ts';
+import { parseNotices, parseActiveTenders, filterOpenTenders, parseModifications, groupModificationsByBuyer, dedupeAwards } from './parse.ts';
 import { loadRegistrationMap, buildRegistrationMap } from './ur.ts';
 import { writeDataset } from './output.ts';
 import { runEngine, markDuplicateValues } from '../../engine/src/index.ts';
@@ -68,9 +68,12 @@ async function loadLots(): Promise<{ lots: Lot[]; source: string; coverage: stri
   return { lots: dedupeById(JSON.parse(readFileSync(SAMPLE_LOTS, 'utf8'))), source: 'pievienotie reālie dati', coverage: '2025-06-18 … 2026-06-17' };
 }
 
-const { lots, source, coverage, notices } = await loadLots();
+const loaded = await loadLots();
+const { source, coverage, notices } = loaded;
+let lots = dedupeAwards(loaded.lots);
+console.log(`Pēc dublikātu noņemšanas (republikācijas/bloki): ${lots.length} līgumi (no ${loaded.lots.length})`);
 const dupMarked = markDuplicateValues(lots);
-console.log(`Atzīmēti vērtību dublikāti (ietvara/bloka atkārtojumi): ${dupMarked}`);
+console.log(`Atzīmēti vērtību dublikāti: ${dupMarked}`);
 
 // UR reģistrācijas dati D indikatoram. Atjauno tikai tīkla (fetch) ceļā: lejupielādē UR reģistru
 // un saglabā kompaktu karti TIKAI pašreizējiem uzvarētājiem (tā D segums nenoveco, kā tas notiktu ar

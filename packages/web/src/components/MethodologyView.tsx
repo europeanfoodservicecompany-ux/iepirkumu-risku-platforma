@@ -59,7 +59,7 @@ export function MethodologyView() {
 
       <h3 className="section-title">Ierobežojumi</h3>
       <ul className="m-list">
-        <li>Pieejamas tikai <strong>uzvarētāju</strong>, ne zaudējušo pretendentu identitātes → iespējami saskaņotas darbības nevar pierādīt.</li>
+        <li>IUB <strong>atvērtajā datu plūsmā</strong> (ko izmanto šī platforma) ir tikai uzvarētājs un piedāvājumu skaits. Pretendentu saraksts ar cenām gan ir publisks katra iepirkuma <strong>atvēršanas protokolā</strong> (EIS pasūtītāja profilā), taču ne kā strukturēti atvērti dati — tāpēc to nevar masveidā analizēt, un saskaņotas darbības šobrīd pierādīt nevar.</li>
         <li>Dati satur līgumu <strong>kopsummas</strong>, ne vienības cenas → C mēra vērtības, ne tīru pārmaksu.</li>
         <li>Sliekšņi un svari ir <strong>sākotnēji ieteikumi</strong>, kalibrējami uz reāliem datiem; pārkalibrējami administratorā.</li>
         <li>Pilnvērtīgi strukturēti dati pieejami no 2023. gada; retākās CPV kategorijās salīdzināmo datu bāze ir plānāka.</li>
