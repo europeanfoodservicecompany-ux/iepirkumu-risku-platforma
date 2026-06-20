@@ -141,13 +141,24 @@ export function parseNotice(notice: AnyObj, baseUrl = IUB_NOTICE_BASE_URL): Lot[
 // nesaķer un tie 2–3× uzpūš gan SKAITĻUS, gan vērtības. Atslēga: procedūra|uzvarētājs|vērtība|datums|CPV.
 // Skar tikai piešķirtos līgumus ar zināmu procedūru un uzvarētāju; pārējos atstāj neskartus.
 export function dedupeAwards(lots: Lot[]): Lot[] {
-  const seen = new Set<string>();
+  const keyOf = (l: Lot) => `${l.procedureId}|${l.winnerId}|${Math.round(l.awardValue ?? -1)}|${l.noticeDate ?? ''}|${l.cpv ?? ''}`;
+  // Ja dublikāta grupā piedāvājumu skaiti atšķiras (republikācijā labots), paturam ierakstu ar
+  // LIELĀKO pretendentu skaitu — tā nejaušs dublikāts ar receivedBids=1 nerada viltus B1 karogu.
+  const bestBids = new Map<string, number>();
+  for (const l of lots) {
+    if (!(l.winnerChosen && l.procedureId && l.winnerId)) continue;
+    const k = keyOf(l);
+    const b = l.receivedBids ?? -1;
+    if (!bestBids.has(k) || b > bestBids.get(k)!) bestBids.set(k, b);
+  }
+  const used = new Set<string>();
   const out: Lot[] = [];
   for (const l of lots) {
     if (l.winnerChosen && l.procedureId && l.winnerId) {
-      const key = `${l.procedureId}|${l.winnerId}|${Math.round(l.awardValue ?? -1)}|${l.noticeDate ?? ''}|${l.cpv ?? ''}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
+      const k = keyOf(l);
+      if (used.has(k)) continue;
+      if ((l.receivedBids ?? -1) !== bestBids.get(k)) continue; // patur tikai grupas labāko ierakstu
+      used.add(k);
     }
     out.push(l);
   }
