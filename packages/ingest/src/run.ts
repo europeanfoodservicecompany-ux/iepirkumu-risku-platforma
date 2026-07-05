@@ -10,9 +10,14 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, join } from 'node:path';
 import type { Lot } from '../../engine/src/types.ts';
-import { parseNotices, parseActiveTenders, filterOpenTenders, parseModifications, groupModificationsByBuyer, dedupeAwards } from './parse.ts';
+import { parseNotices, parseActiveTenders, filterOpenTenders, parseModifications, groupModificationsByBuyer, dedupeAwards, eisProcurementId } from './parse.ts';
 import { loadRegistrationMap, buildRegistrationMap } from './ur.ts';
 import { downloadPlg, downloadOfficers } from './plg.ts';
+import { downloadMembers } from './members.ts';
+import { buildFinancialsMap } from './financials.ts';
+import { buildPpiMap } from './ppi.ts';
+import { buildCflaMap } from './cfla.ts';
+import { buildEisBidders } from './eis.ts';
 import { writeDataset } from './output.ts';
 import { runEngine, markDuplicateValues } from '../../engine/src/index.ts';
 
@@ -72,9 +77,18 @@ async function loadLots(): Promise<{ lots: Lot[]; source: string; coverage: stri
 const loaded = await loadLots();
 const { source, coverage, notices } = loaded;
 let lots = dedupeAwards(loaded.lots);
+// eisId aizpildīšana no sourceUrl, ja trūkst (vecie/sample loti glabā EIS saiti sourceUrl, ne eisId).
+// Bez tā EIS atkarīgās pazīmes (karteļa pāri, kopā-pretendenti) paliktu tukšas bezsaistes ceļā.
+let eisBackfilled = 0;
+for (const l of lots) if (!l.eisId) { const id = eisProcurementId(l); if (id) { l.eisId = id; eisBackfilled++; } }
+if (eisBackfilled) console.log(`eisId aizpildīts no sourceUrl: ${eisBackfilled} lotiem`);
 console.log(`Pēc dublikātu noņemšanas (republikācijas/bloki): ${lots.length} līgumi (no ${loaded.lots.length})`);
 const dupMarked = markDuplicateValues(lots);
 console.log(`Atzīmēti vērtību dublikāti: ${dupMarked}`);
+
+// Kodi, ko lieto vairākas lejupielādes (hoistēti, lai pieejami visos blokos).
+const winnerCodes = new Set(lots.map((l) => l.winnerId).filter((x): x is string => !!x));
+const buyerCodes = new Set(lots.map((l) => l.buyerId).filter((x): x is string => !!x));
 
 // UR reģistrācijas dati D indikatoram. Atjauno tikai tīkla (fetch) ceļā: lejupielādē UR reģistru
 // un saglabā kompaktu karti TIKAI pašreizējiem uzvarētājiem (tā D segums nenoveco, kā tas notiktu ar
@@ -82,7 +96,6 @@ console.log(`Atzīmēti vērtību dublikāti: ${dupMarked}`);
 const UR_PATH = join(ROOT, 'data', 'ur_registration.json');
 let companyReg = new Map();
 if (notices) {
-  const winnerCodes = new Set(lots.map((l) => l.winnerId).filter((x): x is string => !!x));
   try {
     console.log(`Atjaunoju UR reģistrācijas datus ${winnerCodes.size} uzvarētājiem…`);
     await buildRegistrationMap(winnerCodes, UR_PATH);
@@ -101,10 +114,41 @@ if (notices) {
     console.warn(`PLG lejupielāde neizdevās (${String(e)}); izmantoju esošo failu.`);
   }
   try {
-    console.log('Lejupielādēju amatpersonu (valde/prokūristi) datus…');
+    console.log('Lejupielādēju amatpersonu (valde) datus…');
     await downloadOfficers(OFFICERS_PATH);
   } catch (e) {
     console.warn(`Amatpersonu lejupielāde neizdevās (${String(e)}); izmantoju esošo failu.`);
+  }
+  try {
+    console.log('Lejupielādēju SIA dalībnieku (holdinga ķēžu) datus…');
+    await downloadMembers(join(ROOT, 'data', 'members.csv'));
+  } catch (e) {
+    console.warn(`Dalībnieku lejupielāde neizdevās (${String(e)}); izmantoju esošo failu.`);
+  }
+  try {
+    console.log('Lejupielādēju gada pārskatu finanšu datus…');
+    await buildFinancialsMap(winnerCodes, join(ROOT, 'data', 'financials.json'));
+  } catch (e) {
+    console.warn(`Finanšu datu lejupielāde neizdevās (${String(e)}); izmantoju esošo failu.`);
+  }
+  try {
+    console.log(`Lejupielādēju publisko personu un iestāžu sarakstu (PPI) ${buyerCodes.size} pasūtītājiem…`);
+    await buildPpiMap(buyerCodes, join(ROOT, 'data', 'ppi.json'));
+  } catch (e) {
+    console.warn(`PPI lejupielāde neizdevās (${String(e)}); izmantoju esošo failu.`);
+  }
+  try {
+    console.log(`Lejupielādēju CFLA ES fondu iepirkumu līgumus ${winnerCodes.size} uzvarētājiem…`);
+    await buildCflaMap(winnerCodes, join(ROOT, 'data', 'cfla.json'));
+  } catch (e) {
+    console.warn(`CFLA lejupielāde neizdevās (${String(e)}); izmantoju esošo failu.`);
+  }
+  try {
+    const eisIds = new Set(lots.map((l) => l.eisId).filter((x): x is string => !!x));
+    console.log(`Lejupielādēju EIS pretendentu (piedāvājumu atvēršanas) datus ${eisIds.size} iepirkumiem…`);
+    await buildEisBidders(eisIds, join(ROOT, 'data', 'eis.json'));
+  } catch (e) {
+    console.warn(`EIS lejupielāde neizdevās (${String(e)}); izmantoju esošo failu.`);
   }
 }
 if (existsSync(UR_PATH)) {

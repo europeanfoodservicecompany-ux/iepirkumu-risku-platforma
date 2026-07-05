@@ -2,6 +2,49 @@ import type { RiskResult } from './types.ts';
 
 export type BandKey = 'red' | 'yellow' | 'green' | 'gray';
 
+// Meklēšanas normalizācija: mazie burti + noņem diakritiku ("Rīga"→"riga", "Ķekava"→"kekava").
+// Precomponētam ievadam (kā šie dati) garums saglabājas, tāpēc izcēluma indeksi paliek saskaņoti.
+export function norm(s: string): string {
+  return (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
+// Robežota Levenšteina distance (early-exit pie >max) — typo tolerancei meklēšanā.
+export function levLE(a: string, b: string, max = 1): boolean {
+  const la = a.length, lb = b.length;
+  if (Math.abs(la - lb) > max) return false;
+  let prev = Array.from({ length: lb + 1 }, (_, i) => i);
+  for (let i = 1; i <= la; i++) {
+    const cur = [i];
+    let rowMin = i;
+    for (let j = 1; j <= lb; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      const v = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+      cur[j] = v; if (v < rowMin) rowMin = v;
+    }
+    if (rowMin > max) return false; // neviena rinda vairs nevar sasniegt ≤max
+    prev = cur;
+  }
+  return prev[lb] <= max;
+}
+
+// Meklēšanas vaicājuma tokeni (normalizēti, ≥2 simboli).
+export function queryTokens(q: string): string[] {
+  return norm(q).split(/\s+/).filter((t) => t.length >= 2);
+}
+
+// Tokenu + typo-tolerantā sakritība: KATRAM tokenam jāsakrīt (jebkurā secībā) vai nu kā
+// apakšvirknei, vai (garākiem tokeniem) ar Levenšteina distanci ≤1 pret kādu vārdu. hayNorm jau normalizēts.
+export function tokenMatch(hayNorm: string, tokens: string[]): boolean {
+  if (tokens.length === 0) return true;
+  let words: string[] | null = null;
+  return tokens.every((t) => {
+    if (hayNorm.includes(t)) return true;
+    if (t.length < 5) return false; // typo toleranci tikai garākiem tokeniem (mazāk viltus sakritību)
+    if (!words) words = hayNorm.split(/\s+/);
+    return words.some((w) => levLE(w, t, 1));
+  });
+}
+
 // Pasūtītāja rezultāts → krāsas josla + latvisks apzīmējums.
 export function buyerBand(r: RiskResult): { key: BandKey; label: string } {
   if (r.status === 'NoData' || r.score === null) return { key: 'gray', label: 'Nepietiek datu' };
@@ -27,11 +70,11 @@ export function buyerSummary(r: RiskResult, nationalAvg: number): string {
     return `Pārāk maz iepirkumu ar izvēlētu uzvarētāju (${d.winnerChosenLots ?? 0}), lai aprēķinātu ticamu rādītāju.`;
   }
   const rate = pct(d.singleBidRate, 0);
-  const nat = pct(nationalAvg, 0);
+  const exp = pct(d.expectedRate ?? nationalAvg, 0); // nozarei sagaidāmā (vērtības-svērtā) likme
   const ratio = fmtRatio(d.relativeRatio);
-  if (r.level === 'red') return `Viena pretendenta īpatsvars ${rate} — ${ratio} virs nacionālā vidējā (${nat}). Prioritāra pārbaude.`;
-  if (r.level === 'yellow') return `Viena pretendenta īpatsvars ${rate} — paaugstināts pret nacionālo vidējo (${nat}).`;
-  return `Viena pretendenta īpatsvars ${rate} — tuvu vai zem nacionālā vidējā (${nat}).`;
+  if (r.level === 'red') return `Viena pretendenta īpatsvars ${rate}. Vērtības-svērti ${ratio} virs nozarei sagaidāmā līmeņa (${exp}). Prioritāra pārbaude.`;
+  if (r.level === 'yellow') return `Viena pretendenta īpatsvars ${rate}. Vērtības-svērti paaugstināts pret nozarei sagaidāmo (${exp}).`;
+  return `Viena pretendenta īpatsvars ${rate}. Vērtības-svērti tuvu vai zem nozarei sagaidāmā (${exp}).`;
 }
 
 // Viena teikuma kopsavilkums B2 (uzvarētāju koncentrācija).

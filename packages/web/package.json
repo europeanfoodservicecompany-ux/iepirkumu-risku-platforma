@@ -7,7 +7,7 @@
   "scripts": {
     "sync-data": "node scripts/sync-data.mjs",
     "dev": "node scripts/sync-data.mjs && vite",
-    "build": "node scripts/sync-data.mjs && vite build",
+    "build": "node scripts/sync-data.mjs && vite build && node scripts/gen-share-pages.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },

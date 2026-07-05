@@ -1,0 +1,38 @@
+# Iepirkumu risku platforma
+
+> Publisks, bezmaksas pilsoniskais rīks Latvijas publisko iepirkumu korupcijas un konkurences risku analīzei. Apkopo atvērtos datus no Iepirkumu uzraudzības biroja (IUB) un Uzņēmumu reģistra (UR) un aprēķina riska rādītājus katram pasūtītājam, piegādātājam un nozarei. Mājaslapa: https://iepirkumurisks.lv
+
+## Kas tas ir
+
+Platforma analīzē visu pieejamo Latvijas publisko iepirkumu vēsturi (no 2023. gada oktobra) — vairāk nekā 65 000 līgumu, ~900 pasūtītāju un ~6 500 piegādātāju, kopā par vairāk nekā 15 miljardiem eiro. Tā nav apsūdzība: **karogs nav pārkāpuma pierādījums**, bet norāde, kur vērts ieskatīties dziļāk. Metodoloģija ir konservatīva un balstīta uz starptautisku korupcijas risku rādītāju praksi (piem., DOZORRO/ProZorro pieeja).
+
+## Riska rādītāji (indikatori)
+
+- **B — Viena pretendenta īpatsvars:** cik bieži iepirkumā pieteicies tikai viens piegādātājs (konkurences trūkums).
+- **B2 — Uzvarētāju koncentrācija:** vai dažas firmas iegūst nesamērīgi lielu daļu līgumu (HHI).
+- **A — Iepirkumu sadalīšana (salami):** lielu iepirkumu mākslīga sadalīšana mazākos, lai izvairītos no sliekšņiem.
+- **C — Cenu/vērtības novirze:** neparasti augstas līgumu vērtības nozarē (z-score).
+- **D — Saistītās puses:** ļoti jaunas firmas, kas uzreiz iegūst lielus līgumus; kopīgi īpašnieki, holdingu ķēdes, kopīga adrese.
+- **E — Procedūras integritāte:** necaurspīdīgu, nekonkurējošu procedūru īpatsvars.
+- **G — Līguma grozījumi:** būtiska līgumu vērtības vai apjoma palielināšana pēc noslēgšanas (scope creep).
+- **Slēgtais tirgus:** atkārtoti vieni un tie paši uzvarētāji šaurā tirgū (karteļa proxy).
+
+Kopējais svērtais riska rādītājs: sarkans ≥60, dzeltens ≥30. Privātpersonām tiek rādīts maigāks brīdinājums.
+
+## Sadaļas
+
+- Pārskats — kopējā statistika, jaunākie karogi, stabilākās pasūtītāju–piegādātāju attiecības
+- Pasūtītāji — riska profili pa iestādēm
+- Piegādātāji — uzvarētāju profili, īpašnieki, holdingu ķēdes, finanšu dati
+- Personas — fiziskās personas aiz firmām un to saiknes
+- Nozares — risku salīdzinājums pa CPV nozarēm
+- Slēgtie tirgi — koncentrēti tirgi ar vāju konkurenci
+- Aktuālie konkursi — notiekošie iepirkumi ar pirms-rezultāta signāliem
+- Metodoloģija — kā rādītāji aprēķināti
+
+## Datu avoti
+
+- Iepirkumu uzraudzības birojs (IUB) — paziņojumi, līgumi, grozījumi: https://open.iub.gov.lv
+- Latvijas Uzņēmumu reģistrs (UR) — patiesie labuma guvēji, valde, dalībnieki, adreses, gada pārskati
+
+Dati tiek atjaunoti automātiski katru dienu. Rīks ir neatkarīgs, nekomerciāls un nav saistīts ar valsts iestādēm.

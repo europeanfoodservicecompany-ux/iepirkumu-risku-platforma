@@ -1,3 +1,4 @@
+import { RiskNote } from './RiskNote.tsx';
 import { useState } from 'react';
 import type { SectorsData, SectorStat, SectorEntity } from '../types.ts';
 import { pct, eur, downloadCsv } from '../format.ts';
@@ -46,6 +47,7 @@ export function SectorView({ data, onSelect, onSelectBuyer }: { data: SectorsDat
   const max = Math.max(...data.sectors.map((s) => s.singleBidRate), nat);
   return (
     <div className="card">
+      <RiskNote />
       <p style={{ marginTop: 0 }}>
         Iepirkumu nozares pēc <strong>viena pretendenta īpatsvara</strong> (vājākā konkurence augšā).
         Salīdzinājumam — nacionālais vidējais ir <strong>{pct(nat, 1)}</strong>. Rāda nozares ar vismaz 10 iepirkumiem.

@@ -15,9 +15,14 @@ export type Lot = {
   winnerName?: string | null;  // uzvarētāja nosaukums
   procedureType?: string | null; // BT-105: tenderingProcess.procedureType
   noticeDate?: string | null;  // ISO datums (no lot.result.decisionDate)
-  sourceUrl?: string | null;   // saite uz IUB oriģinālu
+  sourceUrl?: string | null;   // saite uz IUB oriģinālu (eForms strukturētais paziņojums)
+  eisId?: string | null;       // EIS iepirkuma numurs (iekšēji — dedup/A grupēšanai, ne displejam)
   nutsCode?: string | null;    // pasūtītāja reģions (organizationData.nutsCode, NUTS3)
   dupValue?: boolean;          // vērtība atkārtojas tajā pašā procedūrā (ietvara/bloka dublikāts) — neieskaita summās
+  subjectName?: string | null; // iepirkuma priekšmets (notice.name / procurementProject.description) — laika ziņā precīzs
+  subjectRef?: string | null;  // pasūtītāja iekšējais iepirkuma numurs (procurementProject.procurementIdentifier)
+  contactName?: string | null; // paziņojumā norādītā kontaktpersona/kontaktpunkts (notice.contactPoint.name)
+  contactEmail?: string | null;// kontaktpersonas darba e-pasts (notice.contactPoint.electronicMail)
 };
 
 export type RiskStatus = 'RiskFound' | 'RiskNotFound' | 'NoData' | 'NotApplicable';
@@ -140,7 +145,7 @@ export const DEFAULT_D_CONFIG: DConfig = {
   minAwards: 5,
 };
 
-export type CompanyInfo = { registered: string | null; type: string | null };
+export type CompanyInfo = { registered: string | null; type: string | null; addressId?: string | null; address?: string | null; addrTotal?: number };
 
 // Līguma grozījums pēc uzvaras (IUB cont-modif paziņojums).
 export type Modification = {
@@ -186,6 +191,8 @@ export const DEFAULT_WEIGHTS: Weights = { A: 0.22, B: 0.26, C: 0.17, D: 0.12, E:
 
 export type EngineContext = {
   nationalAvg: number; // nacionālais viena-pretendenta īpatsvars (0..1)
+  // Nozaru (CPV2) vērtības-svērtās bāzes B1 salīdzinājumam (Fazekas — katrai grupai sava bāze).
+  sectorBaselines: { byCpv2: Map<string, number>; nationalValRate: number; medianLotValue: number };
   b1: B1Config;
   b2: B2Config;
   a: AConfig;

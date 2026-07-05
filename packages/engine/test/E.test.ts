@@ -1,14 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Lot } from '../src/types.ts';
-import { DEFAULT_B1_CONFIG, DEFAULT_B2_CONFIG, DEFAULT_A_CONFIG, DEFAULT_C_CONFIG, DEFAULT_E_CONFIG, DEFAULT_D_CONFIG } from '../src/types.ts';
+import { DEFAULT_B1_CONFIG, DEFAULT_B2_CONFIG, DEFAULT_A_CONFIG, DEFAULT_C_CONFIG, DEFAULT_E_CONFIG, DEFAULT_D_CONFIG, DEFAULT_G_CONFIG } from '../src/types.ts';
 import { IndicatorE } from '../src/indicators/E.ts';
 
 function lot(p: Partial<Lot>): Lot {
   return { id: p.id ?? 'L', noticeId: 'N', buyerId: 'B', receivedBids: p.receivedBids ?? 2, winnerChosen: p.winnerChosen ?? true,
     procedureType: p.procedureType ?? 'open', cpv: '30000000-9', awardValue: 1000, noticeDate: '2025-01-10', winnerId: 'W', buyerName: 'Test', ...p }; }
 const e = new IndicatorE();
-const ctx = { nationalAvg: 0.26, b1: DEFAULT_B1_CONFIG, b2: DEFAULT_B2_CONFIG, a: DEFAULT_A_CONFIG, c: DEFAULT_C_CONFIG, cpvStats: new Map(), e: DEFAULT_E_CONFIG, d: DEFAULT_D_CONFIG, companyReg: new Map() };
+const ctx = { nationalAvg: 0.26, b1: DEFAULT_B1_CONFIG, b2: DEFAULT_B2_CONFIG, a: DEFAULT_A_CONFIG, c: DEFAULT_C_CONFIG, cpvStats: new Map(), e: DEFAULT_E_CONFIG, d: DEFAULT_D_CONFIG, g: DEFAULT_G_CONFIG, sectorBaselines: { byCpv2: new Map(), nationalValRate: 0.26, medianLotValue: 1 }, companyReg: new Map(), modifications: new Map() };
 
 test('E lot: neg-wo-call → dzeltens', () => {
   assert.equal(e.processLot(lot({ procedureType: 'neg-wo-call' }), ctx).level, 'yellow');

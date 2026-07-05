@@ -1,6 +1,7 @@
+import { RiskNote } from './RiskNote.tsx';
 import { useEffect, useMemo, useState } from 'react';
 import type { IndexBuyer, IndKey, RiskLevel } from '../types.ts';
-import { bandFromScore, downloadCsv } from '../format.ts';
+import { bandFromScore, downloadCsv, norm, queryTokens, tokenMatch } from '../format.ts';
 
 type Filter = 'scored' | 'red' | 'yellow' | 'all';
 type SortKey = 'combined' | 'name' | IndKey;
@@ -36,12 +37,12 @@ function MiniBadge({ score, level }: { score: number | null; level: RiskLevel })
   return <span className={`badge ${bandFromScore(score, level)}`}><span className="dot" aria-hidden="true" />{score}</span>;
 }
 const hasLevel = (b: IndexBuyer, lvl: 'red' | 'yellow') => Object.values(b.levels).some((v) => v === lvl);
-const matches = (b: IndexBuyer, term: string) => `${b.buyerName ?? ''} ${b.buyerId}`.toLowerCase().includes(term);
+const matches = (b: IndexBuyer, tokens: string[]) => tokenMatch(norm(`${b.buyerName ?? ''} ${b.buyerId}`), tokens);
 
-// Izceļ meklēto tekstu nosaukumā.
+// Izceļ meklēto tekstu nosaukumā (diakritikas-nejutīgi; norm saglabā garumu, tāpēc indeksi sakrīt).
 function Highlight({ text, term }: { text: string; term: string }) {
   if (!term) return <>{text}</>;
-  const i = text.toLowerCase().indexOf(term);
+  const i = norm(text).indexOf(term);
   if (i < 0) return <>{text}</>;
   return <>{text.slice(0, i)}<mark>{text.slice(i, i + term.length)}</mark>{text.slice(i + term.length)}</>;
 }
@@ -59,7 +60,8 @@ export function BuyerList({ buyers, query, onSelect, sectorFilter, onClearSector
   useEffect(() => { if (regionFilter) { setRegF(regionFilter); setFilter('all'); setLimit(PAGE); } }, [regionFilter]);
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'combined', dir: 'desc' });
   const [limit, setLimit] = useState(PAGE);
-  const term = query.trim().toLowerCase();
+  const term = norm(query.trim());
+  const tokens = queryTokens(query);
 
   // Nozaru un reģionu saraksti no datiem (filtru izvēlnēm).
   const sectors = useMemo(() => {
@@ -75,7 +77,7 @@ export function BuyerList({ buyers, query, onSelect, sectorFilter, onClearSector
 
   const vb = VALUE_BANDS.find((x) => x.k === bandF)!;
   const filtered = useMemo(() => buyers.filter((b) => {
-    if (term && !matches(b, term)) return false;
+    if (term && !matches(b, tokens)) return false;
     if (secF !== 'all' && b.sectorCpv2 !== secF) return false;
     if (regF !== 'all' && b.region !== regF) return false;
     if (bandF !== 'all') { const v = b.value ?? 0; if (v < vb.min || v >= vb.max) return false; }
@@ -133,6 +135,7 @@ export function BuyerList({ buyers, query, onSelect, sectorFilter, onClearSector
 
   return (
     <div className="card">
+      <RiskNote />
       <div className="controls">
         {filters.map((f) => (
           <button key={f.k} className={`filter-btn ${filter === f.k ? 'active' : ''}`}
@@ -160,14 +163,14 @@ export function BuyerList({ buyers, query, onSelect, sectorFilter, onClearSector
         <select className="filter-btn" value={bandF} onChange={(e) => { setBandF(e.target.value); setLimit(PAGE); }} aria-label="Iepirkumu vērtība">
           {VALUE_BANDS.map((b) => <option key={b.k} value={b.k}>{b.l}</option>)}
         </select>
-        {(secF !== 'all' || regF !== 'all' || bandF !== 'all') &&
-          <button className="filter-btn" onClick={() => { setSecF('all'); setRegF('all'); setBandF('all'); setLimit(PAGE); onClearSector?.(); }}>✕ Notīrīt</button>}
+        {(secF !== 'all' || regF !== 'all' || bandF !== 'all' || ind !== 'all' || filter !== 'scored') &&
+          <button className="filter-btn" onClick={() => { setSecF('all'); setRegF('all'); setBandF('all'); setInd('all'); setFilter('scored'); setLimit(PAGE); onClearSector?.(); onClearRegion?.(); }}>✕ Notīrīt visu</button>}
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <p className="muted small" style={{ margin: 0 }}>
           {rows.length} pasūtītāji{term ? ` (meklē: “${query}”)` : ''}
-          {ind !== 'all' ? ` · kārtoti pēc ${ind}` : ''}. Klikšķini uz kolonnas, lai sakārtotu.
+          {ind !== 'all' ? ` · kārtoti pēc ${ind}` : ''}. Klikšķini uz kolonnas virsraksta, lai sakārtotu; vēlreiz — pretējā virzienā (▲ no mazākā, ▼ no lielākā).
         </p>
         {rows.length > 0 && <button className="filter-btn" onClick={exportCsv}>⬇ Lejupielādēt CSV</button>}
       </div>
@@ -190,7 +193,13 @@ export function BuyerList({ buyers, query, onSelect, sectorFilter, onClearSector
               {shown.map((b) => (
                 <tr key={b.buyerId} className="clickable" tabIndex={0} role="button" aria-label={b.buyerName ?? b.buyerId} onClick={() => onSelect(b.buyerId)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(b.buyerId); } }}>
                   <td><span className={`risk-circle ${scoreKey(b.combinedScore)}`}>{b.combinedScore ?? '–'}</span></td>
-                  <td><Highlight text={b.buyerName ?? b.buyerId} term={term} /><div className="muted small mono">{b.buyerId}</div></td>
+                  <td><Highlight text={b.buyerName ?? b.buyerId} term={term} />{b.bunching && <span className="note-tag note-high" style={{ marginLeft: 6 }} title="Daudz līgumu tieši zem atklātas procedūras sliekšņa">zem sliekšņa</span>}<div className="muted small mono">{b.buyerId}</div>
+                    <div className="ind-mobile" aria-hidden="true">
+                      {IND.filter((i) => b.scores[i.key] != null).map((i) => (
+                        <span key={i.key} className="ind-chip"><b>{i.key}</b><MiniBadge score={b.scores[i.key]} level={b.levels[i.key]} /></span>
+                      ))}
+                    </div>
+                  </td>
                   {IND.map((i) => <td key={i.key} className="col-ind"><MiniBadge score={b.scores[i.key]} level={b.levels[i.key]} /></td>)}
                 </tr>
               ))}

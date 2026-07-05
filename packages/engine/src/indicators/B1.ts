@@ -59,13 +59,31 @@ export class IndicatorB1 extends BaseTenderRiskRule {
       return noData('B1', 'buyer', buyerId, { detail: { ...detailBase, reason: 'nepietiek datu (< min_sample)' } });
     }
 
-    const singleBidRate = singleBidCount / winnerChosenCount;
-    const ratio = ctx.nationalAvg > 0 ? singleBidRate / ctx.nationalAvg : 0;
+    const singleBidRate = singleBidCount / winnerChosenCount; // skaita likme (attēlojumam)
+
+    // Vērtības-svērts + nozaru-koriģēts (Fazekas): salīdzina pasūtītāja vērtības-svērto viena-pretendenta
+    // likmi ar SAGAIDĀMO likmi, kas izriet no pasūtītāja nozaru sastāva (katrai CPV2 sava bāze). Tā
+    // IT/specifisku nozaru pasūtītāji netiek pārkarogoti, un lieli līgumi sver vairāk nekā mazi.
+    const sb = ctx.sectorBaselines;
+    const cpv2 = (l: Lot) => ((l.cpv ?? '').replace(/[^0-9]/g, '').slice(0, 2) || '????');
+    const wOf = (l: Lot) => (l.awardValue && l.awardValue > 0 ? l.awardValue : sb.medianLotValue);
+    let actSb = 0, totW = 0, expSb = 0;
+    for (const l of applicable) {
+      const wl = wOf(l);
+      totW += wl;
+      if (isSingleBid(l)) actSb += wl;
+      expSb += wl * (sb.byCpv2.get(cpv2(l)) ?? sb.nationalValRate);
+    }
+    const valueRate = totW > 0 ? actSb / totW : 0;
+    const expectedRate = totW > 0 ? expSb / totW : sb.nationalValRate;
+    const ratio = expectedRate > 0 ? valueRate / expectedRate : 0;
     const score = Math.round(clamp((ratio - 1.0) * ctx.b1.scoreSlope, 0, 100));
 
     const detail = {
       ...detailBase,
       singleBidRate: round(singleBidRate, 4),
+      singleBidValueRate: round(valueRate, 4),
+      expectedRate: round(expectedRate, 4),
       relativeRatio: round(ratio, 3),
     };
 

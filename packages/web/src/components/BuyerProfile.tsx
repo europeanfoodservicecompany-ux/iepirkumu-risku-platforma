@@ -1,8 +1,10 @@
+import { Term } from './Term.tsx';
 import type { BuyerDetail, RiskResult, ActiveTender } from '../types.ts';
 import { buyerBand, buyerSummary, b2Summary, aSummary, cSummary, eSummary, dSummary, gSummary, pct, fmtRatio, eur, downloadCsv } from '../format.ts';
 import { RiskBadge } from './RiskBadge.tsx';
 import { RiskBreakdown } from './RiskBreakdown.tsx';
 import { Disclaimer } from './Disclaimer.tsx';
+import { CopyLink } from './CopyLink.tsx';
 
 const barColor: Record<string, string> = {
   red: 'var(--red)', yellow: 'var(--yellow)', green: 'var(--green)', gray: 'var(--gray)',
@@ -32,7 +34,7 @@ function ScoreBar({ r }: { r: RiskResult }) {
   return (
     <div style={{ marginTop: 12 }}>
       <div className="bar"><span style={{ width: `${r.score}%`, background: barColor[band.key] }} /></div>
-      <div className="muted small" style={{ marginTop: 4 }}>0 — zems · 30 — dzeltens · 70 — sarkans</div>
+      <div className="muted small" style={{ marginTop: 4 }}>Šī indikatora skala: 0 — zems · 30 — dzeltens · 70 — sarkans</div>
     </div>
   );
 }
@@ -75,7 +77,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
           <div>
             <h2>{buyer.buyerName ?? buyer.buyerId}</h2>
             <div className="muted small mono">Reģ. nr. {buyer.buyerId}</div>
-            <div style={{ marginTop: 10, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}><RiskBadge band={combKey} label={combLabel} /><button className="filter-btn" onClick={exportFlagged}>⬇ Karogotie CSV</button></div>
+            <div style={{ marginTop: 10, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}><RiskBadge band={combKey} label={combLabel} /><button className="filter-btn" onClick={exportFlagged}>⬇ Karogotie CSV</button><CopyLink path={`p/buyer/${encodeURIComponent(buyer.buyerId)}`} /></div>
           </div>
           <div className="bigscore">
             <div className="ring" style={{ background: `conic-gradient(${barColor[combKey]} ${(buyer.combinedScore ?? 0) * 3.6}deg, var(--ring-track) 0)` }}>
@@ -85,9 +87,22 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
               </div>
             </div>
             <div className="l">Kopējais risks</div>
+            <div className="muted" style={{ fontSize: 10.5, marginTop: 2, textAlign: 'center' }}>0–29 zems · 30–59 vērts pārbaudīt · 60+ augsts</div>
           </div>
         </div>
       </div>
+
+      {buyer.ppi && (buyer.ppi.type || buyer.ppi.higherName || buyer.ppi.email) && (
+        <div className="card">
+          <div className="muted small" style={{ marginBottom: 8 }}>Iestādes dati · pēc UR aktuālā publisko personu un iestāžu saraksta (šodien)</div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            {buyer.ppi.type && <div><span className="muted small">Tips: </span>{buyer.ppi.type}</div>}
+            {buyer.ppi.higherName && <div><span className="muted small">Augstākā (mātes) iestāde: </span>{buyer.ppi.higherName}</div>}
+            {buyer.ppi.email && <div><span className="muted small">Oficiālais e-pasts: </span><a href={`mailto:${buyer.ppi.email}`}>{buyer.ppi.email}</a></div>}
+            {buyer.ppi.status === 'REMOVED' && <div className="muted small">Izslēgta no saraksta{buyer.ppi.removedOn ? ` · ${buyer.ppi.removedOn}` : ''}</div>}
+          </div>
+        </div>
+      )}
 
       <h3 className="section-title">Riska sadalījums pa indikatoriem</h3>
       <div className="card">
@@ -95,6 +110,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
         <div className="muted small" style={{ marginTop: 12 }}>
           Kopējais risks ir svērta indikatoru kombinācija (B 26%, A 22%, C 17%, G 15%, D 12%, E 8%).
           Augstu risku rada vairāku signālu sakritība, ne viens atsevišķs rādītājs.
+          <br /><strong>Kopējā skala:</strong> ≥60 augsts risks · ≥30 vērts pārbaudīt · &lt;30 zems. (Atsevišķa indikatora skala atšķiras — tur sarkanais sākas pie 70.)
         </div>
       </div>
 
@@ -113,11 +129,17 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
                     onClick={clickable ? () => onSelectWinner!(s.fileId!) : undefined}
                     onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectWinner!(s.fileId!); } } : undefined}>
                     <div className="flow-top">
-                      <span className="flow-name">{s.name ?? s.winnerId}{clickable && <span className="muted"> →</span>}</span>
+                      <span className="flow-name">{s.name ?? s.winnerId}{clickable && <span className="muted"> →</span>}
+                        {s.loyalty && <span className={`note-tag note-${s.loyalty}`} style={{ marginLeft: 6 }}>noturīga atkarība</span>}
+                      </span>
                       <strong className="mono small">{eur(s.value)}</strong>
                     </div>
                     <div className="flow-bar"><span style={{ width: `${(s.value / max) * 100}%` }} /></div>
-                    <div className="muted small mono">{s.contracts} līg. · {pct(s.singleBidRate, 0)} viena pretendenta</div>
+                    <div className="muted small mono">
+                      {s.contracts} līg. · {pct(s.singleBidRate, 0)} viena pretendenta
+                      {s.years && s.years >= 2 ? ` · ${s.from}–${s.to} (${s.years} g.)` : ''}
+                      {s.share ? ` · ${pct(s.share, 0)} no iepirkumiem` : ''}
+                    </div>
                   </div>
                 );
               })}
@@ -166,12 +188,27 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
         </>
       )}
 
+      {/* Lipīga enkuru josla — ātra pārvietošanās pa garo profilu. */}
+      <nav className="anchor-nav" aria-label="Pāriet uz indikatoru">
+        {([['sec-b1', 'B1'], ['sec-b2', 'B2'], ['sec-a', 'A'], ['sec-c', 'C'], ['sec-e', 'E'], ['sec-d', 'D'], ['sec-g', 'G'], ['sec-flags', 'Karogi']] as const).map(([id, l]) => (
+          <a key={id} href={`#${id}`} onClick={(e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>{l}</a>
+        ))}
+      </nav>
+
       {/* ── B1 — Konkurence ── */}
-      <h3 className="section-title">B1 · Viena pretendenta īpatsvars (slānis B)</h3>
+      <h3 className="section-title" id="sec-b1">Cik bieži bija tikai viens pretendents? <span className="muted" style={{ fontWeight: 400 }}>(B1)</span></h3>
       <div className="card">
         <p style={{ marginTop: 0 }}>{buyerSummary(r, nat)}</p>
         <div className="kv"><span>Viena pretendenta īpatsvars</span>
           <strong className="mono">{r.score === null ? 'nepietiek datu' : pct(d.singleBidRate, 1)}</strong></div>
+        {buyer.singleBidTrend && (
+          <div className="kv"><span>Tendence (pēdējie 12 mēn. pret iepriekšējiem)</span>
+            <span className="mono">
+              <span className={`trend trend-${buyer.singleBidTrend.dir}`}>{buyer.singleBidTrend.dir === 'up' ? '↑ aug' : buyer.singleBidTrend.dir === 'down' ? '↓ krīt' : '→ stabili'}</span>
+              {' '}({pct(buyer.singleBidTrend.prior, 0)} → {pct(buyer.singleBidTrend.recent, 0)})
+            </span>
+          </div>
+        )}
         <div className="kv"><span>Nacionālais vidējais</span><span className="mono">{pct(nat, 1)}</span></div>
         <div className="kv"><span>Attiecība pret vidējo</span><span className="mono">{fmtRatio(d.relativeRatio)}</span></div>
         <div className="kv"><span>Iepirkumi ar izvēlētu uzvarētāju</span><span className="mono">{d.winnerChosenLots ?? 0}</span></div>
@@ -180,13 +217,13 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
       </div>
 
       {/* ── B2 — Uzvarētāju koncentrācija ── */}
-      <h3 className="section-title">B2 · Uzvarētāju koncentrācija (slānis B)</h3>
+      <h3 className="section-title" id="sec-b2">Vai līgumi koncentrējas pie viena uzvarētāja? <span className="muted" style={{ fontWeight: 400 }}>(B2)</span></h3>
       <div className="card">
         <p style={{ marginTop: 0 }}>{b2Summary(b2)}</p>
         <div className="kv"><span>Lielākā uzvarētāja daļa</span>
           <strong className="mono">{b2.score === null ? 'nepietiek datu' : pct(cd.topWinnerShare, 1)}</strong></div>
         <div className="kv"><span>Lielākais uzvarētājs</span><span>{cd.topWinnerName ?? '–'}</span></div>
-        <div className="kv"><span>Koncentrācijas indekss (HHI)</span><span className="mono">{cd.hhi ?? '–'}</span></div>
+        <div className="kv"><span><Term k="HHI">Koncentrācijas indekss (HHI)</Term></span><span className="mono">{cd.hhi ?? '–'}</span></div>
         <div className="kv"><span>Atšķirīgu uzvarētāju skaits</span><span className="mono">{cd.distinctWinners ?? '–'}</span></div>
         <div className="kv"><span>Piešķirti līgumi</span><span className="mono">{cd.awardedLots ?? 0}</span></div>
         <div className="kv"><span>Aprēķina bāze</span><span>{cd.basis === 'value' ? 'līgumvērtība' : cd.basis === 'count' ? 'līgumu skaits' : '–'}</span></div>
@@ -194,7 +231,19 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
       </div>
 
       {/* ── A — Iepirkumu sadalīšana ── */}
-      <h3 className="section-title">A · Iepirkumu sadalīšana (slānis A)</h3>
+      {buyer.bunching && (
+        <div className="card" style={{ borderLeft: '4px solid var(--red)', marginBottom: 14 }}>
+          <strong>Vērtību sablīvēšanās zem sliekšņa</strong>
+          <p className="muted small" style={{ margin: '6px 0 0' }}>
+            <strong>{Math.round(buyer.bunching.rate * 100)}%</strong> šī pasūtītāja līgumu ({buyer.bunching.below}/{buyer.bunching.n}) ir
+            <strong> tieši zem</strong> atklātas procedūras sliekšņa (85–100% no €170 tūkst. būvdarbiem / €42 tūkst. precēm) —
+            nacionāli tikai <strong>{Math.round(buyer.bunching.natRate * 100)}%</strong>. Var liecināt par apzinātu izvairīšanos no atklātas konkurences.
+            <strong> Karogs nav pierādījums</strong> — budžeta plānošana pie sliekšņa var būt arī likumīga.
+          </p>
+        </div>
+      )}
+
+      <h3 className="section-title" id="sec-a">Vai iepirkumi tiek dalīti, lai izvairītos no konkursa? <span className="muted" style={{ fontWeight: 400 }}>(A)</span></h3>
       <div className="card">
         <p style={{ marginTop: 0 }}>{aSummary(aRes)}</p>
         <div className="disclaimer" style={{ marginBottom: 12 }}>
@@ -250,7 +299,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
       </div>
 
       {/* ── C — Cenu/vērtības novirze ── */}
-      <h3 className="section-title">C · Cenu/vērtības novirze (slānis C)</h3>
+      <h3 className="section-title" id="sec-c">Vai cenas neparasti atšķiras no līdzīgiem iepirkumiem? <span className="muted" style={{ fontWeight: 400 }}>(C)</span></h3>
       <div className="card">
         <p style={{ marginTop: 0 }}>{cSummary(cRes)}</p>
         <div className="disclaimer" style={{ marginBottom: 12 }}>
@@ -276,7 +325,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
       </div>
 
       {/* ── E — Procedūras integritāte ── */}
-      <h3 className="section-title">E · Procedūras integritāte (slānis E)</h3>
+      <h3 className="section-title" id="sec-e">Vai procedūra apiet atklātu konkurenci? <span className="muted" style={{ fontWeight: 400 }}>(E)</span></h3>
       <div className="card">
         <p style={{ marginTop: 0 }}>{eSummary(eRes)}</p>
         <div className="kv"><span>Sarunu procedūras bez konkurences</span>
@@ -285,7 +334,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
       </div>
 
       {/* ── D — Saistītās puses ── */}
-      <h3 className="section-title">D · Saistītās puses / jauni uzvarētāji (slānis D)</h3>
+      <h3 className="section-title" id="sec-d">Vai uzvar tikko dibinātas firmas? <span className="muted" style={{ fontWeight: 400 }}>(D)</span></h3>
       <div className="card">
         <p style={{ marginTop: 0 }}>{dSummary(dRes)}</p>
         <div className="muted small" style={{ marginBottom: newWinners.length ? 12 : 0 }}>
@@ -309,7 +358,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
       </div>
 
       {/* ── G — Līguma grozījumi (scope creep) ── */}
-      <h3 className="section-title">G · Līguma grozījumi pēc uzvaras (slānis G)</h3>
+      <h3 className="section-title" id="sec-g">Vai līgumi tiek grozīti pēc uzvaras? <span className="muted" style={{ fontWeight: 400 }}>(G)</span></h3>
       <div className="card">
         <p style={{ marginTop: 0 }}>{gSummary(gRes)}</p>
         {gRes.status !== 'NoData' && (
@@ -342,15 +391,20 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
       </div>
 
       {/* ── Karogotie iepirkumi (B1) ── */}
-      <h3 className="section-title">Karogotie iepirkumi ({buyer.flaggedLots.length})</h3>
+      <h3 className="section-title" id="sec-flags">Karogotie iepirkumi ({buyer.flaggedLots.length})</h3>
       <div className="card">
         {buyer.flaggedLots.length === 0 && <p className="muted">Nav karogotu iepirkumu šajā datu periodā.</p>}
-        {buyer.flaggedLots.map((lot) => (
+        {buyer.flaggedLots.map((lot) => {
+          const m = lot.lotId ? buyer.lotMeta?.[lot.lotId] : undefined;
+          return (
           <Flag url={lot.detail?.sourceUrl} key={lot.lotId}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <div>
                 <RiskBadge band={lot.level === 'red' ? 'red' : 'yellow'} label={lot.level === 'red' ? 'Sarkans' : 'Dzeltens'} />
-                <span className="muted small mono" style={{ marginLeft: 8 }}>daļa {lot.lotId}</span>
+                {m?.subjectName
+                  ? <span style={{ marginLeft: 8, fontWeight: 600 }}>{m.subjectName}</span>
+                  : <span className="muted small mono" style={{ marginLeft: 8 }}>daļa {lot.lotId}</span>}
+                {m?.euFunded && <span className="sector-badge" style={{ marginLeft: 8, background: 'var(--brand)', color: '#fff' }} title="Iepirkums saistīts ar ES fondu līdzfinansētu projektu (CFLA dati)">ES fondi</span>}
               </div>
               {lot.detail?.sourceUrl && <span className="iublink">Skatīt iepirkumu →</span>}
             </div>
@@ -358,8 +412,22 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
               Saņemts {lot.detail?.receivedBids ?? '?'} piedāvājums — konkurences trūkums. Atsevišķs viens
               pretendents ir dzeltens karogs; sarkans iedegtos kombinācijā ar citu signālu.
             </div>
+            {(m?.contactName || m?.subjectRef) && (
+              <div className="muted small" style={{ marginTop: 4 }}>
+                {m?.subjectRef && <span>Iepirkuma nr. {m.subjectRef}</span>}
+                {m?.subjectRef && m?.contactName && ' · '}
+                {m?.contactName && <span>Kontaktpersona: {m.contactName}</span>}
+              </div>
+            )}
+            {m?.bidders && m.bidders.length > 0 && (
+              <div className="muted small" style={{ marginTop: 4 }}>
+                Pretendenti ({m.bidderCount}): {m.bidders.map((b, k) => <span key={k}>{k > 0 ? ', ' : ''}{b.name}</span>)}
+                <span title="Reālie pretendenti no EIS piedāvājumu atvēršanas datiem (arī zaudētāji)"> ⓘ</span>
+              </div>
+            )}
           </Flag>
-        ))}
+          );
+        })}
       </div>
 
       <div className="section"><Disclaimer /></div>

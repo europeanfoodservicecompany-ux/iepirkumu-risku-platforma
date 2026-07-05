@@ -21,6 +21,34 @@ export function computeNationalBaseline(
   return { singleBidLots, winnerChosenLots, singleBidRate };
 }
 
+// Nozaru (CPV2) viena-pretendenta bāzes B1 salīdzinājumam (Fazekas: katrai grupai sava bāze, jo
+// nozares dabiski atšķiras — IT ~57%, būvniecība zemāka). VĒRTĪBAS-SVĒRTS (mazie iepirkumi nerada
+// troksni): katra lota svars = tā vērtība; lotiem bez vērtības — imputē nacionālo mediānu.
+export type SectorBaselines = {
+  byCpv2: Map<string, number>;  // CPV2 → vērtības-svērta viena-pretendenta likme (0..1)
+  nationalValRate: number;      // vērtības-svērta nacionālā likme (atkāpšanās nezināmam CPV)
+  medianLotValue: number;       // imputēts svars lotiem bez vērtības
+};
+export function computeSectorBaselines(lots: Lot[], appliesTo: (l: Lot) => boolean): SectorBaselines {
+  const eligible = lots.filter((l) => appliesTo(l) && l.winnerChosen === true);
+  const pos = eligible.map((l) => l.awardValue ?? 0).filter((v) => v > 0).sort((a, b) => a - b);
+  const medianLotValue = pos.length ? pos[Math.floor(pos.length / 2)] : 1;
+  const w = (l: Lot) => (l.awardValue && l.awardValue > 0 ? l.awardValue : medianLotValue);
+  const agg = new Map<string, { sb: number; tot: number }>();
+  let natSb = 0, natTot = 0;
+  for (const l of eligible) {
+    const k = cpvKey(l.cpv, 2);
+    const wl = w(l);
+    const sb = isSingleBid(l) ? wl : 0;
+    const e = agg.get(k) ?? { sb: 0, tot: 0 };
+    e.sb += sb; e.tot += wl; agg.set(k, e);
+    natSb += sb; natTot += wl;
+  }
+  const byCpv2 = new Map<string, number>();
+  for (const [k, v] of agg) byCpv2.set(k, v.tot > 0 ? v.sb / v.tot : 0);
+  return { byCpv2, nationalValRate: natTot > 0 ? natSb / natTot : 0, medianLotValue };
+}
+
 // Atzīmē atkārtotas līgumvērtības vienā procedūrā kā dublikātus (dupValue=true).
 // IUB datos lielos ietvara/bloka iepirkumos viena un tā pati vērtība bieži atkārtojas daudzos
 // "lots", kaut IUB paša noticeContractValue.sum ir mazāks → summēšana pa lots krasi uzpūš vērtību.
@@ -230,7 +258,7 @@ export function sectorLabel(cpv2: string): string { return CPV_DIVISIONS[cpv2] ?
 
 const LV_REGIONS: Record<string, string> = {
   LV00A: 'Rīga', LV006: 'Rīga', LV007: 'Pierīga', LV003: 'Kurzeme',
-  LV005: 'Latgale', LV008: 'Zemgale', LV009: 'Vidzeme',
+  LV005: 'Latgale', LV008: 'Vidzeme', LV009: 'Zemgale',
 };
 export function regionLabel(nuts: string | null | undefined): string | null {
   if (!nuts) return null;
@@ -257,6 +285,7 @@ function topSector(lots: Lot[]): { cpv2: string; label: string } | null {
 export type WinnerLot = {
   lotId: string; buyerId: string; buyerName: string | null; value: number | null;
   date: string | null; receivedBids: number | null; singleBid: boolean; cpv: string | null; sourceUrl: string | null;
+  subjectName?: string | null;
 };
 export type WinnerByBuyer = {
   buyerId: string; buyerName: string | null; contracts: number; value: number; singleBid: number; lots: WinnerLot[];
@@ -288,7 +317,7 @@ export function computeWinners(lots: Lot[]): WinnerDetail[] {
       const g = bm.get(l.buyerId) ?? { buyerId: l.buyerId, buyerName: l.buyerName ?? null, contracts: 0, value: 0, singleBid: 0, lots: [] };
       g.contracts++; g.value += l.awardValue ?? 0; if (l.receivedBids === 1) g.singleBid++;
       g.lots.push({ lotId: l.id, buyerId: l.buyerId, buyerName: l.buyerName ?? null, value: l.awardValue ?? null,
-        date: l.noticeDate ?? null, receivedBids: l.receivedBids, singleBid: l.receivedBids === 1, cpv: l.cpv ?? null, sourceUrl: l.sourceUrl ?? null });
+        date: l.noticeDate ?? null, receivedBids: l.receivedBids, singleBid: l.receivedBids === 1, cpv: l.cpv ?? null, sourceUrl: l.sourceUrl ?? null, subjectName: l.subjectName ?? null });
       bm.set(l.buyerId, g);
     }
     const byBuyer = [...bm.values()].sort((a, b) => b.value - a.value);

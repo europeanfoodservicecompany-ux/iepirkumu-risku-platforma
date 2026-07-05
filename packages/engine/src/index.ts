@@ -11,7 +11,7 @@ import { IndicatorC } from './indicators/C.ts';
 import { IndicatorE } from './indicators/E.ts';
 import { IndicatorD } from './indicators/D.ts';
 import { IndicatorG } from './indicators/G.ts';
-import { computeNationalBaseline, computeCpvPriceStats, groupByBuyer, type NationalBaseline } from './aggregate.ts';
+import { computeNationalBaseline, computeSectorBaselines, computeCpvPriceStats, groupByBuyer, type NationalBaseline } from './aggregate.ts';
 
 export * from './types.ts';
 export { IndicatorB1, isSingleBid } from './indicators/B1.ts';
@@ -65,12 +65,17 @@ function combine(
   if (keys.every((k) => layers[k] === null)) return { score: null, level: null };
   // Svērtā summa pār VISIEM slāņiem; trūkstošais slānis dod 0 ieguldījumu (nevis pilnu svaru).
   // Tā augstu kopējo risku rada vairāku signālu sakritība, ne viens izolēts rādītājs.
-  const totalW = keys.reduce((a, k) => a + w[k], 0);
-  const sum = keys.reduce((a, k) => a + w[k] * (layers[k] ?? 0), 0);
+  // Renormalizē svarus pār TIKAI tiem slāņiem, kuriem ir rādītājs (trūkstošais netiek ieskaitīts kā 0).
+  const present = keys.filter((k) => layers[k] !== null);
+  // Uzticamības kāpnes: kombinētais risks = vairāku signālu sakritība. Ja novērtējams tikai 0–1 slānis,
+  // kombinēto NErēķinām (nepietiek datu) — tā viena-signāla pasūtītāji ar maz datu neierindojas top riskos;
+  // attiecīgais indikators joprojām redzams profilā/nozarē. NEatgriežam "trūkstošais=0" atšķaidīšanu.
+  if (present.length < 2) return { score: null, level: null };
+  const totalW = present.reduce((a, k) => a + w[k], 0);
+  const sum = present.reduce((a, k) => a + w[k] * (layers[k] as number), 0);
   const score = Math.round(sum / totalW);
-  // Sarkans=60, dzeltens=30. Slieksnis 60 (ne 70), jo svērtais vidējais ir pār 6 slāņiem ar
-  // "trūkstošais=0" principu — augstu kopējo sasniedz tikai vairāku signālu sakritība (≥3 slāņi).
-  const level = score >= 60 ? 'red' : score >= 30 ? 'yellow' : 'green';
+  // SARKANS prasa ≥3 novērtētus slāņus (vairāku signālu sakritību); 2 slāņi → ne vairāk kā dzeltens.
+  const level = (score >= 60 && present.length >= 3) ? 'red' : score >= 30 ? 'yellow' : 'green';
   return { score, level };
 }
 
@@ -95,6 +100,7 @@ export function runEngine(lots: Lot[], cfg: EngineConfig = {}): EngineOutput {
   const cConfig = cfg.c ?? DEFAULT_C_CONFIG;
   const ctx: EngineContext = {
     nationalAvg: national.singleBidRate,
+    sectorBaselines: computeSectorBaselines(lots, (l) => b1.appliesTo(l)),
     b1: cfg.b1 ?? DEFAULT_B1_CONFIG,
     b2: cfg.b2 ?? DEFAULT_B2_CONFIG,
     a: cfg.a ?? DEFAULT_A_CONFIG,

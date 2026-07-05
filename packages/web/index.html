@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <title>Iepirkumu risku platforma</title>
     <meta name="description" content="Publisks rīks Latvijas publisko iepirkumu risku analīzei — viena pretendenta īpatsvars, uzvarētāju koncentrācija, sadalīšana, cenu novirze un saistītās puses." />
     <meta property="og:type" content="website" />
@@ -13,19 +13,108 @@
     <meta property="og:title" content="Publisko iepirkumu risku platforma" />
     <meta property="og:description" content="Latvijas publisko iepirkumu riska rādītāji pa pasūtītājiem un nozarēm. Izpētes prioritizēšanas rīks — karogs nav pārkāpuma pierādījums." />
     <meta property="og:site_name" content="Iepirkumu risku platforma" />
-    <meta property="og:url" content="https://main.iepirkumu-risku-platforma.pages.dev/" />
-    <meta property="og:image" content="https://main.iepirkumu-risku-platforma.pages.dev/og.png" />
+    <meta property="og:url" content="https://iepirkumurisks.lv/" />
+    <meta property="og:image" content="https://iepirkumurisks.lv/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Publisko iepirkumu risku platforma" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Publisko iepirkumu risku platforma" />
     <meta name="twitter:description" content="Latvijas publisko iepirkumu riska rādītāji pa pasūtītājiem un nozarēm." />
-    <meta name="twitter:image" content="https://main.iepirkumu-risku-platforma.pages.dev/og.png" />
+    <meta name="twitter:image" content="https://iepirkumurisks.lv/og.png" />
+    <link rel="canonical" href="https://iepirkumurisks.lv/" />
     <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta name="keywords" content="publiskie iepirkumi, iepirkumu risks, korupcijas risks, Latvija, IUB, caurspīdība, konkurence, atvērtie dati, viena pretendenta īpatsvars" />
+    <!-- Strukturētie dati (schema.org) — palīdz Google rich results un AI asistentiem saprast lapu. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://iepirkumurisks.lv/#website",
+          "url": "https://iepirkumurisks.lv/",
+          "name": "Iepirkumu risku platforma",
+          "description": "Publisks rīks Latvijas publisko iepirkumu korupcijas un konkurences risku analīzei — viena pretendenta īpatsvars, uzvarētāju koncentrācija, iepirkumu sadalīšana, cenu novirze, saistītās puses un līgumu grozījumi.",
+          "inLanguage": "lv",
+          "publisher": { "@id": "https://iepirkumurisks.lv/#org" }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://iepirkumurisks.lv/#org",
+          "name": "Iepirkumu risku platforma",
+          "url": "https://iepirkumurisks.lv/",
+          "description": "Neatkarīgs, nekomerciāls pilsoniskais projekts publisko iepirkumu caurspīdībai Latvijā.",
+          "logo": "https://iepirkumurisks.lv/og.png"
+        },
+        {
+          "@type": "Dataset",
+          "@id": "https://iepirkumurisks.lv/#dataset",
+          "name": "Latvijas publisko iepirkumu riska rādītāji",
+          "description": "Riska rādītāji katram pasūtītājam, piegādātājam un nozarei, aprēķināti no Iepirkumu uzraudzības biroja (IUB) un Uzņēmumu reģistra (UR) atvērtajiem datiem. Aptver visu pieejamo iepirkumu vēsturi no 2023. gada. Karogs nav pārkāpuma pierādījums.",
+          "url": "https://iepirkumurisks.lv/",
+          "inLanguage": "lv",
+          "license": "https://creativecommons.org/licenses/by/4.0/",
+          "isAccessibleForFree": true,
+          "keywords": ["publiskie iepirkumi", "korupcijas risks", "Latvija", "IUB", "caurspīdība", "konkurence", "atvērtie dati"],
+          "creator": { "@id": "https://iepirkumurisks.lv/#org" },
+          "spatialCoverage": "Latvija",
+          "temporalCoverage": "2023-10/..",
+          "isBasedOn": ["https://open.iub.gov.lv", "https://www.ur.gov.lv"]
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <h1>Iepirkumu risku platforma</h1>
+      <p>
+        Publisks, bezmaksas pilsoniskais rīks Latvijas publisko iepirkumu korupcijas un konkurences
+        risku analīzei. Apkopo atvērtos datus no Iepirkumu uzraudzības biroja (IUB) un Uzņēmumu
+        reģistra (UR) un aprēķina riska rādītājus katram pasūtītājam, piegādātājam un nozarei.
+        Tiek analizēta visa pieejamā iepirkumu vēsture no 2023. gada — vairāk nekā 65 000 līgumu,
+        ap 900 pasūtītāju un 6 500 piegādātāju, kopā par vairāk nekā 15 miljardiem eiro.
+      </p>
+      <p>
+        <strong>Karogs nav pārkāpuma pierādījums</strong> — tikai norāde, kur vērts ieskatīties
+        dziļāk. Metodoloģija ir konservatīva un balstīta uz starptautisku korupcijas risku rādītāju
+        praksi.
+      </p>
+      <h2>Riska rādītāji</h2>
+      <ul>
+        <li><strong>B — Viena pretendenta īpatsvars:</strong> cik bieži pieteicies tikai viens piegādātājs.</li>
+        <li><strong>B2 — Uzvarētāju koncentrācija:</strong> vai dažas firmas iegūst nesamērīgi daudz līgumu.</li>
+        <li><strong>A — Iepirkumu sadalīšana:</strong> lielu iepirkumu mākslīga dalīšana zem sliekšņiem.</li>
+        <li><strong>C — Cenu/vērtības novirze:</strong> neparasti augstas līgumu vērtības nozarē.</li>
+        <li><strong>D — Saistītās puses:</strong> jaunas firmas ar lieliem līgumiem, kopīgi īpašnieki, holdingu ķēdes.</li>
+        <li><strong>E — Procedūras integritāte:</strong> nekonkurējošu procedūru īpatsvars.</li>
+        <li><strong>G — Līguma grozījumi:</strong> būtiska vērtības palielināšana pēc noslēgšanas.</li>
+        <li><strong>Slēgtais tirgus:</strong> atkārtoti vieni un tie paši uzvarētāji šaurā tirgū.</li>
+      </ul>
+      <h2>Sadaļas</h2>
+      <p>
+        Pārskats, Pasūtītāji, Piegādātāji, Personas, Nozares, Slēgtie tirgi, Aktuālie konkursi un
+        Metodoloģija.
+      </p>
+      <p>
+        Datu avoti: Iepirkumu uzraudzības birojs (open.iub.gov.lv) un Latvijas Uzņēmumu reģistrs.
+        Dati tiek atjaunoti automātiski katru dienu. Rīks ir neatkarīgs, nekomerciāls un nav saistīts
+        ar valsts iestādēm. Šim rīkam nepieciešams JavaScript pilnai darbībai.
+      </p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- GoatCounter — apmeklētāju skaitīšana (privātuma draudzīga, bez sīkdatnēm). Nomaini kontu, ja reģistrē citu. -->
+    <script data-goatcounter="https://iepirkumu-risks.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+    <script>
+      // Hash-maršrutēta SPA — skaitām arī skata maiņas.
+      window.addEventListener('hashchange', function () {
+        if (window.goatcounter && window.goatcounter.count) {
+          window.goatcounter.count({ path: location.pathname + location.search + location.hash });
+        }
+      });
+    </script>
   </body>
 </html>

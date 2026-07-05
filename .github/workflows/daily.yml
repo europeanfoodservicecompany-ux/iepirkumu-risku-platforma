@@ -27,11 +27,14 @@ jobs:
       - name: Pārbaudīt tipus (frontend)
         run: npm --workspace packages/web run typecheck
 
-      - name: Ievākt jaunākos IUB datus un pārrēķināt indikatorus (rolling 365 dienas)
+      - name: Ievākt jaunākos IUB datus un pārrēķināt indikatorus (visa vēsture no 2023-10-25)
         run: node packages/ingest/src/run.ts --since 2023-10-25
 
       - name: Uzbūvēt frontendu
         run: npm run web:build
+
+      - name: Noņemt lielos failus pirms deploy (Cloudflare Pages 25 MiB limits)
+        run: rm -f packages/web/dist/data/lots.json packages/web/dist/data/engine_output.json packages/web/dist/data/modifications.json packages/web/dist/data/ur_registration.json
 
       - name: Izvietot uz Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
@@ -39,4 +42,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: '4.101.0'
-          command: pages deploy packages/web/dist --project-name=iepirkumu-risku-platforma
+          command: pages deploy packages/web/dist --project-name=iepirkumu-risku-platforma --branch=production --commit-dirty=true

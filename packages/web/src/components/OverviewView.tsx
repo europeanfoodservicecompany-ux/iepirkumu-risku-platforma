@@ -1,4 +1,6 @@
-import type { OverviewData } from '../types.ts';
+import { useState } from 'react';
+import { Term } from './Term.tsx';
+import type { OverviewData, CartelPair } from '../types.ts';
 import { pct, eur } from '../format.ts';
 import { LatviaMap } from './LatviaMap.tsx';
 
@@ -65,31 +67,158 @@ function TrendLine({ data, national }: { data: OverviewData['timeline']; nationa
   );
 }
 
-export function OverviewView({ data, onSelectBuyer, onPickSector, onPickRegion, onNav }: {
+function fmtDate(d: string): string {
+  const [y, m, day] = d.split('-');
+  return day && m ? `${day}.${m}.${y}.` : d;
+}
+const gadiWord = (n: number) => (n === 1 ? 'gads' : 'gadi');
+const ligWord = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? 'līgums' : 'līgumi');
+
+// Īss firmas vārds tīkla mezglam (izņem SIA/AS prefiksus, paņem raksturīgāko vārdu).
+function shortName(s: string | null): string {
+  if (!s) return '?';
+  const clean = s.replace(/["'“”]/g, '').replace(/\b(SIA|AS|AAS|ADB|UAB|OÜ|Sabiedrība ar ierobežotu atbildību|Akciju sabiedrība)\b/gi, ' ').trim();
+  const w = clean.split(/\s+/).filter(Boolean);
+  return (w[0] ?? s).slice(0, 12);
+}
+
+// Hero paraksta vizualizācija: top karteļa pāris kā mini tīkls (divi galvenie + dekoratīvi mezgli).
+function HeroNetwork({ pair, onOpen }: { pair: CartelPair; onOpen: () => void }) {
+  return (
+    <button className="hero-net" onClick={onOpen} aria-label={`Karteļa pazīmes: ${pair.a.name} un ${pair.b.name}`}>
+      <div className="hero-net-label">{pair.type === 'cover' ? 'Seguma pazīme' : 'Rotācijas pazīme'} · pretendentu tīkls</div>
+      <svg viewBox="0 0 280 156" width="100%" role="img" aria-hidden="true" style={{ overflow: 'visible' }}>
+        {/* savienojumi */}
+        <line x1="74" y1="66" x2="206" y2="66" stroke="var(--red)" strokeWidth="2.5" />
+        <line x1="74" y1="66" x2="48" y2="126" stroke="var(--line-strong)" strokeWidth="1.5" />
+        <line x1="74" y1="66" x2="140" y2="130" stroke="var(--line-strong)" strokeWidth="1.5" />
+        <line x1="206" y1="66" x2="232" y2="126" stroke="var(--line-strong)" strokeWidth="1.5" />
+        <line x1="140" y1="130" x2="232" y2="126" stroke="var(--red)" strokeWidth="1.6" />
+        {/* dekoratīvie (citi pretendenti) */}
+        <circle cx="48" cy="126" r="10" fill="var(--card)" stroke="var(--line-strong)" />
+        <circle cx="140" cy="130" r="10" fill="var(--card)" stroke="var(--line-strong)" />
+        <circle cx="232" cy="126" r="10" fill="var(--card)" stroke="var(--line-strong)" />
+        {/* galvenais pāris — tīri apļi, nosaukums VIRS */}
+        <circle cx="74" cy="66" r="19" fill="var(--red-bg)" stroke="var(--red)" strokeWidth="1.8" />
+        <circle cx="206" cy="66" r="19" fill="var(--red-bg)" stroke="var(--red)" strokeWidth="1.8" />
+        <text x="74" y="32" textAnchor="middle" fontSize="11" fontWeight="600" fill="var(--red)">{shortName(pair.a.name)}</text>
+        <text x="206" y="32" textAnchor="middle" fontSize="11" fontWeight="600" fill="var(--red)">{shortName(pair.b.name)}</text>
+      </svg>
+      <div className="hero-net-cap">{pair.coBids} kopīgi konkursi · {Math.round(pair.duoShare * 100)}% tikai šie divi →</div>
+    </button>
+  );
+}
+
+export function OverviewView({ data, cartelTop, onSelectBuyer, onSelectWinner, onPickSector, onPickRegion, onNav }: {
   data: OverviewData;
+  cartelTop?: CartelPair | null;
   onSelectBuyer: (id: string) => void;
+  onSelectWinner: (fileId: string) => void;
   onPickSector: (cpv2: string) => void;
   onPickRegion: (label: string) => void;
-  onNav: (view: 'buyers' | 'sectors') => void;
+  onNav: (view: 'buyers' | 'sectors' | 'method' | 'cartel') => void;
 }) {
   const nat = data.national.singleBidRate;
   const rd = data.riskDistribution;
+  const [showFlags, setShowFlags] = useState(false); // sākumā 6, "Rādīt vairāk" → 12
+  const [showLoyal, setShowLoyal] = useState(false);
   const segs = [
-    { label: 'Zems', value: rd.green, color: RISK.green },
-    { label: 'Vidējs', value: rd.yellow, color: RISK.yellow },
-    { label: 'Augsts', value: rd.red, color: RISK.red },
-    { label: 'Nav datu', value: rd.none, color: RISK.none },
+    { label: 'Zems risks', value: rd.green, color: RISK.green },
+    { label: 'Vidējs risks', value: rd.yellow, color: RISK.yellow },
+    { label: 'Augsts risks', value: rd.red, color: RISK.red },
+    { label: 'Nav pietiekamu datu', value: rd.none, color: RISK.none },
   ];
   const maxSec = Math.max(...data.topSectors.map((s) => s.singleBidRate), nat);
 
   return (
     <div>
-      <div className="kpi-grid">
-        <div className="kpi"><div className="kpi-l">Iepirkumi</div><div className="kpi-v">{data.totals.procurements.toLocaleString('lv-LV')}</div></div>
-        <div className="kpi"><div className="kpi-l">Kopvērtība ≈</div><div className="kpi-v">{compactEur(data.totals.awardedValue)}</div></div>
-        <div className="kpi"><div className="kpi-l">Viena pretendenta likme</div><div className="kpi-v" style={{ color: 'var(--yellow)' }}>{pct(nat, 1)}</div></div>
-        <div className="kpi"><div className="kpi-l">Augsta riska pasūtītāji</div><div className="kpi-v" style={{ color: 'var(--red)' }}>{rd.red} <span style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 400 }}>/ {data.totals.buyers}</span></div></div>
+      <div className={`hero${cartelTop ? ' hero-split' : ''}`}>
+        <div className="hero-main">
+          <h2 className="hero-h">Kur publiskajos iepirkumos vērts ieskatīties dziļāk</h2>
+          <p className="hero-p">
+            Šī ir neatkarīga vietne, kas analizē Latvijas publiskos iepirkumus un izceļ vājas konkurences un iespējama riska
+            pazīmes. <strong>Karogs nav pierādījums</strong> — tā ir norāde izpētei. Sāc, meklējot konkrētu pasūtītāju vai
+            piegādātāju (lauks augšā), vai ieej kādā no sarakstiem:
+          </p>
+          <div className="hero-actions">
+            <button className="hero-btn primary" onClick={() => onNav('buyers')}>Augstākā riska pasūtītāji →</button>
+            <button className="hero-btn" onClick={() => onNav('cartel')}>Karteļa pazīmes →</button>
+            <button className="hero-btn" onClick={() => onNav('method')}>Kā tas darbojas →</button>
+          </div>
+        </div>
+        {cartelTop && <HeroNetwork pair={cartelTop} onOpen={() => onNav('cartel')} />}
       </div>
+
+      <div className="kpi-grid">
+        <div className="kpi"><div className="kpi-l">Iepirkumi</div><div className="kpi-v">{data.totals.procurements.toLocaleString('lv-LV')}</div><div className="kpi-sub">analizēti šajā periodā</div></div>
+        <div className="kpi"><div className="kpi-l">Kopvērtība ≈</div><div className="kpi-v">{compactEur(data.totals.awardedValue)}</div><div className="kpi-sub">≈ €{Math.round(data.totals.awardedValue / 1.86e6).toLocaleString('lv-LV')} uz katru iedzīvotāju</div></div>
+        <div className="kpi"><div className="kpi-l"><Term k="viena pretendenta likme">Viena pretendenta likme</Term></div><div className="kpi-v" style={{ color: 'var(--yellow)' }}>{pct(nat, 1)}</div><div className="kpi-sub">aptuveni katrs {nat > 0 ? Math.round(1 / nat) : '–'}. iepirkums bez konkurences</div></div>
+        <div className="kpi"><div className="kpi-l">Augsta riska pasūtītāji</div><div className="kpi-v" style={{ color: 'var(--red)' }}>{rd.red} <span style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 400 }}>/ {data.totals.buyers}</span></div><div className="kpi-sub">ar pietiekamu datu apjomu izvērtēti</div></div>
+      </div>
+
+      {data.recentFlags && data.recentFlags.length > 0 && (
+        <div className="card ov-card" style={{ marginTop: 12 }}>
+          <h3 className="ov-h">Jaunākie karogi</h3>
+          <p className="muted small" style={{ marginTop: -4 }}>Nesen piešķirti līgumi ar skaidru riska pazīmi (viens pretendents, slēgts tirgus vai neparasta vērtība), jaunākie pirmie.</p>
+          <div className="feed feed-grid">
+            {data.recentFlags.slice(0, showFlags ? 12 : 6).map((f, i) => (
+              <div key={i} className="feed-row">
+                <span className="feed-date mono">{fmtDate(f.date)}</span>
+                <div className="feed-mid">
+                  <span className="feed-buyer clickable" tabIndex={0} role="button"
+                    onClick={() => onSelectBuyer(f.buyerId)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectBuyer(f.buyerId); } }}>{f.buyerName ?? f.buyerId}</span>
+                  <span className="feed-arrow"> → </span>
+                  {f.winnerFileId
+                    ? <span className="feed-winner clickable" tabIndex={0} role="button" onClick={() => onSelectWinner(f.winnerFileId!)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectWinner(f.winnerFileId!); } }}>{f.winnerName ?? '—'}</span>
+                    : <span className="feed-winner">{f.winnerName ?? '—'}</span>}
+                  {f.subjectName && <div className="muted small" style={{ width: '100%', marginTop: 2 }}>{f.subjectName}</div>}
+                  <div className="feed-tags">
+                    {f.sector && <span className="sector-badge">{f.sector}</span>}
+                    {f.euFunded && <span className="sector-badge" style={{ background: 'var(--brand)', color: '#fff' }} title="Iepirkums saistīts ar ES fondu līdzfinansētu projektu (CFLA dati)">ES fondi</span>}
+                    {f.reasons.map((r, k) => <span key={k} className="note-tag note-high" style={{ margin: 0 }}>{r}</span>)}
+                    {f.sourceUrl && <a href={f.sourceUrl} target="_blank" rel="noopener noreferrer" className="feed-eis">skatīt iepirkumu →</a>}
+                  </div>
+                </div>
+                <span className="feed-val mono">{compactEur(f.value)}</span>
+              </div>
+            ))}
+          </div>
+          {!showFlags && data.recentFlags.length > 6 && (
+            <button className="filter-btn" style={{ marginTop: 10 }} onClick={() => setShowFlags(true)}>Rādīt vairāk ({Math.min(12, data.recentFlags.length) - 6})</button>
+          )}
+        </div>
+      )}
+
+      {data.loyaltyPairs && data.loyaltyPairs.length > 0 && (
+        <div className="card ov-card" style={{ marginTop: 12 }}>
+          <h3 className="ov-h">Stabilākās pasūtītāju un piegādātāju attiecības</h3>
+          <p className="muted small" style={{ marginTop: -4 }}>Pasūtītāji, kuri vairāku gadu garumā ievērojamu daļu iepirkumu izdevumu novirza vienam piegādātājam. Ilgstoša sadarbība pati par sevi nav pārkāpums, taču tā var liecināt par ierobežotu konkurenci konkrētajā tirgū.</p>
+          <div className="feed feed-grid">
+            {data.loyaltyPairs.slice(0, showLoyal ? 12 : 6).map((p, i) => (
+              <div key={i} className="feed-row">
+                <div className="feed-mid">
+                  <span className="feed-buyer clickable" tabIndex={0} role="button"
+                    onClick={() => onSelectBuyer(p.buyerId)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectBuyer(p.buyerId); } }}>{p.buyerName ?? p.buyerId}</span>
+                  <span className="feed-arrow"> → </span>
+                  {p.fileId
+                    ? <span className="feed-winner clickable" tabIndex={0} role="button" onClick={() => onSelectWinner(p.fileId!)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectWinner(p.fileId!); } }}>{p.supplier ?? '—'}</span>
+                    : <span className="feed-winner">{p.supplier ?? '—'}</span>}
+                  <div className="feed-tags">
+                    <span className="note-tag note-high" style={{ margin: 0 }}>{Math.round(p.share * 100)} % no kopējā iepirkumu apjoma</span>
+                    <span className="sector-badge">{p.from}–{p.to} · {p.years} {gadiWord(p.years)}</span>
+                    <span className="sector-badge">{p.contracts} {ligWord(p.contracts)}</span>
+                    {p.singleBidRate >= 0.5 && <span className="note-tag note-med" style={{ margin: 0 }}>{Math.round(p.singleBidRate * 100)} % iepirkumu saņemts tikai viens pretendents</span>}
+                  </div>
+                </div>
+                <span className="feed-val mono">{compactEur(p.value)}</span>
+              </div>
+            ))}
+          </div>
+          {!showLoyal && data.loyaltyPairs.length > 6 && (
+            <button className="filter-btn" style={{ marginTop: 10 }} onClick={() => setShowLoyal(true)}>Rādīt vairāk ({Math.min(12, data.loyaltyPairs.length) - 6})</button>
+          )}
+        </div>
+      )}
 
       <div className="ov-row">
         <div className="card ov-card">
@@ -109,6 +238,25 @@ export function OverviewView({ data, onSelectBuyer, onPickSector, onPickRegion, 
         </div>
 
         <div className="card ov-card">
+          <h3 className="ov-h">Augstākā riska pasūtītāji</h3>
+          <div className="ov-buyers">
+            {data.topRiskBuyers.map((b) => (
+              <div key={b.buyerId} className="ov-buyer clickable" tabIndex={0} role="button" aria-label={b.buyerName ?? b.buyerId}
+                onClick={() => onSelectBuyer(b.buyerId)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectBuyer(b.buyerId); } }}>
+                <span className={`risk-dot ${b.combinedLevel === 'red' ? 'r' : 'y'}`} />
+                <span className="ov-bname">{b.buyerName ?? b.buyerId}</span>
+                <strong className="mono" style={{ color: b.combinedLevel === 'red' ? 'var(--red)' : 'var(--yellow)' }}>{b.combinedScore}</strong>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 10 }}>
+            <button className="filter-btn" onClick={() => onNav('buyers')}>Visi pasūtītāji →</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="ov-row" style={{ marginTop: 12 }}>
+        <div className="card ov-card">
           <h3 className="ov-h">Nozares ar vājāko konkurenci</h3>
           {data.topSectors.map((s) => {
             const col = s.singleBidRate >= nat * 1.7 ? 'var(--red)' : s.singleBidRate >= nat * 1.3 ? 'var(--yellow)' : 'var(--green)';
@@ -122,11 +270,10 @@ export function OverviewView({ data, onSelectBuyer, onPickSector, onPickRegion, 
             );
           })}
         </div>
-      </div>
-
-      <div className="card ov-card" style={{ marginTop: 12 }}>
-        <h3 className="ov-h">Viena pretendenta likme laikā (pa mēnešiem)</h3>
-        <TrendLine data={data.timeline} national={nat} />
+        <div className="card ov-card">
+          <h3 className="ov-h">Viena pretendenta likme laikā (pa mēnešiem)</h3>
+          <TrendLine data={data.timeline} national={nat} />
+        </div>
       </div>
 
       {data.regions && data.regions.length > 0 && (
@@ -135,23 +282,6 @@ export function OverviewView({ data, onSelectBuyer, onPickSector, onPickRegion, 
           <LatviaMap regions={data.regions} onPick={onPickRegion} />
         </div>
       )}
-
-      <div className="card ov-card" style={{ marginTop: 12 }}>
-        <h3 className="ov-h">Augstākā riska pasūtītāji</h3>
-        <div className="ov-buyers">
-          {data.topRiskBuyers.map((b) => (
-            <div key={b.buyerId} className="ov-buyer clickable" tabIndex={0} role="button" aria-label={b.buyerName ?? b.buyerId}
-              onClick={() => onSelectBuyer(b.buyerId)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectBuyer(b.buyerId); } }}>
-              <span className={`risk-dot ${b.combinedLevel === 'red' ? 'r' : 'y'}`} />
-              <span className="ov-bname">{b.buyerName ?? b.buyerId}</span>
-              <strong className="mono" style={{ color: b.combinedLevel === 'red' ? 'var(--red)' : 'var(--yellow)' }}>{b.combinedScore}</strong>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: 10 }}>
-          <button className="filter-btn" onClick={() => onNav('buyers')}>Visi pasūtītāji →</button>
-        </div>
-      </div>
 
       <p className="muted small" style={{ marginTop: 12 }}>
         Karogs nav pierādījums — tās ir statistiskas norādes izpētei. Dati: {data.meta?.coverage ?? ''} · atjaunojas automātiski katru dienu.

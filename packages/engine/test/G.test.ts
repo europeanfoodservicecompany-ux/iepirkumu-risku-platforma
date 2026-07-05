@@ -15,7 +15,7 @@ function mod(procedureId: string, reasonCode: string): Modification {
     reasonDescription: null, description: null, value: 1000, winnerName: 'SIA X', sourceUrl: null, date: null, name: 'Līgums' };
 }
 function ctx(mods: Modification[]): EngineContext {
-  return { nationalAvg: 0.26, b1: DEFAULT_B1_CONFIG, b2: DEFAULT_B2_CONFIG, a: DEFAULT_A_CONFIG, c: DEFAULT_C_CONFIG,
+  return { nationalAvg: 0.26, sectorBaselines: { byCpv2: new Map(), nationalValRate: 0.26, medianLotValue: 1 }, b1: DEFAULT_B1_CONFIG, b2: DEFAULT_B2_CONFIG, a: DEFAULT_A_CONFIG, c: DEFAULT_C_CONFIG,
     cpvStats: new Map(), e: DEFAULT_E_CONFIG, d: DEFAULT_D_CONFIG, g: DEFAULT_G_CONFIG,
     companyReg: new Map(), modifications: new Map([['B', mods]]) };
 }

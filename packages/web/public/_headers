@@ -6,3 +6,7 @@
   Cache-Control: no-cache, must-revalidate
 /data/version.json
   Cache-Control: no-cache, must-revalidate
+# Datu JSON: vienmēr revalidē (nosacījuma pieprasījums → 304, ja nemainīts = bez atkārtotas
+# lejupielādes; svaigi dati uzreiz pēc deploy). Iepriekš SWR max-age radīja līdz 5 min aizkavi.
+/data/*
+  Cache-Control: no-cache, must-revalidate

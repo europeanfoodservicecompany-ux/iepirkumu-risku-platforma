@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Lot, CompanyInfo } from '../src/types.ts';
-import { DEFAULT_B1_CONFIG, DEFAULT_B2_CONFIG, DEFAULT_A_CONFIG, DEFAULT_C_CONFIG, DEFAULT_E_CONFIG, DEFAULT_D_CONFIG } from '../src/types.ts';
+import { DEFAULT_B1_CONFIG, DEFAULT_B2_CONFIG, DEFAULT_A_CONFIG, DEFAULT_C_CONFIG, DEFAULT_E_CONFIG, DEFAULT_D_CONFIG, DEFAULT_G_CONFIG } from '../src/types.ts';
 import { IndicatorD } from '../src/indicators/D.ts';
 
 function lot(p: Partial<Lot>): Lot {
@@ -11,7 +11,7 @@ function lot(p: Partial<Lot>): Lot {
 const d = new IndicatorD();
 function ctx(reg: Record<string, CompanyInfo>) {
   return { nationalAvg: 0.26, b1: DEFAULT_B1_CONFIG, b2: DEFAULT_B2_CONFIG, a: DEFAULT_A_CONFIG, c: DEFAULT_C_CONFIG,
-    cpvStats: new Map(), e: DEFAULT_E_CONFIG, d: DEFAULT_D_CONFIG, companyReg: new Map(Object.entries(reg)) };
+    cpvStats: new Map(), e: DEFAULT_E_CONFIG, d: DEFAULT_D_CONFIG, g: DEFAULT_G_CONFIG, sectorBaselines: { byCpv2: new Map(), nationalValRate: 0.26, medianLotValue: 1 }, companyReg: new Map(Object.entries(reg)), modifications: new Map() };
 }
 
 test('D: nepietiek datu (< minAwards) → NoData', () => {

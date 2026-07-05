@@ -67,12 +67,26 @@ Atvērtajos datos ir tikai **uzvarētājs un piedāvājumu skaits**. Zaudējušo
 
 ---
 
-## 3. Ieteikumi
+## 3. Slēptās saiknes starp pretendentiem (patiesā labuma guvēji un valde)
+
+Sasaistot iepirkumu uzvarētājus ar Uzņēmumu reģistra atvērtajiem datiem (patiesā labuma guvēji + valde + prokūristi), atklājas, ka daudzi "konkurējoši" pretendenti patiesībā pieder vai tiek vadīti no vieniem un tiem pašiem cilvēkiem.
+
+- **136 pasūtītājiem** ir uzvarētāji, kas savā starpā dala kopīgu patiesā labuma guvēju, valdes locekli vai prokūristu.
+- **633 personas** ir saistītas ar 2 vai vairāk iepirkumu uzvarētājiem.
+
+*Piemēri:*
+- **Armands Garkāns** ir patiesā labuma guvējs **5 ceļu būves uzņēmumiem** (t.sk. Ceļu būves firma "BINDERS", SIA "ARČERS", SIA "Limbažu ceļi"), kas kopā uzvarējuši par **~€426 miljoniem**.
+- **SIA "Stiga RM Transports"** (€106M) un **SIA "Stiga RM Metāls"** (€90M) — divi atsevišķi piegādātāji, viens patiesā labuma guvējs.
+
+Šādas saiknes nav pārkāpums, bet tās ir būtiska norāde iespējamai vājai konkurencei vai interešu konfliktam, kas līdz šim publiski nebija viegli redzama. Tas kļuva iespējams **tikai tāpēc, ka UR patiesā labuma guvēju dati ir atvērti** (Latvija šajā ziņā ir starp pasaules līderiem).
+
+## 4. Ieteikumi
 
 1. **Datu kvalitāte:** ieviest validāciju IUB datu publicēšanā — unikāli iepirkumu ID, vērtību pārbaude (mērvienības, ārējās robežas), obligātas tiešās saites.
-2. **Pretendentu dati:** publicēt atvēršanas protokolu datus (visi pretendenti + cenas) **strukturēti**, lai būtu iespējama konkurences un karteļu analīze.
-3. **IT iepirkumi:** izvērtēt sarunu procedūru bez konkursa izmantošanu programmatūras uzturēšanā un prasīt ietvara līgumu izsaukumu (stundu) publiskošanu.
-4. **Caurspīdība:** atvērtie dati ir labs sākums, bet pašreizējā kvalitāte ierobežo to lietderību sabiedriskai uzraudzībai.
+2. **Pretendentu dati (vismaz lielajiem iepirkumiem):** publicēt atvēršanas protokolu datus (visi pretendenti + cenas) **strukturēti**. Sākt ar iepirkumiem virs €200 000 — tikai **5 518 līgumi**, kas aptver **€14,2 miljardus** (lielāko daļu naudas). Tas ir neliels administratīvs slogs, bet dotu pilnu konkurences un karteļu analīzi tur, kur tā vissvarīgākā. Šobrīd šie dati pastāv tikai kā nestrukturēti protokoli, kas nav pat publiski lejupielādējami.
+3. **IT iepirkumi:** izvērtēt sarunu procedūru bez konkursa izmantošanu programmatūras uzturēšanā un prasīt ietvara līgumu izsaukumu (programmēšanas stundu) publiskošanu.
+4. **Saiknes:** UR patiesā labuma guvēju dati jau ir atvērti un ļauj atklāt saistītus pretendentus — vērts tos sistemātiski izmantot iepirkumu uzraudzībā (piem., kontroles vai Konkurences padomes darbā).
+5. **Caurspīdība:** atvērtie dati ir labs sākums, bet pašreizējā kvalitāte ierobežo to lietderību sabiedriskai uzraudzībai.
 
 ---
 

@@ -1,3 +1,5 @@
+import { Term } from './Term.tsx';
+import { RiskNote } from './RiskNote.tsx';
 import { useState } from 'react';
 import type { MarketsData, MarketStat } from '../types.ts';
 import { pct, eur, downloadCsv } from '../format.ts';
@@ -15,7 +17,7 @@ function MarketRow({ m }: { m: MarketStat }) {
           <div className="muted small">{m.distinctWinners} uzvarētāji · {m.contracts} līgumi · {eur(m.awardedValue)}</div>
         </div>
         <div className="market-metrics small mono">
-          <span>HHI {m.hhi}</span>
+          <span><Term k="HHI">HHI</Term> {m.hhi}</span>
           <span style={{ color: col(m.level) }}>1-pretend. {pct(m.singleBidRate, 0)}</span>
           <span>lielākais {pct(m.top1Share, 0)}</span>
         </div>
@@ -43,6 +45,7 @@ export function MarketView({ data }: { data: MarketsData }) {
     data.markets.map((m) => [m.cpv, m.label, m.score, m.hhi, (m.singleBidRate * 100).toFixed(0), (m.top1Share * 100).toFixed(0), m.topWinners[0]?.name ?? '', m.contracts, m.distinctWinners, m.awardedValue]));
   return (
     <div className="card">
+      <RiskNote />
       <p style={{ marginTop: 0 }}>
         <strong>Slēgtie tirgi</strong> — CPV kategorijas, kur nedaudzi piegādātāji kontrolē lielāko līgumvērtības daļu
         (augsts HHI) un ir augsta viena pretendenta likme. Tā ir <strong>netieša</strong> pazīme par vāju konkurenci vai

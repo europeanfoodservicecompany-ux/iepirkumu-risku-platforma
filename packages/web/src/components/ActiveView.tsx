@@ -1,6 +1,7 @@
+import { RiskNote } from './RiskNote.tsx';
 import { useMemo, useState } from 'react';
 import type { ActiveData, ActiveTender, IndexBuyer } from '../types.ts';
-import { eur, downloadCsv } from '../format.ts';
+import { eur, downloadCsv, norm } from '../format.ts';
 
 const NON_COMPETITIVE = new Set(['neg-wo-call']);
 
@@ -15,7 +16,7 @@ export function ActiveView({ data, buyers, onSelectBuyer }: {
 }) {
   const [q, setQ] = useState('');
   const [riskyOnly, setRiskyOnly] = useState(false);
-  const term = q.trim().toLowerCase();
+  const term = norm(q.trim());
 
   // Pasūtītāja vēsturiskais risks pēc reģ. nr.
   const riskBy = useMemo(() => {
@@ -25,7 +26,7 @@ export function ActiveView({ data, buyers, onSelectBuyer }: {
   }, [buyers]);
 
   const rows = useMemo(() => data.tenders.filter((t) => {
-    if (term && !`${t.buyerName ?? ''} ${t.name ?? ''} ${t.cpv ?? ''}`.toLowerCase().includes(term)) return false;
+    if (term && !norm(`${t.buyerName ?? ''} ${t.name ?? ''} ${t.cpv ?? ''}`).includes(term)) return false;
     if (riskyOnly) {
       const r = riskBy.get(t.buyerId);
       const risky = (r && r.level === 'red') || NON_COMPETITIVE.has(t.procedureType ?? '');
@@ -40,6 +41,7 @@ export function ActiveView({ data, buyers, onSelectBuyer }: {
 
   return (
     <div className="card">
+      <RiskNote>Aktuālie konkursi vēl nav izlemti — pirms-rezultāta signāli ir norāde sekošanai, ne pārkāpuma pierādījums.</RiskNote>
       <p style={{ marginTop: 0 }}>
         <strong>Aktuālie konkursi</strong> — šobrīd atvērti iepirkumi (termiņš vēl nav pagājis), uz {data.meta?.asOf}.
         Pilnos riska rādītājus (viens pretendents, cena u.c.) var aprēķināt tikai pēc rezultāta; šeit rādām

@@ -10,6 +10,12 @@ import type { Lot, Modification } from '../../engine/src/types.ts';
 
 export const IUB_NOTICE_BASE_URL = 'https://info.iub.gov.lv/lv/eforms/';
 
+// Strādājoša, AUTORITATĪVA saite uz IUB eForms strukturēto paziņojumu (pieejama VISIEM paziņojumiem
+// pēc identifikatora — atšķirībā no EIS saites, kas ir tikai ~74% un info.iub deep-links, kas nestrādā).
+export function eformsUrl(noticeId: string | null | undefined): string | null {
+  return noticeId ? `https://eformsb.pvs.iub.gov.lv/show/${noticeId}` : null;
+}
+
 const WINNER_SELECTED = 'selec-w'; // BT-142: uzvarētājs izvēlēts
 
 type AnyObj = Record<string, any>;
@@ -144,6 +150,19 @@ export function parseNotice(notice: AnyObj, baseUrl = IUB_NOTICE_BASE_URL): Lot[
   const procedureType: string | null = notice.tenderingProcess?.procedureType ?? null;
   void baseUrl; // info.iub deep-links nedarbojas; izmantojam EIS saites
 
+  // Iepirkuma priekšmets (laika ziņā precīzs — no paša paziņojuma).
+  const subjectName: string | null =
+    (typeof notice.name === 'string' && notice.name.trim()) ||
+    (typeof notice.procurementProject?.description === 'string' && notice.procurementProject.description.trim()) ||
+    null;
+  const subjectRef: string | null =
+    typeof notice.procurementProject?.procurementIdentifier === 'string' && notice.procurementProject.procurementIdentifier.trim()
+      ? notice.procurementProject.procurementIdentifier.trim() : null;
+  // Paziņojumā norādītā kontaktpersona (vārds + darba e-pasts; tālruni neglabājam).
+  const cp = notice.contactPoint && typeof notice.contactPoint === 'object' ? notice.contactPoint : null;
+  const contactName: string | null = cp && typeof cp.name === 'string' && cp.name.trim() ? cp.name.trim() : null;
+  const contactEmail: string | null = cp && typeof cp.electronicMail === 'string' && cp.electronicMail.trim() ? cp.electronicMail.trim() : null;
+
   // Piezīme: agrāk bija atkāpšanās uz buyer.client (EIS /Organizer/ saite), bet tā ved uz pasūtītāja
   // profilu / sākumskatu, ne konkrēto iepirkumu (maldinoši). Tagad rādām saiti TIKAI ja ir Procurement
   // dziļā saite; citādi sourceUrl=null un UI saiti nerāda.
@@ -153,6 +172,7 @@ export function parseNotice(notice: AnyObj, baseUrl = IUB_NOTICE_BASE_URL): Lot[
     const stats = lot.tenderingProcess?.receivedSubmissionsStatistics ?? {};
     const winner = extractWinner(lot);
     const eisUrl = extractEisUrl(lot);
+    const eisId = eisUrl ? (eisUrl.match(/Procurement\/(\d+)/)?.[1] ?? null) : null;
     const lotId: string = String(lot.id ?? `${noticeId}:${lot.sequenceNumber ?? out.length}`);
     out.push({
       id: lotId,
@@ -168,8 +188,13 @@ export function parseNotice(notice: AnyObj, baseUrl = IUB_NOTICE_BASE_URL): Lot[
       winnerName: winner.winnerName,
       procedureType,
       noticeDate: parseDate(result.decisionDate),
-      sourceUrl: eisUrl,
+      sourceUrl: eformsUrl(noticeId) ?? eisUrl, // displejam: eForms (100% segums); fallback EIS
+      eisId,
       nutsCode: buyer.nutsCode,
+      subjectName,
+      subjectRef,
+      contactName,
+      contactEmail,
     });
   }
   return out;
@@ -210,6 +235,8 @@ function dropDecimalTypoDuplicates(lots: Lot[]): Lot[] {
 // EIS iepirkuma numurs no sourceUrl (.../Procurement/<id>) — VIENS EIS iepirkums mēdz parādīties
 // vairākos paziņojumos ar DAŽĀDIEM iekšējiem procedureId (oriģināls + republikācija/labojums).
 export function eisProcurementId(l: Lot): string | null {
+  // EIS numurs tagad glabāts atsevišķi (sourceUrl ir eForms saite). Atkāpšanās uz sourceUrl, ja kāds vecs lot.
+  if (l.eisId) return l.eisId;
   const m = (l.sourceUrl ?? '').match(/Procurement\/(\d+)/);
   return m ? m[1] : null;
 }
@@ -292,7 +319,7 @@ export function parseActiveTenders(notices: AnyObj[], baseUrl = IUB_NOTICE_BASE_
       deadline: parseDate(tp.deadlineReceiptTendersEndDate),
       deadlineTime: typeof tp.deadlineReceiptTendersEndTime === 'string' ? tp.deadlineReceiptTendersEndTime : null,
       estimatedValue: estimated,
-      sourceUrl: tenderUrl,
+      sourceUrl: eformsUrl(noticeId) ?? tenderUrl, // eForms paziņojums (100%); fallback EIS tender saite
       publishedDate: null,
     });
   }
@@ -349,7 +376,7 @@ export function parseModifications(notices: AnyObj[]): Modification[] {
       description: desc,
       value,
       winnerName,
-      sourceUrl: eisFrom(n),
+      sourceUrl: eformsUrl(n.identifier) ?? eisFrom(n), // eForms grozījuma paziņojums (100%); fallback EIS
       date: parseDate(n.tenderResult?.decisionDate ?? n.dispatchDate ?? null),
       name: n.name ?? n.procurementProject?.description ?? null,
     });

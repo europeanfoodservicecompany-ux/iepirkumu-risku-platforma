@@ -10,11 +10,11 @@
     "packages/web"
   ],
   "scripts": {
-    "test": "node --test packages/engine/test/*.test.ts packages/ingest/test/*.test.ts",
+    "test": "node --test packages/engine/test/*.test.ts packages/ingest/test/*.test.ts packages/web/test/*.test.ts",
     "pipeline": "node packages/ingest/src/run.ts",
     "web:dev": "npm --workspace packages/web run dev",
     "web:build": "npm --workspace packages/web run build",
-    "deploy": "npm run web:build && rm -f packages/web/dist/data/lots.json packages/web/dist/data/engine_output.json && npx wrangler pages deploy packages/web/dist --project-name iepirkumu-risku-platforma --commit-dirty=true"
+    "deploy": "npm run web:build && rm -f packages/web/dist/data/lots.json packages/web/dist/data/engine_output.json && npx wrangler pages deploy packages/web/dist --project-name iepirkumu-risku-platforma --branch production --commit-dirty=true"
   },
   "engines": {
     "node": ">=22.6"

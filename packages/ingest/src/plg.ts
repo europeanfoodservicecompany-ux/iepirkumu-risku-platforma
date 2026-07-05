@@ -10,8 +10,8 @@ export const PLG_CSV =
 export const OFFICERS_CSV =
   'https://data.gov.lv/dati/dataset/096c7a47-33cd-4dc9-a876-2c86e86230fd/resource/e665114a-73c2-4375-9470-55874b4cfa6b/download/officers.csv';
 
-export type Role = 'PLG' | 'valde' | 'prokūrists' | 'likvidators' | 'amatpersona';
-export type CompanyPerson = { name: string; id: string; role: Role; nat: string | null };
+export type Role = 'PLG' | 'valde' | 'likvidators' | 'amatpersona';
+export type CompanyPerson = { name: string; id: string; role: Role; nat: string | null; res?: string | null };
 
 // Privātuma maska: tikai pirmie 4 personas koda cipari. Pilns dzimšanas datums datos NETIEK saglabāts.
 function maskId(midRaw: string): string {
@@ -26,7 +26,6 @@ function personKey(name: string, midRaw: string): string {
 }
 function officerRole(position: string, body: string): Role {
   const s = `${position} ${body}`.toUpperCase();
-  if (/PROCUR|PROKUR/.test(s)) return 'prokūrists';
   if (/BOARD|VALD/.test(s)) return 'valde';
   if (/LIQUIDAT|LIKVID/.test(s)) return 'likvidators';
   return 'amatpersona';
@@ -43,10 +42,10 @@ export function parsePersons(plgCsv: string, officersCsv: string, winnerRegs: Se
   const regPersons = new Map<string, CompanyPerson[]>();
   const regPersonKeys = new Map<string, { pk: string; name: string; role: Role }[]>();
   const personWinners = new Map<string, { name: string; id: string; regs: Set<string>; roleByReg: Map<string, Role> }>();
-  const add = (reg: string, name: string, mid: string, role: Role, nat: string | null) => {
+  const add = (reg: string, name: string, mid: string, role: Role, nat: string | null, res: string | null = null) => {
     if (!reg || !winnerRegs.has(reg) || !name) return;
     const pk = personKey(name, mid);
-    (regPersons.get(reg) ?? regPersons.set(reg, []).get(reg)!).push({ name, id: maskId(mid), role, nat });
+    (regPersons.get(reg) ?? regPersons.set(reg, []).get(reg)!).push({ name, id: maskId(mid), role, nat, res });
     (regPersonKeys.get(reg) ?? regPersonKeys.set(reg, []).get(reg)!).push({ pk, name, role });
     const pw = personWinners.get(pk) ?? { name, id: maskId(mid), regs: new Set<string>(), roleByReg: new Map<string, Role>() };
     pw.regs.add(reg); if (!pw.roleByReg.has(reg)) pw.roleByReg.set(reg, role); personWinners.set(pk, pw);
@@ -55,10 +54,10 @@ export function parsePersons(plgCsv: string, officersCsv: string, winnerRegs: Se
   if (plgCsv) {
     const lines = plgCsv.split(/\r?\n/);
     const h = lines[0].split(';');
-    const iReg = h.indexOf('legal_entity_registration_number'), iFn = h.indexOf('forename'), iSn = h.indexOf('surname'), iMid = h.indexOf('latvian_identity_number_masked'), iNat = h.indexOf('nationality');
+    const iReg = h.indexOf('legal_entity_registration_number'), iFn = h.indexOf('forename'), iSn = h.indexOf('surname'), iMid = h.indexOf('latvian_identity_number_masked'), iNat = h.indexOf('nationality'), iRes = h.indexOf('residence');
     for (let i = 1; i < lines.length; i++) {
       const c = lines[i].split(';'); if (c.length < 5) continue;
-      add(c[iReg], `${c[iFn] ?? ''} ${c[iSn] ?? ''}`.trim(), c[iMid] ?? '', 'PLG', (c[iNat] || '').trim() || null);
+      add(c[iReg], `${c[iFn] ?? ''} ${c[iSn] ?? ''}`.trim(), c[iMid] ?? '', 'PLG', (c[iNat] || '').trim() || null, (c[iRes] || '').trim() || null);
     }
   }
   // Amatpersonas: name (Uzvārds Vārds), position, governing_body; tikai fiziskas personas.

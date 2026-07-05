@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 import type { IndexBuyer } from '../types.ts';
+import { norm } from '../format.ts';
 
-const matches = (b: IndexBuyer, term: string) => `${b.buyerName ?? ''} ${b.buyerId}`.toLowerCase().includes(term);
+const matches = (b: IndexBuyer, term: string) => norm(`${b.buyerName ?? ''} ${b.buyerId}`).includes(term);
 
 export function GlobalSearch({ buyers, query, setQuery, onSelect }: {
   buyers: IndexBuyer[]; query: string; setQuery: (q: string) => void; onSelect: (id: string) => void;
 }) {
   const [focused, setFocused] = useState(false);
-  const term = query.trim().toLowerCase();
+  const term = norm(query.trim());
   const suggestions = useMemo(
     () => (term.length < 2 ? [] : buyers.filter((b) => matches(b, term)).slice(0, 8)),
     [buyers, term],

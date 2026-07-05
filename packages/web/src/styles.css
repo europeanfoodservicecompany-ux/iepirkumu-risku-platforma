@@ -1,47 +1,66 @@
 :root {
-  --bg: #f6f2ea;          /* silts krēms (HiBob) */
+  --bg: #f4efe6;          /* silts krēms */
+  --bg-2: #efe8db;        /* dziļāks krēms (joslām/sekcijām) */
   --card: #ffffff;
-  --ink: #20302b;         /* tumši zaļgani melns */
-  --muted: #7c746a;
-  --line: #e9e1d4;        /* silta apmale */
-  --brand: #0f3d33;       /* dziļi zaļš */
-  --brand2: #2c7d64;      /* zaļgani tirkīzs */
-  --brand-ink: #0d352c;
+  --ink: #1b2a24;         /* tumši zaļgani melns */
+  --ink-soft: #3c4a43;
+  --muted: #6d645a;
+  --line: #e7ded0;        /* silta apmale */
+  --line-strong: #d8cdb9;
+  --brand: #0e3b31;       /* dziļi zaļš */
+  --brand2: #1f7a5f;      /* zaļgani tirkīzs */
+  --brand-ink: #0a2f27;
+  --brand-bg: #e3efe9;
   --ring-track: #ece5d8;
 
   --green: #2e8a63; --green-bg: #e4f1ea;
-  --yellow: #c2872a; --yellow-bg: #f8efda;
-  --red: #d8483a;   --red-bg: #fae3df;   /* koraļļsarkans */
+  --yellow: #9c6410; --yellow-bg: #f7ecd5;   /* tumšāks — AA kontrasts tekstam */
+  --red: #d6402f;   --red-bg: #fbe2dd;   /* koraļļsarkans (zīmola akcents) */
+  --red-ink: #b23420;  /* tumšāks sarkanais TEKSTAM uz gaiša fona (AA) */
   --gray: #8a8076;  --gray-bg: #efe9dd;
 
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Lora", Georgia, "Times New Roman", serif;
+
   --radius: 14px;
-  --shadow: 0 1px 2px rgba(16,32,48,.04), 0 6px 20px rgba(16,32,48,.06);
-  --shadow-lg: 0 12px 40px rgba(16,32,48,.12);
+  --radius-lg: 18px;
+  --shadow: 0 1px 2px rgba(20,40,30,.05), 0 4px 16px rgba(20,40,30,.05);
+  --shadow-lg: 0 14px 44px rgba(20,40,30,.13);
 }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans);
+  font-feature-settings: "cv05" 1, "ss01" 1;
   background: var(--bg); color: var(--ink); line-height: 1.55; -webkit-font-smoothing: antialiased;
 }
+.mono, .num, .kpi-v, .stat .num { font-variant-numeric: tabular-nums; }
 a { color: var(--brand2); text-decoration: none; }
 a:hover { text-decoration: underline; }
-.container { max-width: 1120px; margin: 0 auto; padding: 0 22px; }
+.container { max-width: 1140px; margin: 0 auto; padding: 0 22px; }
+
+/* Redakcionālie virsraksti — serif balss */
+.display, .hero-h, h1, h2 { font-family: var(--font-serif); letter-spacing: -0.015em; }
+.section-title { font-family: var(--font-serif); font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin: 28px 0 12px; }
 
 header.top {
-  background: linear-gradient(135deg, var(--brand) 0%, var(--brand2) 100%);
-  color: #fff; padding: 30px 0 34px; position: relative; overflow: hidden;
+  background: radial-gradient(120% 140% at 85% -20%, #1a5444 0%, var(--brand) 45%, #0a2f27 100%);
+  color: #fff; padding: 26px 0 28px; position: relative; overflow: hidden;
 }
 header.top::after {
-  content: ""; position: absolute; right: -80px; top: -80px; width: 320px; height: 320px;
-  border-radius: 50%; background: rgba(255,255,255,.06);
+  content: ""; position: absolute; right: -120px; top: -140px; width: 420px; height: 420px;
+  border-radius: 50%; background: rgba(255,255,255,.045);
 }
-header.top h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.02em; position: relative; }
-header.top p { margin: 8px 0 0; opacity: .92; font-size: 14px; max-width: 760px; position: relative; }
+header.top::before {
+  content: ""; position: absolute; right: 120px; bottom: -180px; width: 300px; height: 300px;
+  border-radius: 50%; background: rgba(31,122,95,.25); filter: blur(10px);
+}
+header.top h1 { margin: 0; font-family: var(--font-serif); font-size: 30px; font-weight: 600; letter-spacing: -.02em; position: relative; line-height: 1.1; }
+header.top p { margin: 9px 0 0; opacity: .85; font-size: 14px; line-height: 1.55; max-width: 720px; position: relative; }
 
-main { padding-bottom: 10px; }
+main { padding-bottom: 10px; min-height: 72vh; }
 .section { margin: 20px 0; }
 .section:first-child { margin-top: 24px; }
 
@@ -52,46 +71,56 @@ main { padding-bottom: 10px; }
 
 .stat { position: relative; overflow: hidden; }
 .stat::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(var(--brand), var(--brand2)); }
-.stat .num { font-size: 34px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+.stat .num { font-size: 32px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .stat .lbl { color: var(--muted); font-size: 13px; margin-top: 4px; }
 
 .badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; line-height: 1.6; }
 .badge .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.badge.red { color: var(--red); background: var(--red-bg); } .badge.red .dot { background: var(--red); }
+.badge.red { color: var(--red-ink); background: var(--red-bg); } .badge.red .dot { background: var(--red); }
 .badge.yellow { color: var(--yellow); background: var(--yellow-bg); } .badge.yellow .dot { background: var(--yellow); }
 .badge.green { color: var(--green); background: var(--green-bg); } .badge.green .dot { background: var(--green); }
 .badge.gray { color: var(--gray); background: var(--gray-bg); } .badge.gray .dot { background: var(--gray); }
 
 .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
 input[type=search] { padding: 11px 14px; border: 1px solid var(--line); border-radius: 10px; font-size: 16px; font-family: inherit; background: #fff; transition: border-color .15s, box-shadow .15s; }
-input[type=search]:focus { outline: none; border-color: var(--brand2); box-shadow: 0 0 0 3px rgba(42,111,151,.15); }
+input[type=search]:focus { outline: none; border-color: var(--brand2); box-shadow: 0 0 0 3px rgba(31,122,95,.18); }
 .filter-btn { border: 1px solid var(--line); background: #fff; padding: 9px 14px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 500; font-family: inherit; color: var(--ink); transition: all .15s; }
 .filter-btn:hover { border-color: var(--brand2); }
 .filter-btn.active { background: var(--brand); color: #fff; border-color: var(--brand); }
 
 .search-box { position: relative; flex: 1; min-width: 240px; }
 .search-box input[type=search] { width: 100%; }
-.suggest { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 20; list-style: none; margin: 0; padding: 5px; background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-lg); max-height: 340px; overflow-y: auto; }
+.suggest { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 20; list-style: none; margin: 0; padding: 5px; background: #fff; color: var(--ink); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-lg); max-height: 340px; overflow-y: auto; }
 .suggest li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 11px 11px; border-radius: 8px; cursor: pointer; touch-action: manipulation; }
-.suggest li:hover { background: #f2f6fb; }
+.suggest-fixed { z-index: 60; } /* virs lipīgās navigācijas (z-index 30), jo position:fixed */
+.suggest-all { padding: 9px 12px; font-size: 12.5px; font-weight: 600; color: var(--brand2); cursor: pointer; border-radius: 8px; }
+.suggest-all:hover { background: #f2eee4; text-decoration: underline; }
+.suggest li:hover, .suggest li.active { background: #f2eee4; }
+.suggest li.active { box-shadow: inset 0 0 0 2px var(--brand2); }
 .suggest-name { font-size: 14px; font-weight: 500; }
 .suggest-meta { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
 
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
 .table-wrap table { min-width: 760px; }
+/* Mobilo indikatoru čipi (B1…G) — redzami tikai šaurā ekrānā, kur kolonnas paslēptas. */
+.ind-mobile { display: none; }
+.ind-chip { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; }
+.ind-chip b { color: var(--ink-soft); font-weight: 700; }
 @media (max-width: 720px) {
   .col-ind { display: none; }
   .buyer-table { min-width: 0; }
+  .ind-mobile { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 }
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: middle; }
 th { color: var(--muted); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; }
 tbody tr:last-child td { border-bottom: none; }
+.clickable { cursor: pointer; }
 tr.clickable { cursor: pointer; transition: background .12s; }
-tr.clickable:hover { background: #f5f8fc; }
+tr.clickable:hover { background: #f4f0e6; }
 
 .risk-circle { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
-.risk-circle.red { background: var(--red-bg); color: var(--red); box-shadow: inset 0 0 0 2px rgba(192,57,43,.25); }
+.risk-circle.red { background: var(--red-bg); color: var(--red-ink); box-shadow: inset 0 0 0 2px rgba(192,57,43,.25); }
 .risk-circle.yellow { background: var(--yellow-bg); color: var(--yellow); box-shadow: inset 0 0 0 2px rgba(180,83,9,.22); }
 .risk-circle.green { background: var(--green-bg); color: var(--green); box-shadow: inset 0 0 0 2px rgba(21,128,61,.2); }
 .risk-circle.gray { background: var(--gray-bg); color: var(--gray); }
@@ -114,7 +143,7 @@ tr.clickable:hover { background: #f5f8fc; }
 .kv { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px dashed var(--line); font-size: 14px; }
 .kv:last-child { border-bottom: none; }
 
-.lot { border: 1px solid var(--line); border-radius: 10px; padding: 13px; margin-bottom: 10px; background: #fcfdfe; }
+.lot { border: 1px solid var(--line); border-radius: 10px; padding: 13px; margin-bottom: 10px; background: #fdfbf6; }
 .lot:last-child { margin-bottom: 0; }
 .lot .why { color: var(--muted); font-size: 13px; margin-top: 6px; }
 
@@ -134,7 +163,7 @@ footer strong { color: var(--ink); }
 .info-grid { grid-template-columns: repeat(3, 1fr); }
 @media (max-width: 860px) { .info-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 520px) { .info-grid { grid-template-columns: 1fr; } }
-.info-card { background: #f7f9fc; border: 1px solid var(--line); border-radius: 10px; padding: 13px; }
+.info-card { background: #f7f3ea; border: 1px solid var(--line); border-radius: 10px; padding: 13px; }
 .info-card-head { font-weight: 600; font-size: 13.5px; margin-bottom: 5px; }
 .tag { display: inline-block; background: var(--brand); color: #fff; border-radius: 6px; font-size: 11.5px; font-weight: 700; padding: 1px 7px; margin-right: 5px; }
 .legend { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
@@ -208,13 +237,15 @@ a.lot { display: block; text-decoration: none; color: inherit; }
 .brand p { margin:8px 0 0; }
 
 /* Pastāvīga navigācijas josla (lipīga) */
-.mainnav { background:#fff; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:30; box-shadow:0 1px 4px rgba(16,32,48,.05); }
-.nav-inner { display:flex; gap:2px; flex-wrap:wrap; }
-.navtab { background:none; border:none; border-bottom:3px solid transparent; margin-bottom:-1px;
-  padding:13px 14px; cursor:pointer; font-family:inherit; font-size:14px; font-weight:600; color:var(--muted); white-space:nowrap; }
-@media (max-width:560px){ .navtab { padding:11px 10px; font-size:13px; } }
-.navtab:hover { color:var(--ink); background:#f7f3ec; }
-.navtab.active { color:var(--brand-ink); border-bottom-color:var(--brand2); }
+.mainnav { background:#fff; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:30; box-shadow:0 1px 4px rgba(20,40,30,.05); }
+/* Cilnes vienā rindā ar horizontālu ritināšanu (nevis aplaušanu) — stabils augstums, bez izkārtojuma nobīdes (CLS). */
+.nav-inner { display:flex; gap:2px; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.nav-inner::-webkit-scrollbar { display:none; }
+.navtab { background:none; border:none; border-bottom:2.5px solid transparent; margin-bottom:-1px; flex:0 0 auto;
+  padding:14px 10px; cursor:pointer; font-family:inherit; font-size:13.5px; font-weight:500; color:var(--muted); white-space:nowrap; transition: color .15s; }
+@media (max-width:560px){ .navtab { padding:12px 9px; font-size:13px; } }
+.navtab:hover { color:var(--ink); }
+.navtab.active { color:var(--brand-ink); border-bottom-color:var(--brand2); font-weight:600; }
 
 /* Breadcrumb */
 .crumbs { display:flex; align-items:center; gap:8px; margin:18px 0 6px; font-size:14px; flex-wrap:wrap; }
@@ -249,12 +280,17 @@ tr.clickable:focus-visible { outline-offset: -2px; }
 .sec-exp-table tr.clickable:hover { background: var(--ring-track, #f3f1ea); cursor: pointer; }
 
 /* Pārskats (overview) */
-.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
-.kpi { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
-.kpi-l { font-size: 12px; color: var(--muted); }
-.kpi-v { font-size: 26px; font-weight: 700; color: var(--ink); margin-top: 4px; line-height: 1.1; }
-.ov-row { display: grid; grid-template-columns: 1fr 1.25fr; gap: 12px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; margin-bottom: 14px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
+.kpi { background: var(--card); border: none; border-right: 1px solid var(--line); border-radius: 0; padding: 18px 20px; }
+.kpi:last-child { border-right: none; }
+.kpi-l { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.kpi-v { font-size: 30px; font-weight: 600; color: var(--ink); margin-top: 6px; line-height: 1.05; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.kpi-sub { font-size: 11.5px; color: var(--muted); margin-top: 5px; line-height: 1.35; }
+@media (max-width: 560px) { .kpi { border-right: none; border-bottom: 1px solid var(--line); } }
+.ov-row { display: grid; grid-template-columns: 1fr 1.25fr; gap: 12px; align-items: stretch; }
 @media (max-width: 720px) { .ov-row { grid-template-columns: 1fr; } }
+.feed-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; }
+@media (max-width: 760px) { .feed-grid { grid-template-columns: 1fr; } }
 .ov-card { padding: 16px 18px; }
 .ov-h { font-size: 14px; font-weight: 700; margin: 0 0 12px; color: var(--ink); }
 .ov-secrow { display: flex; align-items: center; gap: 10px; padding: 5px 6px; border-radius: 8px; }
@@ -269,7 +305,8 @@ tr.clickable:focus-visible { outline-offset: -2px; }
 .risk-dot.r { background: var(--red); } .risk-dot.y { background: var(--yellow); }
 .lvmap-region { cursor: pointer; transition: opacity .15s; }
 .lvmap-region:hover { opacity: 0.78; }
-.lvmap-region:focus { outline: none; opacity: 0.78; }
+.lvmap-region:focus { outline: none; }
+.lvmap-region:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; opacity: 0.78; }
 .lvmap-legrow { display: flex; align-items: center; gap: 8px; padding: 6px; border-radius: 8px; font-size: 13px; border-bottom: 1px solid var(--line); }
 .lvmap-legrow:last-child { border-bottom: none; }
 .lvmap-legrow:hover { background: var(--ring-track); }
@@ -280,6 +317,9 @@ tr.clickable:focus-visible { outline-offset: -2px; }
 .heat-tbl th:first-child { text-align: left; }
 .heat-name { padding: 4px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 230px; }
 .heat-cell { text-align: center; border-radius: 4px; padding: 6px 0; width: 44px; }
+.heat-legend { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.heat-grad { display: inline-block; width: 120px; height: 12px; border-radius: 6px; background: linear-gradient(90deg, #eef1ea, #ecc98a, #cf5340); }
+.heat-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; margin-left: 6px; }
 .cal-tbl { border-collapse: separate; border-spacing: 3px; font-size: 12px; }
 .cal-tbl th { font-weight: 500; color: var(--muted); width: 42px; font-size: 11px; }
 .cal-y { font-weight: 500; color: var(--muted); padding-right: 6px; }
@@ -291,7 +331,8 @@ tr.clickable:focus-visible { outline-offset: -2px; }
 .flow-name { font-size: 14px; }
 .flow-bar { height: 7px; background: var(--ring-track); border-radius: 4px; margin: 5px 0; overflow: hidden; }
 .flow-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--brand), var(--brand2)); border-radius: 4px; }
-.update-bar { position: sticky; top: 0; z-index: 50; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 9px 16px; font-size: 14px; flex-wrap: wrap; }
+/* Fiksēta apakšā kā uznirstošs paziņojums — NEpastumj saturu (nerada izkārtojuma nobīdi/CLS), kad parādās. */
+.update-bar { position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 50; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 9px 16px; font-size: 14px; flex-wrap: wrap; box-shadow: 0 -2px 10px rgba(20,40,30,.18); }
 .update-bar button { background: #fff; color: var(--brand); border: none; border-radius: 8px; padding: 5px 16px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 14px; }
 .update-bar button:hover { background: var(--ring-track); }
 .plg-owner { display: flex; align-items: center; gap: 10px; padding: 8px 6px; border-bottom: 1px solid var(--line); }
@@ -300,9 +341,166 @@ tr.clickable:focus-visible { outline-offset: -2px; }
 .person-card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
 .person-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .person-companies { display: flex; flex-direction: column; }
+.role-badge { font-size: 11px; padding: 2px 9px; border-radius: 10px; background: var(--green-bg); color: var(--brand); }
+.person-stats { display: flex; gap: 16px; text-align: right; flex-shrink: 0; }
+.person-stats > div { display: flex; flex-direction: column; }
+.person-stats strong { font-size: 14px; color: var(--ink); }
+.person-stats span { font-size: 11px; color: var(--muted); }
+@media (max-width: 640px) { .person-stats { display: none; } }
+.sector-badge { font-size: 11px; padding: 2px 9px; border-radius: 10px; background: #f0ece3; color: var(--muted); }
+.note-tag { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 10px; margin-left: 7px; vertical-align: middle; }
+.note-tag.note-high { background: #fbf0d8; color: #9a6b00; }
+.note-tag.note-med { background: var(--bg-2); color: var(--ink-soft); }
+.signal-list { margin: 10px 0 2px; padding: 9px 12px 9px 28px; background: #fcf7ef; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; color: var(--ink); }
+.signal-list li { margin: 2px 0; }
+.chk { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); cursor: pointer; }
+/* Pieskāriena mērķi mobilajā (≥44px ieteikums) — filtri/pogas/enkuri ir galvenie mazie mērķi. */
+@media (max-width: 720px) {
+  .chk { min-height: 44px; padding: 6px 2px; }
+  .filter-btn { padding: 11px 15px; }
+  .anchor-nav a { padding: 9px 13px; }
+  .seg-btn { padding: 11px 14px; }
+}
+.link-btn { background: none; border: none; color: var(--brand); font: inherit; font-size: 13px; cursor: pointer; padding: 2px 0; text-decoration: underline; }
+.person-net { margin-top: 10px; padding: 10px; background: #fdfbf6; border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+.person-net svg { min-width: 600px; }
+.net-lab { font-size: 11px; fill: var(--ink); }
+.net-lab-strong { font-size: 12px; font-weight: 700; }
+.net-lab-hl { fill: #9a6b00; font-weight: 600; }
+.net-sub { font-size: 9.5px; fill: var(--muted); }
+.net-key { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; margin-right: 2px; }
+.net-key-hl { background: #c2902a; }
+.feed { display: flex; flex-direction: column; }
+.feed-row { display: flex; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); align-items: flex-start; }
+.feed-row:last-child { border-bottom: none; }
+.feed-date { font-size: 12px; color: var(--muted); flex-shrink: 0; width: 78px; padding-top: 2px; }
+.feed-mid { flex: 1; min-width: 0; }
+.feed-buyer { font-weight: 600; }
+.feed-arrow { color: var(--muted); }
+.feed-winner { color: var(--ink); }
+.feed-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; align-items: center; }
+.feed-eis { font-size: 11px; color: var(--brand); text-decoration: none; }
+.feed-eis:hover { text-decoration: underline; }
+.feed-val { flex-shrink: 0; font-size: 13px; text-align: right; padding-top: 2px; }
+.trend { font-weight: 600; }
+.trend-up { color: var(--red); }
+.trend-down { color: var(--green); }
+.trend-flat { color: var(--muted); }
+@media (max-width: 560px) { .feed-date { width: 60px; font-size: 11px; } .feed-val { font-size: 12px; } }
 
 /* Piegādātāju skats */
 .search-input { padding: 11px 14px; border: 1px solid var(--line); border-radius: 10px; font-size: 16px; font-family: inherit; background: #fff; }
 .search-input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--ring-track); }
 select.filter-btn { -webkit-appearance: none; appearance: none; padding-right: 26px; }
 .bigval { font-size: 26px; font-weight: 800; color: var(--brand-ink); line-height: 1.1; }
+
+/* ── UX uzlabojumi: riska piezīme, hero, termini, nav grupas, globālā meklēšana header'ā ── */
+.risk-note { border-left: 3px solid var(--yellow); background: rgba(0,0,0,0.025); padding: 8px 12px; border-radius: 0 6px 6px 0; font-size: 13px; color: var(--muted); margin: 0 0 12px; line-height: 1.5; }
+.risk-note strong { color: var(--ink); }
+
+.hero { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 30px 30px 26px; margin-bottom: 18px; box-shadow: var(--shadow); overflow: hidden; }
+.hero::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: linear-gradient(var(--brand2), var(--brand)); }
+.hero-h { margin: 0 0 12px; font-size: 32px; font-weight: 600; line-height: 1.12; max-width: 660px; }
+.hero-p { margin: 0 0 18px; max-width: 640px; line-height: 1.65; color: var(--ink-soft); font-size: 15.5px; }
+.hero-p strong { color: var(--ink); }
+@media (max-width: 560px) { .hero { padding: 22px 20px; } .hero-h { font-size: 25px; } }
+.hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.hero-btn { padding: 11px 18px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--card); color: var(--ink); cursor: pointer; font-size: 14px; font-weight: 500; transition: all .15s; }
+.hero-btn:hover { border-color: var(--brand2); transform: translateY(-1px); }
+.hero-btn.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+.hero-btn.primary:hover { background: var(--brand2); border-color: var(--brand2); }
+
+.term { position: relative; border-bottom: 1px dotted currentColor; cursor: help; white-space: nowrap; }
+.term-i { font-size: 0.7em; opacity: 0.55; margin-left: 1px; }
+.term-pop { position: absolute; left: 0; top: calc(100% + 6px); z-index: 40; width: max-content; max-width: 280px; white-space: normal; background: var(--brand-ink); color: #fff; font-size: 12.5px; line-height: 1.45; font-weight: 400; padding: 9px 11px; border-radius: 9px; box-shadow: var(--shadow-lg); }
+
+.nav-sep { display: inline-block; width: 1px; align-self: center; height: 16px; background: var(--line); margin: 0 4px; flex: 0 0 auto; }
+
+.top-inner { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: nowrap; }
+.top-inner .brand { flex: 1 1 auto; min-width: 0; }
+.top-inner .global-search { flex: 0 0 360px; max-width: 44%; min-width: 0; margin: 0; }
+.suggest-group { padding: 7px 12px 2px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; }
+@media (max-width: 760px) {
+  .top-inner { flex-wrap: wrap; }
+  .top-inner .global-search { flex: 1 1 100%; max-width: none; }
+}
+
+/* ── Dizaina pārveids #97: hero tīkls + komponentu pulēšana ── */
+.hero-split { display: grid; grid-template-columns: 1.25fr 0.82fr; gap: 26px; align-items: center; }
+.hero-main { min-width: 0; }
+.hero-net { display: block; text-align: left; background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; cursor: pointer; width: 100%; font-family: inherit; transition: border-color .15s, transform .15s, box-shadow .15s; }
+.hero-net:hover { border-color: var(--brand2); transform: translateY(-1px); box-shadow: var(--shadow); }
+.hero-net-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 2px; }
+.hero-net-cap { font-size: 12.5px; color: var(--ink-soft); margin-top: 4px; font-weight: 500; }
+@media (max-width: 760px) { .hero-split { grid-template-columns: 1fr; gap: 18px; } }
+
+/* Pārskata "Jaunākie karogi" plūsma — redakcionāls feed */
+.ov-card { padding: 20px 22px; border-radius: var(--radius-lg); }
+.ov-h { font-family: var(--font-serif); font-size: 19px; font-weight: 600; letter-spacing: -.01em; margin: 0 0 10px; color: var(--ink); }
+.feed-row { gap: 14px; padding: 13px 0; }
+.feed-buyer { font-weight: 600; }
+.feed-buyer.clickable:hover, .feed-winner.clickable:hover { color: var(--brand2); }
+
+/* Birkas — vienots stils ar krāsu mainīgajiem */
+.note-tag { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; margin-left: 7px; vertical-align: middle; background: var(--gray-bg); color: var(--ink-soft); }
+.note-tag.note-high { background: var(--red-bg); color: #9a2d20; }
+.note-tag.note-med { background: var(--brand-bg); color: var(--brand-ink); }
+.sector-badge { font-size: 11px; padding: 3px 9px; border-radius: 999px; background: var(--bg-2); color: var(--muted); }
+
+/* Profili — serif virsraksts, mīkstāks gredzens */
+.profile-head h2 { font-family: var(--font-serif); margin: 0 0 6px; font-size: 26px; font-weight: 600; letter-spacing: -.015em; }
+
+/* Tabulu galvenes — mazas versālas etiķetes */
+.table-wrap table thead th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); font-weight: 600; padding-top: 12px; padding-bottom: 12px; }
+
+/* Klikšķināmu karšu/rindu pacelšanās */
+.card { transition: box-shadow .15s, border-color .15s; }
+.flow-row.clickable { transition: background .12s, border-color .12s; }
+.flow-row.clickable:hover { border-color: var(--brand2); }
+
+/* Karteļa pāra izvēršana — tīkls + iepirkumu saraksts */
+@media (max-width: 640px) { .cartel-expand { grid-template-columns: 1fr !important; } }
+
+/* Navigācijas nolaižamā izvēlne ("Riska atklājumi") — fiksēta pozīcija, lai nav ritināšana nenogriež */
+.navdrop-btn { display: inline-flex; align-items: center; gap: 5px; }
+.navmenu { z-index: 60; background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-lg); padding: 6px; min-width: 210px; display: flex; flex-direction: column; }
+.navmenu-item { background: none; border: none; text-align: left; padding: 10px 13px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 14px; color: var(--ink); white-space: nowrap; }
+.navmenu-item:hover { background: var(--bg-2); }
+.navmenu-item.active { color: var(--brand-ink); font-weight: 600; background: var(--brand-bg); }
+
+/* Datu seguma rinda galvenē */
+header.top p.coverage { margin-top: 5px; font-size: 12.5px; opacity: .7; font-variant-numeric: tabular-nums; }
+
+/* Avota segments (Visi / Bez ES fondiem / Ar ES fondiem) un meklēšanas avota birka */
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff; }
+.seg-btn { border: none; background: none; padding: 9px 13px; cursor: pointer; font-size: 13px; font-weight: 500; font-family: inherit; color: var(--ink); transition: all .15s; border-left: 1px solid var(--line); }
+.seg-btn:first-child { border-left: none; }
+.seg-btn:hover { background: var(--bg-2); }
+.seg-btn.active { background: var(--brand); color: #fff; }
+.src-tag { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-left: 7px; vertical-align: middle; }
+.src-tag.src-eu { background: var(--brand-bg); color: var(--brand-ink); }
+
+/* Pasūtītāja profila lipīgā enkuru josla (ātra pārvietošanās pa indikatoriem). */
+.anchor-nav { position: sticky; top: 46px; z-index: 20; display: flex; flex-wrap: wrap; gap: 6px; padding: 9px 0; margin: 18px 0 4px; background: var(--bg); border-bottom: 1px solid var(--line); }
+.anchor-nav a { font-size: 12.5px; font-weight: 700; padding: 4px 11px; border-radius: 8px; border: 1px solid var(--line); background: #fff; color: var(--brand-ink); cursor: pointer; }
+.anchor-nav a:hover { border-color: var(--brand2); color: var(--brand2); }
+.section-title[id] { scroll-margin-top: 104px; }
+
+/* Ielādes skeleti — neitrāli, bez teatrālisma (atbilst vietnes tonim). */
+.skeleton { background: linear-gradient(90deg, #ece7dd 25%, #f5f1e9 37%, #ece7dd 63%); background-size: 400% 100%; animation: sk 1.4s ease infinite; border-radius: 8px; }
+@keyframes sk { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+.sk-kpi { height: 66px; }
+.sk-row { height: 46px; margin-bottom: 9px; }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+
+/* Drukas stils — žurnālistu "izdrukāt un paņemt uz sapulci" darbplūsmai. */
+@media print {
+  .mainnav, .global-search, .update-bar, .anchor-nav, footer, .filter-btn, .crumbs button, button { display: none !important; }
+  header.top { background: #fff !important; box-shadow: none; border-bottom: 1px solid #ccc; }
+  header.top h1, header.top p, header.top a { color: #000 !important; }
+  body, main, .card { background: #fff !important; }
+  .hero { background: #fff !important; color: #000 !important; }
+  .card { break-inside: avoid; box-shadow: none !important; border: 1px solid #ccc; }
+  a { color: #000 !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 10px; color: #555; word-break: break-all; }
+}
