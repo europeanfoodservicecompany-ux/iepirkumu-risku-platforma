@@ -1,6 +1,28 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { norm, pct, eur, bandFromScore, fmtRatio, levLE, queryTokens, tokenMatch, parseSearch, parseAmount } from '../src/format.ts';
+import { norm, pct, eur, bandFromScore, fmtRatio, levLE, queryTokens, tokenMatch, parseSearch, parseAmount, wilsonLower, sampleClass } from '../src/format.ts';
+
+test('wilsonLower — mazā izlase sarūk, lielā tuvojas neapstrādātai likmei', () => {
+  // 1/1 = 100% neapstrādāti, bet ticami tikai ~21% → nedrīkst degt sarkans.
+  const w11 = wilsonLower(1, 1);
+  assert.ok(w11 > 0.15 && w11 < 0.3, `1/1 → ${w11}`);
+  // 10/10 = 100% ar lielāku izlasi → pārliecinoši augsts.
+  const w1010 = wilsonLower(10, 10);
+  assert.ok(w1010 > 0.7, `10/10 → ${w1010}`);
+  // Monotoni: lielāka izlase ar to pašu likmi dod augstāku apakšējo robežu.
+  assert.ok(wilsonLower(20, 20) > wilsonLower(5, 5));
+  assert.equal(wilsonLower(0, 0), 0);
+  assert.equal(wilsonLower(0, 8), 0);
+});
+
+test('sampleClass — sliekšņi', () => {
+  assert.equal(sampleClass(1), 'low');
+  assert.equal(sampleClass(4), 'low');
+  assert.equal(sampleClass(5), 'mid');
+  assert.equal(sampleClass(11), 'mid');
+  assert.equal(sampleClass(12), 'ok');
+  assert.equal(sampleClass(50), 'ok');
+});
 
 test('parseAmount — k/m sufiksi un decimāldaļa', () => {
   assert.equal(parseAmount('500'), 500);

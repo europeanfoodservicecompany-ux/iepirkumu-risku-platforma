@@ -1,7 +1,10 @@
 import { RiskNote } from './RiskNote.tsx';
 import { useEffect, useMemo, useState } from 'react';
 import type { WinnersIndex, WinnerIndexEntry } from '../types.ts';
-import { eur, pct, downloadCsv, norm, tokenMatch, parseSearch } from '../format.ts';
+import { eur, pct, downloadCsv, norm, tokenMatch, parseSearch, wilsonLower, sampleClass } from '../format.ts';
+
+// Viena pretendenta likmes ticamā apakšējā robeža (Vilsons) — mazā izlase sarūk, tāpēc 1/1 nekarogo sarkanu.
+const sbLower = (w: { singleBidRate: number; contracts: number }) => wilsonLower(Math.round(w.singleBidRate * w.contracts), w.contracts);
 
 const PAGE = 60;
 type SortKey = 'value' | 'contracts' | 'buyers' | 'singleBid' | 'dependence' | 'name';
@@ -108,7 +111,7 @@ export function SupplierView({ data, onSelect, sectorFilter, onClearSector }: { 
   const rows = useMemo(() => {
     const val = (w: WinnerIndexEntry): number | string =>
       sort.key === 'value' ? w.value : sort.key === 'contracts' ? w.contracts : sort.key === 'buyers' ? w.buyers
-        : sort.key === 'singleBid' ? w.singleBidRate : sort.key === 'dependence' ? w.topBuyerShare : (w.winnerName ?? w.winnerId);
+        : sort.key === 'singleBid' ? sbLower(w) : sort.key === 'dependence' ? w.topBuyerShare : (w.winnerName ?? w.winnerId);
     return [...filtered].sort((a, b) => {
       const va = val(a), vb2 = val(b);
       if (typeof va === 'string' || typeof vb2 === 'string') return String(va).localeCompare(String(vb2), 'lv') * (sort.dir === 'asc' ? 1 : -1);
@@ -223,7 +226,9 @@ export function SupplierView({ data, onSelect, sectorFilter, onClearSector }: { 
                   <td className="mono" style={{ textAlign: 'right' }}>{eur(w.value)}</td>
                   <td className="mono col-ind" style={{ textAlign: 'right' }}>{w.contracts}</td>
                   <td className="mono col-ind" style={{ textAlign: 'right' }}>{w.buyers}</td>
-                  <td className="mono" style={{ textAlign: 'right', color: w.contracts >= 5 && w.singleBidRate >= 0.7 ? 'var(--red)' : w.contracts >= 5 && w.singleBidRate >= 0.4 ? 'var(--yellow)' : 'inherit' }}>{pct(w.singleBidRate, 0)}</td>
+                  <td className="mono" style={{ textAlign: 'right', color: sbLower(w) >= 0.5 ? 'var(--red)' : sbLower(w) >= 0.25 ? 'var(--yellow)' : 'inherit' }}
+                    title={`Ticamā apakšējā robeža (Vilsons, 95%): ${pct(sbLower(w), 0)} pie ${w.contracts} līgumiem. Krāsa balstās uz šo, ne uz neapstrādāto likmi — mazā izlase nekarogo.`}>
+                    {pct(w.singleBidRate, 0)}{sampleClass(w.contracts) === 'low' && w.singleBidRate > 0 && <span className="muted small" title="Maza izlase — likme statistiski nenoteikta"> ⚠</span>}</td>
                   <td className="mono col-ind" style={{ textAlign: 'right', color: w.contracts >= 5 && w.topBuyerShare >= 0.8 && w.buyers <= 2 ? 'var(--red)' : 'inherit' }}>{pct(w.topBuyerShare, 0)}</td>
                 </tr>
               ))}

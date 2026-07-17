@@ -51,6 +51,16 @@ export function MethodologyView() {
       <div className="m-ind"><span className="tag">D</span><strong>Saistītās puses.</strong> Uzvarētāji, kas reģistrēti neilgi pirms līguma iegūšanas (mazāk nekā 6 mēnešus iepriekš) — klasiska saistīto pušu vai fiktīva pretendenta pazīme (UR reģistrācijas dati).</div>
       <div className="m-ind"><span className="tag">G</span><strong>Līguma grozījumi pēc uzvaras.</strong> Cik liela pasūtītāja līgumu daļa pēc uzvaras tiek grozīta ar <em>papildu darbiem vai piegādēm</em> (add-wss) vai <em>izpildītāja maiņu</em> (mod-repl) — klasiska shēma „uzvar lēti, pēc tam summu uzpūš ar papildu vienošanos“ (IUB grozījumu paziņojumi, PIL 61. p.). Daudzi grozījumi ir likumīgi (termiņa pagarinājums, indeksācija) — tāpēc skaita tikai būtiskos un tikai īpatsvaru. Grozījuma summa nav tīrs pieaugums, tāpēc to nerāda procentos.</div>
 
+      <h3 className="section-title">Mazās izlases un nenoteiktība</h3>
+      <p>
+        Procentuāls rādītājs pie maza novērojumu skaita maldina: piegādātājs ar vienu līgumu, kas bijis viena pretendenta,
+        rāda 100%, bet tas neko nepierāda. Tāpēc <strong>krāsu un kārtošanu balstām nevis uz neapstrādāto likmi, bet uz tās
+        ticamo apakšējo robežu</strong> (Vilsona 95% intervāls). Praksē tas nozīmē: 1 no 1 (100%) ticamā robeža ir tikai ~21%
+        (nekarogo sarkanu), turpretī 10 no 10 (100%) — ~72% (karogo). Neapstrādāto procentu joprojām rādām, bet blakus liekam
+        brīdinājumu <span className="mono">⚠</span>, ja izlase ir maza (mazāk par 5 līgumiem). Pasūtītāja B1 rādītājam papildus ir
+        <strong> minimālā izlases prasība</strong>: ja iepirkumu par maz, rādām „nepietiek datu“, nevis nepatiesu procentu.
+      </p>
+
       <h3 className="section-title">Kopējais svērtais risks</h3>
       <p>
         Kopējais rādītājs ir slāņu svērta kombinācija: B 26% (lielākā no B1 un B2), A 22%, C 17%, G 15%, D 12%, E 8%.

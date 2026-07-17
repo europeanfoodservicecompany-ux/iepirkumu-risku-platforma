@@ -87,6 +87,28 @@ export function tokenMatch(hayNorm: string, tokens: string[]): boolean {
   });
 }
 
+// ── Mazās izlases disciplīna ──
+// Vilsona ticamības intervāla apakšējā robeža proporcijai k/n (noklusējums 95%, z=1.96).
+// Konservatīvs "cik ticami likme tiešām ir vismaz šī" novērtējums: pie mazas izlases robeža
+// krīt tuvu nullei, tāpēc 1/1=100% vairs neizskatās kā stabils 100%. k=viltus, n=novērojumi.
+export function wilsonLower(k: number, n: number, z = 1.96): number {
+  if (n <= 0) return 0;
+  const p = Math.min(1, Math.max(0, k / n));
+  const z2 = z * z;
+  const denom = 1 + z2 / n;
+  const center = p + z2 / (2 * n);
+  const margin = z * Math.sqrt((p * (1 - p) + z2 / (4 * n)) / n);
+  return Math.max(0, (center - margin) / denom);
+}
+
+// Izlases kvalitātes klase pēc novērojumu skaita — attēlojumam (birka + brīdinājums).
+// 'low' → rādīt "maza izlase"; 'mid' → dzeltens konteksts; 'ok' → pietiekami.
+export function sampleClass(n: number): 'low' | 'mid' | 'ok' {
+  if (n < 5) return 'low';
+  if (n < 12) return 'mid';
+  return 'ok';
+}
+
 // Pasūtītāja rezultāts → krāsas josla + latvisks apzīmējums.
 export function buyerBand(r: RiskResult): { key: BandKey; label: string } {
   if (r.status === 'NoData' || r.score === null) return { key: 'gray', label: 'Nepietiek datu' };

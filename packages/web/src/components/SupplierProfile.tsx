@@ -3,6 +3,7 @@ import { eur, pct, downloadCsv } from '../format.ts';
 import { Disclaimer } from './Disclaimer.tsx';
 import { CopyLink } from './CopyLink.tsx';
 import { StarNet } from './BidderNet.tsx';
+import { InnocentNote } from './InnocentNote.tsx';
 
 const ROLE: Record<string, string> = { PLG: 'patiesā labuma guvējs', valde: 'valdes loceklis', likvidators: 'likvidators', amatpersona: 'amatpersona' };
 const roleLabel = (r: string) => ROLE[r] ?? r;
@@ -105,6 +106,7 @@ export function SupplierProfile({ winner, onSelectBuyer }: { winner: WinnerDetai
               {' '}un turpina uzvarēt pie tā paša pasūtītāja <strong>{w.phoenix.buyerName ?? w.phoenix.buyerId}</strong>.
               Iespējama reputācijas vai parādu “pārdzimšana”. <strong>Karogs nav pierādījums</strong> — tā var būt arī likumīga pārstrukturizācija.
             </p>
+            <InnocentNote k="phoenix" />
           </div>
         </>
       )}
@@ -119,6 +121,7 @@ export function SupplierProfile({ winner, onSelectBuyer }: { winner: WinnerDetai
               bet citur — tikai <strong>{Math.round(w.homeAdvantage.winRateElse * 100)}%</strong> ({w.homeAdvantage.partsElse} dalības).
               Krasa atšķirība var liecināt par <strong>favorītismu</strong>. <strong>Karogs nav pierādījums</strong> — to var izskaidrot arī specializācija vai ģeogrāfija.
             </p>
+            <InnocentNote k="homeadv" />
           </div>
         </>
       )}
@@ -200,6 +203,7 @@ export function SupplierProfile({ winner, onSelectBuyer }: { winner: WinnerDetai
             <p className="muted small" style={{ marginTop: 8, marginBottom: 0 }}>
               Kad firma uzvar līgumus, kuru vērtība daudzkārt pārsniedz tās apgrozījumu vai ko tik maz darbinieku objektīvi spētu izpildīt, tā var būt starpnieks vai «pass-through» firma. Taču tam var būt arī likumīgs izskaidrojums — liela uzņēmumu grupa, jauns meitasuzņēmums vai apakšuzņēmēju modelis. <strong>Karogs nav pierādījums.</strong>
             </p>
+            <InnocentNote k="capgap" />
           </div>
         </>
       )}

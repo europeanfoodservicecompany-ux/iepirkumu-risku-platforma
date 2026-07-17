@@ -3,6 +3,7 @@ import type { BuyerDetail, RiskResult, ActiveTender } from '../types.ts';
 import { buyerBand, buyerSummary, b2Summary, aSummary, cSummary, eSummary, dSummary, gSummary, pct, fmtRatio, eur, downloadCsv } from '../format.ts';
 import { RiskBadge } from './RiskBadge.tsx';
 import { RiskBreakdown } from './RiskBreakdown.tsx';
+import { InnocentNote } from './InnocentNote.tsx';
 import { Disclaimer } from './Disclaimer.tsx';
 import { CopyLink } from './CopyLink.tsx';
 
@@ -199,6 +200,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
       <h3 className="section-title" id="sec-b1">Cik bieži bija tikai viens pretendents? <span className="muted" style={{ fontWeight: 400 }}>(B1)</span></h3>
       <div className="card">
         <p style={{ marginTop: 0 }}>{buyerSummary(r, nat)}</p>
+        <InnocentNote k="b1" />
         <div className="kv"><span>Viena pretendenta īpatsvars</span>
           <strong className="mono">{r.score === null ? 'nepietiek datu' : pct(d.singleBidRate, 1)}</strong></div>
         {buyer.singleBidTrend && (
@@ -220,6 +222,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
       <h3 className="section-title" id="sec-b2">Vai līgumi koncentrējas pie viena uzvarētāja? <span className="muted" style={{ fontWeight: 400 }}>(B2)</span></h3>
       <div className="card">
         <p style={{ marginTop: 0 }}>{b2Summary(b2)}</p>
+        <InnocentNote k="b2" />
         <div className="kv"><span>Lielākā uzvarētāja daļa</span>
           <strong className="mono">{b2.score === null ? 'nepietiek datu' : pct(cd.topWinnerShare, 1)}</strong></div>
         <div className="kv"><span>Lielākais uzvarētājs</span><span>{cd.topWinnerName ?? '–'}</span></div>
@@ -246,6 +249,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
       <h3 className="section-title" id="sec-a">Vai iepirkumi tiek dalīti, lai izvairītos no konkursa? <span className="muted" style={{ fontWeight: 400 }}>(A)</span></h3>
       <div className="card">
         <p style={{ marginTop: 0 }}>{aSummary(aRes)}</p>
+        <InnocentNote k="a" />
         <div className="disclaimer" style={{ marginBottom: 12 }}>
           <strong>Piezīme:</strong> līgumi grupēti pēc CPV kategorijas, kas ir plaša — viena CPV grupa var ietvert
           <em> dažādas</em> vajadzības, ne tikai vienu sadalītu iepirkumu. <strong>Sarkans</strong> tikai tad, ja līgumi
@@ -302,6 +306,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
       <h3 className="section-title" id="sec-c">Vai cenas neparasti atšķiras no līdzīgiem iepirkumiem? <span className="muted" style={{ fontWeight: 400 }}>(C)</span></h3>
       <div className="card">
         <p style={{ marginTop: 0 }}>{cSummary(cRes)}</p>
+        <InnocentNote k="c" />
         <div className="disclaimer" style={{ marginBottom: 12 }}>
           <strong>Piezīme:</strong> dati satur līgumu kopsummas, ne vienības cenas. Augsta vērtība var
           nozīmēt pārmaksu <em>vai</em> vienkārši lielāku iepirkumu — tā ir tikai norāde pārbaudei.
@@ -328,6 +333,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
       <h3 className="section-title" id="sec-e">Vai procedūra apiet atklātu konkurenci? <span className="muted" style={{ fontWeight: 400 }}>(E)</span></h3>
       <div className="card">
         <p style={{ marginTop: 0 }}>{eSummary(eRes)}</p>
+        <InnocentNote k="e" />
         <div className="kv"><span>Sarunu procedūras bez konkurences</span>
           <strong className="mono">{eRes.status === 'NoData' ? 'nepietiek datu' : (eRes.detail?.nonCompetitiveLots ?? 0)}</strong></div>
         <div className="kv"><span>Īpatsvars no visiem iepirkumiem</span><span className="mono">{eRes.status === 'NoData' ? '–' : pct(eRes.detail?.nonCompetitiveShare, 1)}</span></div>
@@ -337,6 +343,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
       <h3 className="section-title" id="sec-d">Vai uzvar tikko dibinātas firmas? <span className="muted" style={{ fontWeight: 400 }}>(D)</span></h3>
       <div className="card">
         <p style={{ marginTop: 0 }}>{dSummary(dRes)}</p>
+        <InnocentNote k="d" />
         <div className="muted small" style={{ marginBottom: newWinners.length ? 12 : 0 }}>
           Avots: Uzņēmumu reģistra atvērtie dati (reģistrācijas datumi).
         </div>
@@ -361,6 +368,7 @@ export function BuyerProfile({ buyer, nationalSingleBidRate, activeTenders = [],
       <h3 className="section-title" id="sec-g">Vai līgumi tiek grozīti pēc uzvaras? <span className="muted" style={{ fontWeight: 400 }}>(G)</span></h3>
       <div className="card">
         <p style={{ marginTop: 0 }}>{gSummary(gRes)}</p>
+        <InnocentNote k="g" />
         {gRes.status !== 'NoData' && (
           <>
             <div className="kv"><span>Līgumi ar būtiskiem grozījumiem (papildu darbi / izpildītāja maiņa)</span>
