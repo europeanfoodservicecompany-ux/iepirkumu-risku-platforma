@@ -14,6 +14,7 @@ export type Lot = {
   winnerId?: string | null;    // uzvarētāja reģ. nr. (contracts.winners.winnerBusinessParties.companyId)
   winnerName?: string | null;  // uzvarētāja nosaukums
   procedureType?: string | null; // BT-105: tenderingProcess.procedureType
+  legalBasis?: string | null;  // procedureLegalBasis — piemērotais likums (PIL / SPSIL u.c.), sliekšņu izvēlei
   noticeDate?: string | null;  // ISO datums (no lot.result.decisionDate)
   sourceUrl?: string | null;   // saite uz IUB oriģinālu (eForms strukturētais paziņojums)
   eisId?: string | null;       // EIS iepirkuma numurs (iekšēji — dedup/A grupēšanai, ne displejam)
@@ -80,19 +81,25 @@ export const DEFAULT_B2_CONFIG: B2Config = {
 
 export type AConfig = {
   windowDays: number;        // slīdošais laika logs T (dienas)
-  thresholdWorks: number;    // procedūras slieksnis būvdarbiem (CPV 45*), EUR
-  thresholdGoods: number;    // procedūras slieksnis precēm/pakalpojumiem, EUR
+  thresholdWorks: number;    // PIL procedūras slieksnis būvdarbiem (CPV 45*), EUR
+  thresholdGoods: number;    // PIL procedūras slieksnis precēm/pakalpojumiem, EUR
+  thresholdWorksUtil: number;// SPSIL (sabiedrisko pakalpojumu sniedzēji) slieksnis būvdarbiem, EUR
+  thresholdGoodsUtil: number;// SPSIL slieksnis precēm/pakalpojumiem, EUR
   nearThresholdRatio: number;// "tuvu slieksnim" josla (0.5 = līgumi ≥50% no S; tikai tie skaitās par sadalīšanu)
   redSumRatio: number;       // kopsumma > redSumRatio × S → sarkans
   redCount: number;          // līgumu skaits kopā ≥ redCount → sarkans
 };
 
-// Aktuālie LV sliekšņi (virs kuriem jārīko atklāta procedūra): preces/pakalpojumi 42 000 EUR,
-// būvdarbi 170 000 EUR. Reforma tos krasi paaugstinās — tāpēc tie ir KONFIGURĒJAMI parametri.
+// Aktuālie LV sliekšņi (spēkā no 2026-01-01). PIL (Publisko iepirkumu likums): preces/pakalpojumi
+// 42 000 EUR, būvdarbi 170 000 EUR. SPSIL (sabiedrisko pakalpojumu sniedzēji, piem. enerģētika, ūdens,
+// transports, ostas) sliekšņi ir daudz augstāki — MK Nr.105 ES sliekšņi: preces/pakalpojumi 428 000 EUR,
+// būvdarbi 5 350 000 EUR. Tāpēc sadalīšanas (bunching) analīzē slieksnis jāizvēlas pēc piemērotā likuma.
 export const DEFAULT_A_CONFIG: AConfig = {
   windowDays: 90,
   thresholdWorks: 170000,
   thresholdGoods: 42000,
+  thresholdWorksUtil: 5350000,
+  thresholdGoodsUtil: 428000,
   nearThresholdRatio: 0.5,
   redSumRatio: 1.5,
   redCount: 4,

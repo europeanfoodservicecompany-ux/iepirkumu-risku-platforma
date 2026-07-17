@@ -148,6 +148,7 @@ export function parseNotice(notice: AnyObj, baseUrl = IUB_NOTICE_BASE_URL): Lot[
   const procedureId: string | null = notice.procurementProcedureIdentifier ?? null;
   const cpv: string | null = notice.cpvType ?? null;
   const procedureType: string | null = notice.tenderingProcess?.procedureType ?? null;
+  const legalBasis: string | null = typeof notice.procedureLegalBasis === 'string' ? notice.procedureLegalBasis : null;
   void baseUrl; // info.iub deep-links nedarbojas; izmantojam EIS saites
 
   // Iepirkuma priekšmets (laika ziņā precīzs — no paša paziņojuma).
@@ -187,6 +188,7 @@ export function parseNotice(notice: AnyObj, baseUrl = IUB_NOTICE_BASE_URL): Lot[
       winnerId: winner.winnerId,
       winnerName: winner.winnerName,
       procedureType,
+      legalBasis,
       noticeDate: parseDate(result.decisionDate),
       sourceUrl: eformsUrl(noticeId) ?? eisUrl, // displejam: eForms (100% segums); fallback EIS
       eisId,

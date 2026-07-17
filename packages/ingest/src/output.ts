@@ -73,12 +73,20 @@ export function writeDataset(dataDir: string, output: EngineOutput, lots: Lot[],
   // ── Vērtību sablīvēšanās zem sliekšņa (bunching) ── pasūtītāji, kas tur vērtības TIEŠI zem atklātas
   // procedūras sliekšņa (€170k būvdarbi / €42k preces/pakalpojumi), lai izvairītos no konkurences.
   // Konservatīvi: pasūtītāja līmeņa RELATĪVA novirze pret nacionālo bāzi, ne atsevišķu līgumu karogi.
-  const THR_W = 170000, THR_G = 42000;
+  const THR_W = 170000, THR_G = 42000;          // PIL sliekšņi
+  const THR_WU = 5350000, THR_GU = 428000;      // SPSIL (sabiedrisko pakalpojumu sniedzēji) sliekšņi
+  // Piemērotā likuma noteikšana pēc procedureLegalBasis. SPSIL kodus atzīmē 'sps'; pārējos (PIL, nezināmi)
+  // apstrādā kā PIL — tas ir konservatīvi (esošā uzvedība) un nedod SPSIL viltus signālus, kur bāze zināma.
+  const isUtilities = (lb?: string | null) => !!lb && /sps/i.test(lb);
+  const thresholdFor = (l: Lot) => {
+    const works = (l.cpv ?? '').startsWith('45');
+    return isUtilities(l.legalBasis) ? (works ? THR_WU : THR_GU) : (works ? THR_W : THR_G);
+  };
   const bunchAgg = new Map<string, { n: number; below: number }>();
   let bunchNatN = 0, bunchNatBelow = 0;
   for (const l of lots) {
     if (!l.winnerChosen || !(l.awardValue && l.awardValue > 0) || l.dupValue || !l.buyerId) continue;
-    const S = (l.cpv ?? '').startsWith('45') ? THR_W : THR_G;
+    const S = thresholdFor(l);
     const r = l.awardValue / S;
     const below = r >= 0.85 && r < 1.0;
     bunchNatN++; if (below) bunchNatBelow++;
