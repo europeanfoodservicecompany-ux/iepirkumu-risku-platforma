@@ -123,8 +123,16 @@ export type WinnerIndexEntry = {
   offshore?: 'offshore' | 'grey'; // ofšoru/pelēkās zonas patiesā labuma guvējs
   homeAdv?: number; // "mājas priekšrocība" pie viena pasūtītāja — 1, ja ir
   phoenix?: number; // "fēnikss" — jauna firma pārmanto veca priekšteci — 1, ja ir
+  capGap?: number; // kapacitātes plaisa (uzvar >> apgrozījums/kapacitāte) — 1, ja ir
+  vidDebt?: number; // VID nodokļu parāds (ja dati pieejami) — 1, ja ir
 };
 export type WinnersIndex = { meta?: { coverage?: string }; winners: WinnerIndexEntry[] };
+// Kapacitātes plaisa: uzvarēto līgumu vērtība nesamērīga ar firmas apgrozījumu/darbiniekiem.
+export type CapacityGap = { value: number; turnover: number | null; employees: number | null; ratio: number | null; perEmployee: number | null; year: number };
+export type VidDebtor = { amount: number; source: string; asOf: string | null };
+// Datu kvalitātes monitors.
+export type QualityIssue = { key: string; label: string; count: number; pct: number; scope: string; samples: { id: string; url: string | null }[] };
+export type QualityData = { meta?: { coverage?: string; generatedAt?: string }; totals: { lots: number; awarded: number; buyers: number }; issues: QualityIssue[] };
 
 // Slaids indekss globālajai meklēšanai (search-index.json) — tikai lauki, kas vajadzīgi meklēšanai.
 export type SearchWinner = { winnerId: string; fileId: string; winnerName: string | null; contracts: number; cfla?: number };
@@ -234,6 +242,8 @@ export type WinnerDetail = {
   sameAddress?: { address: string | null; addrTotal: number; winners: { fileId: string | null; name: string | null }[] } | null;
   financials?: { year: number; employees: number | null; turnover: number | null; profit: number | null } | null;
   lowCapacity?: boolean;
+  capacityGap?: CapacityGap | null;
+  vidDebtor?: VidDebtor | null;
   cfla?: CflaSummary | null;
   coBidders?: CoBidder[];
   offshore?: OffshoreInfo | null;

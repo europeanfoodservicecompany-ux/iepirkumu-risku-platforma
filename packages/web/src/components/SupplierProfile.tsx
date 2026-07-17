@@ -187,6 +187,37 @@ export function SupplierProfile({ winner, onSelectBuyer }: { winner: WinnerDetai
         </>
       )}
 
+      {w.capacityGap && (
+        <>
+          <h3 className="section-title">Kapacitātes plaisa</h3>
+          <div className="card">
+            <div className="note-tag note-high" style={{ margin: '0 0 8px', display: 'inline-block' }}>uzvar vairāk, nekā liecina apgrozījums vai darbinieku skaits</div>
+            <div className="kv"><span>Uzvarēto līgumu kopvērtība</span><span className="mono">{eur(w.capacityGap.value)}</span></div>
+            {w.capacityGap.turnover != null && <div className="kv"><span>Gada apgrozījums ({w.capacityGap.year})</span><span className="mono">{eur(w.capacityGap.turnover)}</span></div>}
+            {w.capacityGap.ratio != null && <div className="kv"><span>Līgumi pret apgrozījumu</span><span className="mono" style={{ color: 'var(--red-ink)' }}>{w.capacityGap.ratio}×</span></div>}
+            {w.capacityGap.employees != null && <div className="kv"><span>Darbinieku skaits</span><span className="mono">{w.capacityGap.employees}</span></div>}
+            {w.capacityGap.perEmployee != null && <div className="kv"><span>Vērtība uz darbinieku</span><span className="mono">{eur(w.capacityGap.perEmployee)}</span></div>}
+            <p className="muted small" style={{ marginTop: 8, marginBottom: 0 }}>
+              Kad firma uzvar līgumus, kuru vērtība daudzkārt pārsniedz tās apgrozījumu vai ko tik maz darbinieku objektīvi spētu izpildīt, tā var būt starpnieks vai «pass-through» firma. Taču tam var būt arī likumīgs izskaidrojums — liela uzņēmumu grupa, jauns meitasuzņēmums vai apakšuzņēmēju modelis. <strong>Karogs nav pierādījums.</strong>
+            </p>
+          </div>
+        </>
+      )}
+
+      {w.vidDebtor && (
+        <>
+          <h3 className="section-title">VID nodokļu parāds</h3>
+          <div className="card">
+            <div className="note-tag note-high" style={{ margin: '0 0 8px', display: 'inline-block' }}>publicēts VID parādnieku sarakstā</div>
+            <div className="kv"><span>Parāda summa</span><span className="mono" style={{ color: 'var(--red-ink)' }}>{eur(w.vidDebtor.amount)}</span></div>
+            {w.vidDebtor.asOf && <div className="kv"><span>Dati uz</span><span className="mono">{w.vidDebtor.asOf}</span></div>}
+            <p className="muted small" style={{ marginTop: 8, marginBottom: 0 }}>
+              Nodokļu parāds virs likumā noteiktā sliekšņa ir Publisko iepirkumu likuma 42. panta izslēgšanas pamats. Avots: {w.vidDebtor.source}. Parāds var būt radies pēc līguma piešķiršanas — tā ir norāde pārbaudei, ne apgalvojums par pārkāpumu.
+            </p>
+          </div>
+        </>
+      )}
+
       {w.cfla && w.cfla.contracts > 0 && (
         <>
           <h3 className="section-title">ES fondu līgumi (CFLA)</h3>

@@ -232,6 +232,17 @@ export function writeDataset(dataDir: string, output: EngineOutput, lots: Lot[],
   { const p = join(dataDir, 'eis.json'); if (existsSync(p)) eisData = JSON.parse(readFileSync(p, 'utf8')); }
   const eisFor = (l: Lot): EisProc | null => (l.eisId ? (eisData[l.eisId] ?? null) : null);
 
+  // ── VID nodokļu parādnieki ── (drop-in: data/vid-debtors.json = { generated, source, debtors: [{reg, amount}] }).
+  // Nodokļu parāds virs sliekšņa ir PIL 42. panta izslēgšanas pamats — objektīvs juridisks fakts, ne interpretācija.
+  // Ja faila nav, pazīme klusē (graceful). Vēsture nav atpakaļejoša — momentuzņēmumi jāsāk krāt.
+  const vidDebt = new Map<string, number>();
+  let vidMeta: { generated?: string; source?: string } = {};
+  { const p = join(dataDir, 'vid-debtors.json'); if (existsSync(p)) {
+      const d = JSON.parse(readFileSync(p, 'utf8')); vidMeta = { generated: d.generated, source: d.source };
+      for (const e of d.debtors ?? []) if (e.reg) vidDebt.set(String(e.reg), Number(e.amount) || 0);
+    } }
+  const vidDebtorFor = (reg: string) => (vidDebt.has(reg) ? { amount: vidDebt.get(reg)!, source: vidMeta.source ?? 'VID', asOf: vidMeta.generated ?? null } : null);
+
   // ── "Mājas priekšrocība" ── piegādātājs, kas pie VIENA pasūtītāja uzvar krasi biežāk nekā citur.
   // Balstīts uz EIS reālo dalību konkursos ar konkurenci (≥2 pretendenti). Favorītisma pazīme.
   // Kontrole pret viltus pozitīviem: prasa ≥4 dalības gan "mājās", gan citur; kontrast ≥40 p.p.
@@ -433,6 +444,21 @@ export function writeDataset(dataDir: string, output: EngineOutput, lots: Lot[],
     if (isPartnership(name) || value < 500000 || f.turnover == null || f.turnover < 0 || f.turnover >= 1000000) return null;
     return Math.round(f.turnover);
   };
+  // ── Kapacitātes plaisa ── uzvarēto līgumu kopvērtība ir daudzkārt lielāka par firmas apgrozījumu,
+  // vai vērtība uz vienu darbinieku ir neparasti augsta. Iespējams starpnieks/čaula, ne faktiskais izpildītājs.
+  // Karogs nav pierādījums — liela grupa vai jauns meitasuzņēmums var būt likumīgs izskaidrojums.
+  const capacityGapFor = (reg: string, value: number, name: string | null) => {
+    const f = finData[reg];
+    if (!f || isPartnership(name) || value < 200000) return null;
+    const turnover = f.turnover != null && f.turnover > 0 ? f.turnover : null;
+    const emp = f.employees != null && f.employees >= 0 ? f.employees : null;
+    const ratio = turnover ? value / turnover : null;             // līgumi / gada apgrozījums
+    const perEmp = emp && emp > 0 ? Math.round(value / emp) : null; // vērtība uz darbinieku
+    // Karogs: uzvarēts ≥3× gada apgrozījuma, VAI ≤2 darbinieki ar ≥€500k līgumiem.
+    const flagged = (ratio != null && ratio >= 3) || (emp != null && emp <= 2 && value >= 500000);
+    if (!flagged) return null;
+    return { value: Math.round(value), turnover: turnover != null ? Math.round(turnover) : null, employees: emp, ratio: ratio != null ? Math.round(ratio * 10) / 10 : null, perEmployee: perEmp, year: f.year };
+  };
 
   writeFileSync(join(dataDir, 'winners-index.json'), JSON.stringify({
     meta,
@@ -447,8 +473,32 @@ export function writeDataset(dataDir: string, output: EngineOutput, lots: Lot[],
       offshore: offshoreFor(w.winnerId)?.tier, // 'offshore' | 'grey' | undefined — ofšora PLG filtram
       homeAdv: homeAdvFor(w.winnerId) ? 1 : undefined, // "mājas priekšrocība" pie viena pasūtītāja
       phoenix: phoenixFor(w.winnerId) ? 1 : undefined, // "fēnikss" — jauna firma pārmanto veca priekšteci
+      capGap: capacityGapFor(w.winnerId, w.awardedValue, w.winnerName) ? 1 : undefined, // kapacitātes plaisa
+      vidDebt: vidDebtorFor(w.winnerId) ? 1 : undefined, // VID nodokļu parāds (ja dati pieejami)
     })),
   }));
+
+  // ── quality.json ── publisks datu kvalitātes monitors. Rāda, cik IUB atvērto datu ierakstu ir nepilnīgi
+  // vai pretrunīgi. Kritizē DATUS, ne iestādi — un dod IUB bezmaksas QA rīku ar konkrētiem paziņojumu ID.
+  {
+    const awarded = lots.filter((l) => l.winnerChosen);
+    const badVal = awarded.filter((l) => !l.awardValue);
+    const pct = (n: number, d: number) => d ? Math.round((n / d) * 1000) / 10 : 0;
+    const sampleIds = (arr: typeof lots, n = 20) => arr.slice(0, n).map((l) => ({ id: l.noticeId ?? l.id, url: l.sourceUrl ?? null }));
+    const quality = {
+      meta,
+      totals: { lots: lots.length, awarded: awarded.length, buyers: new Set(lots.map((l) => l.buyerId)).size },
+      issues: [
+        { key: 'noValue', label: 'Piešķirts līgums bez vērtības', count: badVal.length, pct: pct(badVal.length, awarded.length), scope: 'piešķirtie', samples: sampleIds(badVal) },
+        { key: 'noCpv', label: 'Bez CPV koda', count: awarded.filter((l) => !l.cpv).length, pct: pct(awarded.filter((l) => !l.cpv).length, awarded.length), scope: 'piešķirtie', samples: sampleIds(awarded.filter((l) => !l.cpv)) },
+        { key: 'noBids', label: 'Bez saņemto piedāvājumu skaita', count: awarded.filter((l) => l.receivedBids == null).length, pct: pct(awarded.filter((l) => l.receivedBids == null).length, awarded.length), scope: 'piešķirtie', samples: sampleIds(awarded.filter((l) => l.receivedBids == null)) },
+        { key: 'noWinnerReg', label: 'Bez uzvarētāja reģ. Nr.', count: awarded.filter((l) => !l.winnerId).length, pct: pct(awarded.filter((l) => !l.winnerId).length, awarded.length), scope: 'piešķirtie', samples: sampleIds(awarded.filter((l) => !l.winnerId)) },
+        { key: 'dupValue', label: 'Vienā procedūrā pretrunīgas summas', count: lots.filter((l) => l.dupValue).length, pct: pct(lots.filter((l) => l.dupValue).length, lots.length), scope: 'visi', samples: sampleIds(lots.filter((l) => l.dupValue)) },
+        { key: 'noEis', label: 'Nav sasaistes ar EIS procedūru (izsecināta netieši)', count: lots.filter((l) => !l.eisId).length, pct: pct(lots.filter((l) => !l.eisId).length, lots.length), scope: 'visi', samples: sampleIds(lots.filter((l) => !l.eisId)) },
+      ],
+    };
+    writeFileSync(join(dataDir, 'quality.json'), JSON.stringify(quality));
+  }
 
   // ── cfla-index.json ── atsevišķa "ES fondi (CFLA)" cilne: meklēšana + kārtošana pa piegādātājiem.
   // Kompakts kopsavilkums (bez pilniem līgumiem — tos ielādē piegādātāja profilā). Tikai ar CFLA līgumiem.
@@ -548,6 +598,8 @@ export function writeDataset(dataDir: string, output: EngineOutput, lots: Lot[],
       sameAddress: sameAddressFor(reg),
       financials: finData[reg] ?? null,
       lowCapacity: lowCapEmpFor(reg, winners[i].awardedValue, winners[i].winnerName) != null,
+      capacityGap: capacityGapFor(reg, winners[i].awardedValue, winners[i].winnerName),
+      vidDebtor: vidDebtorFor(reg),
       cfla: cflaFor(reg),
       coBidders: cobiddersFor(reg),
       homeAdvantage: homeAdvFor(reg),

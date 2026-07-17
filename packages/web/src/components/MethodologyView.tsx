@@ -113,6 +113,30 @@ export function MethodologyView() {
         būtu iespējama, ja politiski nozīmīgu personu reģistrs būtu pieejams mašīnlasāmā atvērto datu formātā.
       </p>
 
+      <h3 className="section-title">Kapacitātes plaisa</h3>
+      <p>
+        Piegādātājs, kura uzvarēto līgumu kopvērtība ir daudzkārt lielāka par tā gada apgrozījumu (≥3×) vai kuram ir ļoti maz
+        darbinieku (≤2) attiecībā pret lielu līgumu apjomu. Tas var liecināt par starpnieku vai «pass-through» firmu, kas
+        faktiski neizpilda līgumu. <strong>Karogs nav pierādījums</strong> — likumīgs izskaidrojums var būt liela uzņēmumu grupa,
+        jauns meitasuzņēmums vai apakšuzņēmēju modelis. Avots: VID gada pārskati (UR atvērtie dati) × uzvarēto līgumu vērtības.
+      </p>
+
+      <h3 className="section-title">VID nodokļu parāds</h3>
+      <p>
+        Ja piegādātājs ir VID publicētajā nodokļu parādnieku sarakstā, to atzīmējam. Nodokļu parāds virs likumā noteiktā
+        sliekšņa ir Publisko iepirkumu likuma 42. panta izslēgšanas pamats — objektīvs juridisks fakts. Parāds var būt radies pēc
+        līguma piešķiršanas, tāpēc tā ir norāde pārbaudei, ne apgalvojums par pārkāpumu. Šī pazīme darbojas tikai tad, kad
+        pieejams VID parādnieku momentuzņēmums (mēneša dati); vēsture nav atpakaļejoša.
+      </p>
+
+      <h3 className="section-title">Datu kvalitātes monitors</h3>
+      <p>
+        Atsevišķā sadaļā <em>Datu kvalitāte</em> publiski rādām, cik IUB atvērto datu ierakstu ir nepilnīgi vai savstarpēji
+        pretrunīgi (trūkst vērtība, CPV, pretendentu skaits, uzvarētāja reģ. Nr.; pretrunīgas summas vienā procedūrā; nav
+        sasaistes ar EIS procedūru). Katrai problēmai ir konkrēti paziņojumu identifikatori. Mērķis ir palīdzēt uzlabot datus,
+        ne kritizēt iestādi — jo tīrāki dati, jo mazāk trokšņa publiskajā analīzē.
+      </p>
+
       <h3 className="section-title">„Jaunākie karogi“</h3>
       <p>
         Sākumlapas plūsma rāda nesen piešķirtus līgumus, kuriem ir skaidra riska pazīme, jaunākos pirmos: <strong>viens

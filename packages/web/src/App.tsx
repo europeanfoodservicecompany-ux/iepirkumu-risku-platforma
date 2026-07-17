@@ -19,6 +19,8 @@ import { CartelView } from './components/CartelView.tsx';
 import { SupplierProfile } from './components/SupplierProfile.tsx';
 import { MethodologyView } from './components/MethodologyView.tsx';
 import { AboutView } from './components/AboutView.tsx';
+import { QualityView } from './components/QualityView.tsx';
+import type { QualityData } from './types.ts';
 import { Disclaimer } from './components/Disclaimer.tsx';
 
 const BASE = import.meta.env.BASE_URL;
@@ -51,7 +53,7 @@ function VisitorCount() {
   return <div style={{ marginTop: 6 }}>{n} apmeklētāji</div>;
 }
 
-type View = 'overview' | 'analysis' | 'buyers' | 'suppliers' | 'persons' | 'contacts' | 'cfla' | 'cartel' | 'sectors' | 'markets' | 'active' | 'method' | 'about';
+type View = 'overview' | 'analysis' | 'buyers' | 'suppliers' | 'persons' | 'contacts' | 'cfla' | 'cartel' | 'sectors' | 'markets' | 'active' | 'method' | 'about' | 'quality';
 
 // Cilnes grupētas pēc lietotāja nodoma (mazina 12-ciļņu pārslodzi): kur sākt, kas iesaistīts,
 // kādi riska atklājumi, kas notiek tagad, kā tas darbojas.
@@ -67,6 +69,7 @@ const TABS: { v: View; label: string; group: string }[] = [
   { v: 'cfla', label: 'ES fondi', group: 'Riska atklājumi' },
   { v: 'sectors', label: 'Nozares', group: 'Riska atklājumi' },
   { v: 'active', label: 'Aktuālie konkursi', group: 'Tagad' },
+  { v: 'quality', label: 'Datu kvalitāte', group: 'Par' },
   { v: 'method', label: 'Metodoloģija', group: 'Par' },
   { v: 'about', label: 'Par šo vietni', group: 'Par' },
 ];
@@ -77,7 +80,7 @@ function parseHash(): { view: View; buyerId: string | null; winnerId: string | n
   const h = window.location.hash.replace(/^#\/?/, '').split('?')[0]; // nogriež filtru query (?...), lai maršruts paliek tīrs
   if (h.startsWith('buyer/')) return { view: 'buyers', buyerId: safeDecode(h.slice(6)), winnerId: null };
   if (h.startsWith('winner/')) return { view: 'suppliers', buyerId: null, winnerId: safeDecode(h.slice(7)) };
-  if (h === 'analysis' || h === 'buyers' || h === 'suppliers' || h === 'persons' || h === 'contacts' || h === 'cfla' || h === 'cartel' || h === 'sectors' || h === 'markets' || h === 'active' || h === 'method' || h === 'about') return { view: h, buyerId: null, winnerId: null };
+  if (h === 'analysis' || h === 'buyers' || h === 'suppliers' || h === 'persons' || h === 'contacts' || h === 'cfla' || h === 'cartel' || h === 'sectors' || h === 'markets' || h === 'active' || h === 'method' || h === 'about' || h === 'quality') return { view: h, buyerId: null, winnerId: null };
   return { view: 'overview', buyerId: null, winnerId: null };
 }
 
@@ -93,6 +96,7 @@ export function App() {
   const [contacts, setContacts] = useState<ContactsData | null>(null);
   const [cfla, setCfla] = useState<CflaIndexData | null>(null);
   const [cartel, setCartel] = useState<CartelIndexData | null>(null);
+  const [quality, setQuality] = useState<QualityData | null>(null);
   const [searchIndex, setSearchIndex] = useState<SearchIndex | null>(null); // slaids indekss globālajai meklēšanai
   const [route, setRoute] = useState(parseHash());
   const view = route.view;
@@ -144,6 +148,7 @@ export function App() {
   }, [selected]);
 
   useEffect(() => {
+    if (view === 'quality' && !quality) loadJson('data/quality.json', setQuality);
     if (view === 'sectors' && !sectors) loadJson('data/sectors.json', setSectors);
     if ((view === 'markets' || view === 'analysis') && !markets) loadJson('data/markets.json', setMarkets);
     if ((view === 'active' || selected) && !active) loadJson('data/active.json', setActive);
@@ -162,7 +167,7 @@ export function App() {
 
   // A variants: biežāk lietotās cilnes redzamas, pārējās zem "Vairāk ▾" (mazāk primāro elementu = mazāk pārslodzes).
   const PRIMARY: View[] = ['overview', 'analysis', 'buyers', 'suppliers', 'persons', 'cartel', 'active'];
-  const MORE: View[] = ['contacts', 'markets', 'cfla', 'sectors', 'method', 'about'];
+  const MORE: View[] = ['contacts', 'markets', 'cfla', 'sectors', 'quality', 'method', 'about'];
   const labelOf = (v: View) => TABS.find((t) => t.v === v)!.label;
   const moreActive = !selected && MORE.includes(view);
   const nav = (
@@ -303,6 +308,7 @@ export function App() {
       {view === 'sectors' && <div className="section">{sectors ? <SectorView data={sectors} onSelect={pickSector} onSelectBuyer={setSelected} /> : <div className="loading">Ielādē nozares…</div>}</div>}
       {view === 'markets' && <div className="section">{markets ? <MarketView data={markets} /> : <div className="loading">Ielādē tirgus…</div>}</div>}
       {view === 'active' && <div className="section">{active ? <ActiveView data={active} buyers={index.buyers} onSelectBuyer={setSelected} /> : <div className="loading">Ielādē konkursus…</div>}</div>}
+      {view === 'quality' && <div className="section"><QualityView data={quality} /></div>}
       {view === 'method' && <div className="section"><MethodologyView /></div>}
       {view === 'about' && <AboutView />}
 

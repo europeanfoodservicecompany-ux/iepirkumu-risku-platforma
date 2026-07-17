@@ -33,10 +33,11 @@ export function SupplierView({ data, onSelect, sectorFilter, onClearSector }: { 
   const [source, setSource] = useState<'all' | 'eu' | 'noeu'>(sp.get('src') === 'eu' || sp.get('src') === 'noeu' ? (sp.get('src') as 'eu' | 'noeu') : 'all');
   const [offshoreOnly, setOffshoreOnly] = useState(sp.get('off') === '1');
   const [homeAdvOnly, setHomeAdvOnly] = useState(sp.get('home') === '1');
+  const [capGapOnly, setCapGapOnly] = useState(sp.get('capgap') === '1');
   const [lowCapMax, setLowCapMax] = useState(sp.has('lowcap') ? Number(sp.get('lowcap')) : 0); // 0=izsl., citādi max darbinieku skaits
   const [loTurnMax, setLoTurnMax] = useState(sp.has('loturn') ? Number(sp.get('loturn')) : 0); // 0=izsl., citādi max apgrozījums (€)
   // "Papildu (riska) filtri" — sākumā atvērti, ja kāds no tiem jau aktīvs (piem. no linkotas URL).
-  const [showAdv, setShowAdv] = useState(sp.get('addr') === '1' || sp.get('off') === '1' || sp.get('home') === '1' || sp.has('lowcap') || sp.has('loturn'));
+  const [showAdv, setShowAdv] = useState(sp.get('addr') === '1' || sp.get('off') === '1' || sp.get('home') === '1' || sp.get('capgap') === '1' || sp.has('lowcap') || sp.has('loturn'));
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>(() => {
     const s = sp.get('sort');
     if (s && s.includes(':')) { const [k, d] = s.split(':'); return { key: k as SortKey, dir: d === 'asc' ? 'asc' : 'desc' }; }
@@ -61,13 +62,14 @@ export function SupplierView({ data, onSelect, sectorFilter, onClearSector }: { 
     if (source !== 'all') p.set('src', source);
     if (offshoreOnly) p.set('off', '1');
     if (homeAdvOnly) p.set('home', '1');
+    if (capGapOnly) p.set('capgap', '1');
     if (lowCapMax) p.set('lowcap', String(lowCapMax));
     if (loTurnMax) p.set('loturn', String(loTurnMax));
     if (!(sort.key === 'value' && sort.dir === 'desc')) p.set('sort', `${sort.key}:${sort.dir}`);
     const qs = p.toString();
     const target = qs ? `#/suppliers?${qs}` : '#/suppliers';
     if (window.location.hash !== target) history.replaceState(null, '', target);
-  }, [query, sector, band, minContracts, addrOnly, source, offshoreOnly, homeAdvOnly, lowCapMax, loTurnMax, sort]);
+  }, [query, sector, band, minContracts, addrOnly, source, offshoreOnly, homeAdvOnly, capGapOnly, lowCapMax, loTurnMax, sort]);
 
   // Nozaru saraksts no datiem.
   const sectors = useMemo(() => {
@@ -89,10 +91,11 @@ export function SupplierView({ data, onSelect, sectorFilter, onClearSector }: { 
     if (source === 'noeu' && w.cfla) return false;
     if (offshoreOnly && !w.offshore) return false;
     if (homeAdvOnly && !w.homeAdv) return false;
+    if (capGapOnly && !w.capGap) return false;
     if (lowCapMax && (w.lowCapEmp == null || w.lowCapEmp > lowCapMax)) return false;
     if (loTurnMax && (w.loTurn == null || w.loTurn >= loTurnMax)) return false;
     return true;
-  }), [data, term, sector, band, minContracts, vb, addrOnly, source, offshoreOnly, homeAdvOnly, lowCapMax, loTurnMax]);
+  }), [data, term, sector, band, minContracts, vb, addrOnly, source, offshoreOnly, homeAdvOnly, capGapOnly, lowCapMax, loTurnMax]);
 
   const rows = useMemo(() => {
     const val = (w: WinnerIndexEntry): number | string =>
@@ -148,7 +151,7 @@ export function SupplierView({ data, onSelect, sectorFilter, onClearSector }: { 
             <button key={v} type="button" className={`seg-btn ${source === v ? 'active' : ''}`} aria-pressed={source === v} onClick={() => { setSource(v); setLimit(PAGE); }}>{l}</button>
           ))}
         </div>
-        {(() => { const adv = (addrOnly ? 1 : 0) + (offshoreOnly ? 1 : 0) + (homeAdvOnly ? 1 : 0) + (lowCapMax ? 1 : 0) + (loTurnMax ? 1 : 0); return (
+        {(() => { const adv = (addrOnly ? 1 : 0) + (offshoreOnly ? 1 : 0) + (homeAdvOnly ? 1 : 0) + (capGapOnly ? 1 : 0) + (lowCapMax ? 1 : 0) + (loTurnMax ? 1 : 0); return (
           <button type="button" className="filter-btn" aria-expanded={showAdv} onClick={() => setShowAdv((s) => !s)}>
             Papildu riska filtri{adv ? ` (${adv})` : ''} {showAdv ? '▴' : '▾'}
           </button>
@@ -159,6 +162,7 @@ export function SupplierView({ data, onSelect, sectorFilter, onClearSector }: { 
           <label className="chk"><input type="checkbox" checked={addrOnly} onChange={(e) => { setAddrOnly(e.target.checked); setLimit(PAGE); }} /> tikai kopīga adrese</label>
           <label className="chk" title="Tikai piegādātāji, kuru patiesā labuma guvējs reģistrēts ofšora vai zemu nodokļu jurisdikcijā"><input type="checkbox" checked={offshoreOnly} onChange={(e) => { setOffshoreOnly(e.target.checked); setLimit(PAGE); }} /> tikai ofšora īpašnieki</label>
           <label className="chk" title="Tikai piegādātāji ar 'mājas priekšrocību' — uzvar krasi biežāk pie viena pasūtītāja nekā citur"><input type="checkbox" checked={homeAdvOnly} onChange={(e) => { setHomeAdvOnly(e.target.checked); setLimit(PAGE); }} /> tikai mājas priekšrocība</label>
+          <label className="chk" title="Tikai piegādātāji ar kapacitātes plaisu — uzvarēto līgumu vērtība nesamērīga ar apgrozījumu vai darbinieku skaitu"><input type="checkbox" checked={capGapOnly} onChange={(e) => { setCapGapOnly(e.target.checked); setLimit(PAGE); }} /> tikai kapacitātes plaisa</label>
           <select className="filter-btn" value={lowCapMax} onChange={(e) => { setLowCapMax(Number(e.target.value)); setLimit(PAGE); }} aria-label="Maz resursu, lieli līgumi" title="Maz darbinieku + mikro apgrozījums + ≥€500k līgumi">
             <option value={0}>Resursi: visi</option>
             <option value={1}>≤ 1 darbinieks, lieli līgumi</option>
@@ -183,7 +187,7 @@ export function SupplierView({ data, onSelect, sectorFilter, onClearSector }: { 
         <div className="empty">
           Nav atbilstošu piegādātāju. Pamēģini citu filtru vai meklēšanas vārdu.
           <div style={{ marginTop: 10 }}>
-            <button className="filter-btn" onClick={() => { setQuery(''); setSector('all'); setBand('all'); setMinContracts(5); setAddrOnly(false); setSource('all'); setOffshoreOnly(false); setHomeAdvOnly(false); setLowCapMax(0); setLoTurnMax(0); setLimit(PAGE); }}>✕ Notīrīt visus filtrus</button>
+            <button className="filter-btn" onClick={() => { setQuery(''); setSector('all'); setBand('all'); setMinContracts(5); setAddrOnly(false); setSource('all'); setOffshoreOnly(false); setHomeAdvOnly(false); setCapGapOnly(false); setLowCapMax(0); setLoTurnMax(0); setLimit(PAGE); }}>✕ Notīrīt visus filtrus</button>
           </div>
         </div>
       ) : (
@@ -203,7 +207,7 @@ export function SupplierView({ data, onSelect, sectorFilter, onClearSector }: { 
               {shown.map((w) => (
                 <tr key={w.fileId} className="clickable" tabIndex={0} role="button" aria-label={w.winnerName ?? w.winnerId}
                   onClick={() => onSelect(w.fileId)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(w.fileId); } }}>
-                  <td><Hi text={w.winnerName ?? w.winnerId} term={term} />{w.offshore && <span className={`note-tag ${w.offshore === 'offshore' ? 'note-high' : ''}`} style={{ marginLeft: 6 }} title={w.offshore === 'offshore' ? 'Patiesā labuma guvējs ofšora jurisdikcijā' : 'Patiesā labuma guvējs zemu nodokļu jurisdikcijā'}>{w.offshore === 'offshore' ? 'ofšors' : 'zemi nodokļi'}</span>}{w.homeAdv && <span className="note-tag note-high" style={{ marginLeft: 6 }} title="Uzvar krasi biežāk pie viena pasūtītāja nekā citur">mājas priekšrocība</span>}{w.phoenix && <span className="note-tag note-high" style={{ marginLeft: 6 }} title="Jauna firma, kas pārmanto veca priekšteci pie tā paša pasūtītāja">fēnikss</span>}<div className="muted small mono">{w.winnerId}{w.sectorLabel ? ` · ${w.sectorLabel}` : ''}</div></td>
+                  <td><Hi text={w.winnerName ?? w.winnerId} term={term} />{w.offshore && <span className={`note-tag ${w.offshore === 'offshore' ? 'note-high' : ''}`} style={{ marginLeft: 6 }} title={w.offshore === 'offshore' ? 'Patiesā labuma guvējs ofšora jurisdikcijā' : 'Patiesā labuma guvējs zemu nodokļu jurisdikcijā'}>{w.offshore === 'offshore' ? 'ofšors' : 'zemi nodokļi'}</span>}{w.homeAdv && <span className="note-tag note-high" style={{ marginLeft: 6 }} title="Uzvar krasi biežāk pie viena pasūtītāja nekā citur">mājas priekšrocība</span>}{w.phoenix && <span className="note-tag note-high" style={{ marginLeft: 6 }} title="Jauna firma, kas pārmanto veca priekšteci pie tā paša pasūtītāja">fēnikss</span>}{w.capGap && <span className="note-tag note-high" style={{ marginLeft: 6 }} title="Uzvarēto līgumu vērtība nesamērīga ar apgrozījumu vai darbinieku skaitu">kapacitātes plaisa</span>}{w.vidDebt && <span className="note-tag note-high" style={{ marginLeft: 6 }} title="Publicēts VID nodokļu parādnieku sarakstā">VID parāds</span>}<div className="muted small mono">{w.winnerId}{w.sectorLabel ? ` · ${w.sectorLabel}` : ''}</div></td>
                   <td className="mono" style={{ textAlign: 'right' }}>{eur(w.value)}</td>
                   <td className="mono col-ind" style={{ textAlign: 'right' }}>{w.contracts}</td>
                   <td className="mono col-ind" style={{ textAlign: 'right' }}>{w.buyers}</td>
