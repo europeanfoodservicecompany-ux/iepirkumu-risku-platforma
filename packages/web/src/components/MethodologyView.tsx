@@ -95,18 +95,18 @@ export function MethodologyView() {
         norāde uz iespējami vāju konkurenci vai interešu konfliktu, ko līdz šim nebija viegli publiski redzēt.
       </p>
 
-      <h3 className="section-title">Vārda sakritība ar Saeimas deputātu</h3>
+      <h3 className="section-title">Vārda sakritība ar ievēlētu amatpersonu</h3>
       <p>
-        Pie personas var parādīties atzīme <em>„vārda sakritība: Saeimas deputāts“</em>. Tā nozīmē, ka personas vārds un
-        uzvārds sakrīt ar kādu no 14. Saeimas <strong>ievēlētajiem</strong> deputātiem (avots: Centrālās vēlēšanu komisijas
-        atvērtie 2022. gada vēlēšanu dati, licence CC0). Mērķis ir palīdzēt pamanīt, kad publiskie līgumi varētu būt saistīti
-        ar politiski nozīmīgām personām.
+        Pie personas var parādīties atzīme <em>„vārda sakritība: Saeimas deputāts“</em> vai <em>„EP deputāts“</em>. Tā nozīmē, ka
+        personas vārds un uzvārds sakrīt ar kādu no <strong>ievēlētajiem</strong> 14. Saeimas (2022) vai Eiropas Parlamenta (2024)
+        deputātiem (avots: Centrālās vēlēšanu komisijas atvērtie dati, licence CC0). Mērķis ir palīdzēt pamanīt, kad publiskie
+        līgumi varētu būt saistīti ar politiski nozīmīgām personām.
       </p>
       <ul className="m-list">
-        <li><strong>Tikai ievēlētie deputāti.</strong> Vēlēšanu kandidātus, kas netika ievēlēti, <strong>neatzīmējam</strong> — kandidāts nav politiski nozīmīga persona un tam nav ietekmes uz iepirkumiem.</li>
+        <li><strong>Tikai ievēlētās amatpersonas.</strong> Vēlēšanu kandidātus, kas netika ievēlēti, <strong>neatzīmējam</strong> — kandidāts nav politiski nozīmīga persona un tam nav ietekmes uz iepirkumiem.</li>
         <li><strong>Sasaiste ir tikai pēc vārda un uzvārda, bez personas koda.</strong> Tāpēc atzīme var attiekties uz <strong>citu personu ar tādu pašu vārdu</strong>. Tā ir norāde pārbaudei, ne apstiprinājums, un neietver pieņēmumu par pārkāpumu.</li>
-        <li><strong>Saraksts ir daļējs un novecojošs.</strong> Tas balstās tikai uz vienu vēlēšanu sarakstu; ministri, pašvaldību deputāti, kapitālsabiedrību vadītāji un ģimenes locekļi nav iekļauti. Atzīmes neesamība nenozīmē, ka persona nav politiski nozīmīga.</li>
-        <li><strong>Kāpēc nevaram pārbaudīt automātiski.</strong> Pilnai pārbaudei vajadzīgs personas kods, taču mūsu maskētais kods rāda tikai dienu un mēnesi, savukārt vēlēšanu dati satur tikai dzimšanas gadu — kopīga lauka nav. Autoritatīvo pārbaudi (ar personas kodu) nodrošina Valsts ieņēmumu dienesta politiski nozīmīgu personu reģistrs.</li>
+        <li><strong>Saraksts ir daļējs.</strong> Politiski nozīmīgu personu loks ir daudz plašāks — ministri, valsts sekretāri, iestāžu un kapitālsabiedrību vadītāji, pašvaldību deputāti, tiesneši un visu šo personu ģimenes locekļi. Tie <strong>nav iekļauti</strong>, jo par tiem nav vienota, mašīnlasāma atvērto datu saraksta. Atzīmes neesamība nenozīmē, ka persona nav politiski nozīmīga.</li>
+        <li><strong>Kāpēc nevaram pārbaudīt automātiski.</strong> Pilnai pārbaudei vajadzīgs personas kods, taču mūsu maskētais kods rāda tikai dienu un mēnesi, savukārt vēlēšanu dati satur tikai dzimšanas gadu — kopīga lauka nav. Autoritatīvo pārbaudi ar personas kodu un pilnu personu loku nodrošina Valsts ieņēmumu dienesta politiski nozīmīgu personu reģistrs — bet tas nav pieejams mašīnlasāmā formā. Šī pazīme kļūtu pilnvērtīga, ja šis reģistrs būtu atvērtajos datos.</li>
       </ul>
       <p>
         Ja atzīme attiecas uz citu personu, lūdzam par to ziņot — kļūdu izlabosim. Šī pazīme ir daļēja demonstrācija; pilnvērtīga

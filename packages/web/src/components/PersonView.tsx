@@ -162,7 +162,7 @@ export function PersonView({ data, onSelectWinner, initialQuery }: { data: Perso
                     <div style={{ fontWeight: 600 }}>
                       {p.name} <span className="muted small mono">{p.id}</span>
                       {p.riskLevel && <span className={`note-tag note-${p.riskLevel}`}>{p.riskLevel === 'high' ? 'izteikta saikne' : 'saikne'}</span>}
-                      {p.pep && <span className="note-tag note-pep" title="Šis vārds sakrīt ar 14. Saeimas deputātu. Sakritība ir tikai pēc vārda, bez personas koda — tā var būt cita persona.">vārda sakritība: Saeimas deputāts</span>}
+                      {p.pep && <span className="note-tag note-pep" title="Šis vārds sakrīt ar ievēlētu amatpersonu. Sakritība ir tikai pēc vārda, bez personas koda — tā var būt cita persona.">vārda sakritība: {p.pep.tier}</span>}
                     </div>
                     <div style={{ marginTop: 3, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                       {p.roles.map((r) => <span key={r} className="role-badge">{roleLabel(r)}</span>)}
@@ -184,11 +184,11 @@ export function PersonView({ data, onSelectWinner, initialQuery }: { data: Perso
 
                 {p.pep && (
                   <div className="pep-note">
-                    Šis vārds un uzvārds <strong>sakrīt ar 14. Saeimas deputātu</strong> (avots: {p.pep.source}).
+                    Šis vārds un uzvārds <strong>sakrīt ar ievēlētu amatpersonu ({p.pep.tier})</strong> (avots: {p.pep.source}).
                     {' '}Sakritība ir <strong>tikai pēc vārda un uzvārda, bez personas koda — tā var attiekties uz citu personu ar tādu pašu vārdu</strong>.
                     {p.pep.ambiguous && ' Turklāt šo vārdu iepirkumu datos nes vairākas personas.'}
                     {' '}Tā ir norāde izpētei, ne apstiprinājums, un neietver pieņēmumu par pārkāpumu.
-                    {' '}Salīdzināts tikai ar 2022. gada vēlēšanu datiem; sastāvs kopš tā ir mainījies, un birkas neesamība nenozīmē, ka persona nav politiski nozīmīga.
+                    {' '}Salīdzināts tikai ar Saeimas (2022) un Eiropas Parlamenta (2024) ievēlēto deputātu sarakstiem; ministri, pašvaldību deputāti un citas amatpersonas nav iekļautas, un birkas neesamība nenozīmē, ka persona nav politiski nozīmīga.
                     <div style={{ marginTop: 4 }}>
                       Pārbaudīt: <a href="https://www.saeima.lv/lv/deputati" target="_blank" rel="noopener noreferrer">Saeimas deputātu saraksts →</a>
                       {' · '}<a href="https://www6.vid.gov.lv/PNP" target="_blank" rel="noopener noreferrer">VID reģistrs (vajadzīgs personas kods) →</a>

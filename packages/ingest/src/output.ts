@@ -750,13 +750,14 @@ export function writeDataset(dataDir: string, output: EngineOutput, lots: Lot[],
   // uzvārda (bez personas koda), tāpēc tā ir norāde pārbaudei, ne apstiprinājums. Verifikācija — VID PNP reģistrā.
   // Defises/apostrofus aizstāj ar atstarpi (dubultuzvārdi: "Kalniņa-Lukaševica" = "Kalniņa Lukaševica").
   const pepNorm = (s: string) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’'`\-–]/g, ' ').replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
-  // PUBLISKI atzīmējam TIKAI ievēlētos deputātus (publiskas amatpersonas). Vēlēšanu kandidāts nav
+  // PUBLISKI atzīmējam TIKAI ievēlētas amatpersonas (Saeimas un EP deputātus). Vēlēšanu kandidāts nav
   // politiski nozīmīga persona un tam nav varas pār iepirkumiem — to publiski nemarķējam.
+  const pepPublicTiers = new Set(['Saeimas deputāts', 'EP deputāts']);
   const pepMap = new Map<string, { tier: string; source: string }>();
   let pepSource = '';
   { const pp = join(dataDir, 'pep-list.json'); if (existsSync(pp)) {
       const pl = JSON.parse(readFileSync(pp, 'utf8')); pepSource = pl.source ?? '';
-      for (const e of pl.persons ?? []) { if (e.tier !== 'deputāts') continue; const k = pepNorm(e.name); if (k && !pepMap.has(k)) pepMap.set(k, { tier: e.tier, source: pl.source ?? '' }); }
+      for (const e of pl.persons ?? []) { if (!pepPublicTiers.has(e.tier)) continue; const k = pepNorm(e.name); if (k && !pepMap.has(k)) pepMap.set(k, { tier: e.tier, source: pl.source ?? '' }); }
     } }
   // Vārdamāsu risks: cik personu iepirkumu datos dalās vienu un to pašu normalizēto vārdu.
   const nameCounts = new Map<string, number>();
