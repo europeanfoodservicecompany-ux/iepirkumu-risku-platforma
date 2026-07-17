@@ -92,6 +92,7 @@ export function PersonView({ data, onSelectWinner, initialQuery }: { data: Perso
           <option value="all">Visas lomas</option>
           <option value="PLG">Patiesā labuma guvējs</option>
           <option value="valde">Valdes loceklis</option>
+          <option value="amatpersona">Cita amatpersona (pārstāvis)</option>
         </select>
         <select className="filter-btn" value={minCo} onChange={(e) => { setMinCo(Number(e.target.value)); setLimit(PAGE); }} aria-label="Min. uzņēmumu">
           <option value={1}>≥ 1 uzņēmums</option>
