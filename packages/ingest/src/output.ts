@@ -315,11 +315,21 @@ export function writeDataset(dataDir: string, output: EngineOutput, lots: Lot[],
       }
     }
   }
+  // Vai kopā-pretendents ir SAISTĪTS ar mūsu piegādātāju (kopīga persona vai holdings) — fiktīvas
+  // konkurences pazīme. Adresi te neizmantojam (biroju centri dod viltus pozitīvus). winnerAnc/regPersonKeys
+  // pieejami izsaukuma brīdī (winner detail būvē pēc to definēšanas).
+  const coRelated = (a: string, b: string): 'persona' | 'holdings' | null => {
+    const bk = new Set((regPersonKeys.get(b) ?? []).map((k) => k.pk));
+    if ((regPersonKeys.get(a) ?? []).some((k) => bk.has(k.pk))) return 'persona';
+    const ah = winnerAnc.get(a), bh = winnerAnc.get(b);
+    if (ah && bh) for (const x of ah) if (bh.has(x)) return 'holdings';
+    return null;
+  };
   const cobiddersFor = (reg: string) => {
     const m = coBidByReg.get(reg);
     if (!m) return [];
     return [...m.entries()].filter(([, e]) => e.n >= 2).sort((x, y) => y[1].n - x[1].n).slice(0, 8)
-      .map(([oreg, e]) => ({ reg: oreg, name: e.name, fileId: fileIdByWinner.get(oreg) ?? null, coBids: e.n, theyWon: e.theyWon, weWon: e.weWon }));
+      .map(([oreg, e]) => ({ reg: oreg, name: e.name, fileId: fileIdByWinner.get(oreg) ?? null, coBids: e.n, theyWon: e.theyWon, weWon: e.weWon, related: coRelated(reg, oreg) }));
   };
   // Projekts → tajā strādājošie MŪSU uzvarētāji (līgumu izpildītāji); uzvarētājs → tā projekti.
   const projectContractors = new Map<string, Set<string>>();
@@ -735,6 +745,23 @@ export function writeDataset(dataDir: string, output: EngineOutput, lots: Lot[],
     (regClosedMarkets.get(tw.id) ?? regClosedMarkets.set(tw.id, []).get(tw.id)!).push({ cpv: mkt.cpv, label: mkt.label, level: mkt.level });
   }
 
+  // ── Iespējamas politiski nozīmīgas personas (PEP) ──
+  // Daļējs saraksts no CVK atvērtajiem vēlēšanu datiem (data/pep-list.json). Sasaiste TIKAI pēc vārda un
+  // uzvārda (bez personas koda), tāpēc tā ir norāde pārbaudei, ne apstiprinājums. Verifikācija — VID PNP reģistrā.
+  // Defises/apostrofus aizstāj ar atstarpi (dubultuzvārdi: "Kalniņa-Lukaševica" = "Kalniņa Lukaševica").
+  const pepNorm = (s: string) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’'`\-–]/g, ' ').replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
+  // PUBLISKI atzīmējam TIKAI ievēlētos deputātus (publiskas amatpersonas). Vēlēšanu kandidāts nav
+  // politiski nozīmīga persona un tam nav varas pār iepirkumiem — to publiski nemarķējam.
+  const pepMap = new Map<string, { tier: string; source: string }>();
+  let pepSource = '';
+  { const pp = join(dataDir, 'pep-list.json'); if (existsSync(pp)) {
+      const pl = JSON.parse(readFileSync(pp, 'utf8')); pepSource = pl.source ?? '';
+      for (const e of pl.persons ?? []) { if (e.tier !== 'deputāts') continue; const k = pepNorm(e.name); if (k && !pepMap.has(k)) pepMap.set(k, { tier: e.tier, source: pl.source ?? '' }); }
+    } }
+  // Vārdamāsu risks: cik personu iepirkumu datos dalās vienu un to pašu normalizēto vārdu.
+  const nameCounts = new Map<string, number>();
+  for (const pw of personWinners.values()) { const k = pepNorm(pw.name); nameCounts.set(k, (nameCounts.get(k) ?? 0) + 1); }
+
   // persons-index.json — meklēšanai pēc personas: katra persona ar tās uzvarētājiem-uzņēmumiem.
   const personsIndex = [...personWinners.values()].map((pw) => {
     const regs = [...pw.regs];
@@ -771,8 +798,14 @@ export function writeDataset(dataDir: string, output: EngineOutput, lots: Lot[],
       if (sharedBuyers.length) { signals.push(`${sharedBuyers.length} kopīg${sharedBuyers.length === 1 ? 's pasūtītājs' : 'i pasūtītāji'} (≥2 firmas)`); signalTypes.push('buyer'); if (!level) level = 'med'; }
     }
 
-    return { name: pw.name, id: pw.id, companyCount: companies.length, totalValue: companies.reduce((s, c) => s + c.value, 0), totalContracts: companies.reduce((s, c) => s + c.contracts, 0), roles: [...new Set(companies.map((c) => c.role))], sectors: [...new Set(companies.map((c) => c.sector).filter(Boolean))].slice(0, 5), riskLevel: level, signals, signalTypes, companies: companies.slice(0, 40) };
+    const pk = pepNorm(pw.name);
+    const pepHit = pepMap.get(pk);
+    const pep = pepHit ? { tier: pepHit.tier, source: pepHit.source, ambiguous: (nameCounts.get(pk) ?? 1) > 1 } : undefined;
+
+    return { name: pw.name, id: pw.id, companyCount: companies.length, totalValue: companies.reduce((s, c) => s + c.value, 0), totalContracts: companies.reduce((s, c) => s + c.contracts, 0), roles: [...new Set(companies.map((c) => c.role))], sectors: [...new Set(companies.map((c) => c.sector).filter(Boolean))].slice(0, 5), riskLevel: level, signals, signalTypes, pep, companies: companies.slice(0, 40) };
   }).sort((x, y) => y.companyCount - x.companyCount || y.totalValue - x.totalValue);
+  const pepCount = personsIndex.filter((p) => p.pep).length;
+  if (pepSource) console.log(`Iespējamas PEP (sakritība ar ${pepSource.split('—')[0].trim()}): ${pepCount}`);
   writeFileSync(join(dataDir, 'persons-index.json'), JSON.stringify({ meta, persons: personsIndex }));
 
   // search-index.json — SLANK indekss globālajai meklēšanai (tikai vārds/id/skaits), lai meklēšanai

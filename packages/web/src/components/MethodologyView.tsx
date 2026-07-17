@@ -95,6 +95,24 @@ export function MethodologyView() {
         norāde uz iespējami vāju konkurenci vai interešu konfliktu, ko līdz šim nebija viegli publiski redzēt.
       </p>
 
+      <h3 className="section-title">Vārda sakritība ar Saeimas deputātu</h3>
+      <p>
+        Pie personas var parādīties atzīme <em>„vārda sakritība: Saeimas deputāts“</em>. Tā nozīmē, ka personas vārds un
+        uzvārds sakrīt ar kādu no 14. Saeimas <strong>ievēlētajiem</strong> deputātiem (avots: Centrālās vēlēšanu komisijas
+        atvērtie 2022. gada vēlēšanu dati, licence CC0). Mērķis ir palīdzēt pamanīt, kad publiskie līgumi varētu būt saistīti
+        ar politiski nozīmīgām personām.
+      </p>
+      <ul className="m-list">
+        <li><strong>Tikai ievēlētie deputāti.</strong> Vēlēšanu kandidātus, kas netika ievēlēti, <strong>neatzīmējam</strong> — kandidāts nav politiski nozīmīga persona un tam nav ietekmes uz iepirkumiem.</li>
+        <li><strong>Sasaiste ir tikai pēc vārda un uzvārda, bez personas koda.</strong> Tāpēc atzīme var attiekties uz <strong>citu personu ar tādu pašu vārdu</strong>. Tā ir norāde pārbaudei, ne apstiprinājums, un neietver pieņēmumu par pārkāpumu.</li>
+        <li><strong>Saraksts ir daļējs un novecojošs.</strong> Tas balstās tikai uz vienu vēlēšanu sarakstu; ministri, pašvaldību deputāti, kapitālsabiedrību vadītāji un ģimenes locekļi nav iekļauti. Atzīmes neesamība nenozīmē, ka persona nav politiski nozīmīga.</li>
+        <li><strong>Kāpēc nevaram pārbaudīt automātiski.</strong> Pilnai pārbaudei vajadzīgs personas kods, taču mūsu maskētais kods rāda tikai dienu un mēnesi, savukārt vēlēšanu dati satur tikai dzimšanas gadu — kopīga lauka nav. Autoritatīvo pārbaudi (ar personas kodu) nodrošina Valsts ieņēmumu dienesta politiski nozīmīgu personu reģistrs.</li>
+      </ul>
+      <p>
+        Ja atzīme attiecas uz citu personu, lūdzam par to ziņot — kļūdu izlabosim. Šī pazīme ir daļēja demonstrācija; pilnvērtīga
+        būtu iespējama, ja politiski nozīmīgu personu reģistrs būtu pieejams mašīnlasāmā atvērto datu formātā.
+      </p>
+
       <h3 className="section-title">„Jaunākie karogi“</h3>
       <p>
         Sākumlapas plūsma rāda nesen piešķirtus līgumus, kuriem ir skaidra riska pazīme, jaunākos pirmos: <strong>viens

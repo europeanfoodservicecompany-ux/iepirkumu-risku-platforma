@@ -22,6 +22,7 @@ export function PersonView({ data, onSelectWinner, initialQuery }: { data: Perso
   const [minContracts, setMinContracts] = useState(sp.has('minlig') ? Number(sp.get('minlig')) : 0);
   const [signalType, setSignalType] = useState(sp.get('sig') ?? 'all');
   const [onlyRisk, setOnlyRisk] = useState(sp.get('risk') === '1');
+  const [onlyPep, setOnlyPep] = useState(sp.get('pep') === '1');
   const [limit, setLimit] = useState(PAGE);
   const [net, setNet] = useState<string | null>(null);
   const term = norm(query.trim());
@@ -43,6 +44,7 @@ export function PersonView({ data, onSelectWinner, initialQuery }: { data: Perso
     if (minContracts) p.set('minlig', String(minContracts));
     if (signalType !== 'all') p.set('sig', signalType);
     if (onlyRisk) p.set('risk', '1');
+    if (onlyPep) p.set('pep', '1');
     const qs = p.toString();
     const target = qs ? `#/persons?${qs}` : '#/persons';
     if (window.location.hash.split('?')[0] === '#/persons' && window.location.hash !== target) history.replaceState(null, '', target);
@@ -64,7 +66,8 @@ export function PersonView({ data, onSelectWinner, initialQuery }: { data: Perso
       && p.totalValue >= minValue
       && p.totalContracts >= minContracts
       && (signalType === 'all' || (p.signalTypes ?? []).includes(signalType))
-      && (!onlyRisk || !!p.riskLevel));
+      && (!onlyRisk || !!p.riskLevel)
+      && (!onlyPep || !!p.pep));
     const val = (p: PersonEntry) =>
       sort === 'value' ? p.totalValue
       : sort === 'contracts' ? p.totalContracts
@@ -73,7 +76,7 @@ export function PersonView({ data, onSelectWinner, initialQuery }: { data: Perso
     const sorted = [...filtered].sort((a, b) => sort === 'name' ? a.name.localeCompare(b.name, 'lv') : val(a) - val(b));
     if (dir === 'desc') sorted.reverse();
     return sorted.slice(0, 800);
-  }, [data, term, role, minCo, sort, dir, onlyRisk, sector, minValue, minContracts, signalType]);
+  }, [data, term, role, minCo, sort, dir, onlyRisk, sector, minValue, minContracts, signalType, onlyPep]);
   const shown = rows.slice(0, limit);
 
   return (
@@ -108,6 +111,7 @@ export function PersonView({ data, onSelectWinner, initialQuery }: { data: Perso
           {sort === 'name' ? (dir === 'desc' ? 'Z → A' : 'A → Z') : (dir === 'desc' ? '↓ no lielākā' : '↑ no mazākā')}
         </button>
         <label className="chk"><input type="checkbox" checked={onlyRisk} onChange={(e) => { setOnlyRisk(e.target.checked); reset(); }} /> tikai ar saiknēm</label>
+        <label className="chk" title="Vārda sakritība ar 14. Saeimas deputātu — norāde pārbaudei, ne apstiprinājums"><input type="checkbox" checked={onlyPep} onChange={(e) => { setOnlyPep(e.target.checked); reset(); }} /> vārda sakritība ar deputātu</label>
       </div>
       <div className="controls" style={{ gap: 8, marginTop: 8 }}>
         <select className="filter-btn" value={sector} onChange={(e) => { setSector(e.target.value); reset(); }} aria-label="Nozare">
@@ -139,8 +143,8 @@ export function PersonView({ data, onSelectWinner, initialQuery }: { data: Perso
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <p className="muted small" style={{ margin: 0 }}>{rows.length} personas{term ? '' : ' (filtrēts)'}.</p>
         {rows.length > 0 && <button className="filter-btn" style={{ padding: '5px 10px' }} onClick={() => downloadCsv('personas.csv',
-          ['Vārds', 'Lomas', 'Uzņēmumi', 'Līgumi', 'Kopvērtība EUR', 'Riska līmenis', 'Signāli'],
-          rows.map((p) => [p.name, (p.roles ?? []).join('/'), p.companyCount, p.totalContracts, p.totalValue, p.riskLevel ?? '', (p.signals ?? []).join('; ')]))}>⬇ CSV</button>}
+          ['Vārds', 'Lomas', 'Uzņēmumi', 'Līgumi', 'Kopvērtība EUR', 'Riska līmenis', 'Vārda sakritība ar Saeimas deputātu (nav apstiprināta identitāte)', 'Signāli'],
+          rows.map((p) => [p.name, (p.roles ?? []).join('/'), p.companyCount, p.totalContracts, p.totalValue, p.riskLevel ?? '', p.pep ? 'sakritība pēc vārda' + (p.pep.ambiguous ? ' (vairākas personas ar šo vārdu)' : '') : '', (p.signals ?? []).join('; ')]))}>⬇ CSV</button>}
       </div>
 
       {shown.length === 0 ? (
@@ -158,6 +162,7 @@ export function PersonView({ data, onSelectWinner, initialQuery }: { data: Perso
                     <div style={{ fontWeight: 600 }}>
                       {p.name} <span className="muted small mono">{p.id}</span>
                       {p.riskLevel && <span className={`note-tag note-${p.riskLevel}`}>{p.riskLevel === 'high' ? 'izteikta saikne' : 'saikne'}</span>}
+                      {p.pep && <span className="note-tag note-pep" title="Šis vārds sakrīt ar 14. Saeimas deputātu. Sakritība ir tikai pēc vārda, bez personas koda — tā var būt cita persona.">vārda sakritība: Saeimas deputāts</span>}
                     </div>
                     <div style={{ marginTop: 3, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                       {p.roles.map((r) => <span key={r} className="role-badge">{roleLabel(r)}</span>)}
@@ -175,6 +180,21 @@ export function PersonView({ data, onSelectWinner, initialQuery }: { data: Perso
                   <ul className="signal-list">
                     {p.signals!.map((s, k) => <li key={k}>{s}</li>)}
                   </ul>
+                )}
+
+                {p.pep && (
+                  <div className="pep-note">
+                    Šis vārds un uzvārds <strong>sakrīt ar 14. Saeimas deputātu</strong> (avots: {p.pep.source}).
+                    {' '}Sakritība ir <strong>tikai pēc vārda un uzvārda, bez personas koda — tā var attiekties uz citu personu ar tādu pašu vārdu</strong>.
+                    {p.pep.ambiguous && ' Turklāt šo vārdu iepirkumu datos nes vairākas personas.'}
+                    {' '}Tā ir norāde izpētei, ne apstiprinājums, un neietver pieņēmumu par pārkāpumu.
+                    {' '}Salīdzināts tikai ar 2022. gada vēlēšanu datiem; sastāvs kopš tā ir mainījies, un birkas neesamība nenozīmē, ka persona nav politiski nozīmīga.
+                    <div style={{ marginTop: 4 }}>
+                      Pārbaudīt: <a href="https://www.saeima.lv/lv/deputati" target="_blank" rel="noopener noreferrer">Saeimas deputātu saraksts →</a>
+                      {' · '}<a href="https://www6.vid.gov.lv/PNP" target="_blank" rel="noopener noreferrer">VID reģistrs (vajadzīgs personas kods) →</a>
+                      {' · '}<a href="#/about">ziņot par kļūdu</a>
+                    </div>
+                  </div>
                 )}
 
                 <div className="person-companies">

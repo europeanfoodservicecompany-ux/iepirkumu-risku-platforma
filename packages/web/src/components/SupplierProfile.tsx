@@ -253,15 +253,18 @@ export function SupplierProfile({ winner, onSelectBuyer }: { winner: WinnerDetai
           <div className="card">
             <p className="muted small" style={{ marginTop: 0 }}>
               Citas firmas, kas <strong>bieži piedalās tajos pašos konkursos</strong> kā šis piegādātājs (no EIS piedāvājumu atvēršanas datiem).
-              Sarkana saite = tā firma šajos kopīgajos konkursos uzvarēja biežāk nekā šis piegādātājs. Kopīga piedalīšanās ir normāla konkurence —
-              <strong> karogs nav pierādījums</strong>; aizdomas pastiprina ekskluzivitāte (sk. «Karteļa pazīmes»).
+              Kopīga piedalīšanās ir normāla konkurence — <strong>karogs nav pierādījums</strong>. Uzmanību pelna <strong>saistīti</strong> pretendenti
+              (sarkanā krāsā): firmas ar kopīgu īpašnieku vai holdinga struktūru, kas konkursos uzstājas kā konkurenti — tā var būt fiktīva konkurence
+              (sk. «Karteļa pazīmes»).
             </p>
             <StarNet centerName={w.winnerName} others={w.coBidders} />
             <ul className="member-list" style={{ marginTop: 10 }}>
               {w.coBidders.map((o, i) => {
                 const inner = (
                   <>
-                    <span style={{ flex: 1 }}>{o.name ?? o.reg}</span>
+                    <span style={{ flex: 1 }}>{o.name ?? o.reg}
+                      {o.related && <span className="note-tag note-high" style={{ marginLeft: 6 }}>saistīts — {o.related === 'persona' ? 'kopīga persona' : 'kopīgs holdings'}</span>}
+                    </span>
                     <span className="muted small mono" style={{ whiteSpace: 'nowrap' }}>{o.coBids} kopā · uzvaras {o.weWon}:{o.theyWon}{o.fileId && <span className="iublink small" style={{ marginLeft: 6 }}>→</span>}</span>
                   </>
                 );

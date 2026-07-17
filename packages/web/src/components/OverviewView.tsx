@@ -13,24 +13,31 @@ function compactEur(x: number): string {
   return eur(x);
 }
 
-// SVG riņķa (donut) diagramma.
-function Donut({ segs }: { segs: { label: string; value: number; color: string }[] }) {
-  const total = segs.reduce((s, x) => s + x.value, 0) || 1;
+// SVG riņķa (donut) diagramma. Ārējais gredzens — riska sadalījums TIKAI izvērtētajiem pasūtītājiem
+// (lai "nav datu" daļa vizuāli nedominētu). Iekšējais plānais gredzens — cik daļa vispār izvērtēta.
+function Donut({ risk, none }: { risk: { label: string; value: number; color: string }[]; none: number }) {
+  const evaluated = risk.reduce((s, x) => s + x.value, 0);
+  const all = evaluated + none;
+  const evalTotal = evaluated || 1;
   const R = 52, C = 2 * Math.PI * R;
+  const Ri = 37, Ci = 2 * Math.PI * Ri;
+  const covLen = (evaluated / (all || 1)) * Ci;
   let offset = 0;
   return (
-    <svg viewBox="0 0 130 130" width="150" height="150" role="img" aria-label="Pasūtītāju riska sadalījums">
+    <svg viewBox="0 0 130 130" width="150" height="150" role="img" aria-label="Riska sadalījums izvērtētajiem pasūtītājiem">
       <g transform="translate(65,65) rotate(-90)">
-        {segs.map((s) => {
-          const len = (s.value / total) * C;
-          const el = <circle key={s.label} r={R} fill="none" stroke={s.color} strokeWidth="18"
+        {risk.map((s) => {
+          const len = (s.value / evalTotal) * C;
+          const el = <circle key={s.label} r={R} fill="none" stroke={s.color} strokeWidth="17"
             strokeDasharray={`${len} ${C - len}`} strokeDashoffset={-offset} />;
           offset += len;
           return el;
         })}
+        <circle r={Ri} fill="none" stroke="var(--ring-track)" strokeWidth="4" />
+        <circle r={Ri} fill="none" stroke="#a89e8f" strokeWidth="4" strokeDasharray={`${covLen} ${Ci - covLen}`} />
       </g>
-      <text x="65" y="61" textAnchor="middle" fontSize="22" fontWeight="500" fill="var(--ink)">{total}</text>
-      <text x="65" y="78" textAnchor="middle" fontSize="10" fill="var(--muted)">pasūtītāji</text>
+      <text x="65" y="60" textAnchor="middle" fontSize="21" fontWeight="500" fill="var(--ink)">{evaluated}</text>
+      <text x="65" y="77" textAnchor="middle" fontSize="8.5" fill="var(--muted)">izvērtēti no {all}</text>
     </svg>
   );
 }
@@ -48,6 +55,11 @@ function TrendLine({ data, national }: { data: OverviewData['timeline']; nationa
   const natY = y(national);
   const ticks = [0, 0.2, 0.4, 0.6].filter((t) => t <= maxY);
   const labelEvery = Math.ceil(pts.length / 8);
+  const last = pts[pts.length - 1];
+  // Tendence: pēdējo 6 mēn. vidējais pret iepriekšējiem 6 (procentpunktos, ne relatīvi — godīgāk pret sezonalitāti).
+  const avg = (a: typeof pts) => a.reduce((s, p) => s + p.singleBidRate, 0) / (a.length || 1);
+  const recent = pts.slice(-6), prior = pts.slice(-12, -6);
+  const delta = recent.length >= 3 && prior.length >= 3 ? avg(recent) - avg(prior) : null;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Viena pretendenta likme pa mēnešiem">
       {ticks.map((t) => (
@@ -60,6 +72,13 @@ function TrendLine({ data, national }: { data: OverviewData['timeline']; nationa
       <text x={W - padR} y={natY - 4} textAnchor="end" fontSize="10" fill="var(--brand)">nacionālā {pct(national, 0)}</text>
       <path d={area} fill="var(--ring-track)" opacity="0.6" />
       <path d={line} fill="none" stroke="var(--brand)" strokeWidth="2" />
+      <circle cx={x(pts.length - 1)} cy={y(last.singleBidRate)} r="3.6" fill="var(--brand)" />
+      <text x={x(pts.length - 1) - 6} y={y(last.singleBidRate) - 6} textAnchor="end" fontSize="10.5" fontWeight="600" fill="var(--brand)">{pct(last.singleBidRate, 0)}</text>
+      {delta != null && Math.abs(delta) >= 0.02 && (
+        <text x={padL + 2} y={padT + 10} fontSize="10.5" fontWeight="600" fill={delta > 0 ? 'var(--red)' : 'var(--green)'}>
+          {delta > 0 ? '▲' : '▼'} {Math.abs(Math.round(delta * 100))} pp pēdējā pusgadā
+        </text>
+      )}
       {pts.map((p, i) => (i % labelEvery === 0 ? (
         <text key={p.month} x={x(i)} y={H - 6} textAnchor="middle" fontSize="9" fill="var(--muted)">{p.month.slice(2)}</text>
       ) : null))}
@@ -90,10 +109,10 @@ function HeroNetwork({ pair, onOpen }: { pair: CartelPair; onOpen: () => void })
       <svg viewBox="0 0 280 156" width="100%" role="img" aria-hidden="true" style={{ overflow: 'visible' }}>
         {/* savienojumi */}
         <line x1="74" y1="66" x2="206" y2="66" stroke="var(--red)" strokeWidth="2.5" />
-        <line x1="74" y1="66" x2="48" y2="126" stroke="var(--line-strong)" strokeWidth="1.5" />
-        <line x1="74" y1="66" x2="140" y2="130" stroke="var(--line-strong)" strokeWidth="1.5" />
-        <line x1="206" y1="66" x2="232" y2="126" stroke="var(--line-strong)" strokeWidth="1.5" />
-        <line x1="140" y1="130" x2="232" y2="126" stroke="var(--red)" strokeWidth="1.6" />
+        <line x1="74" y1="66" x2="48" y2="126" stroke="var(--line-strong)" strokeWidth="1.5" opacity="0.5" />
+        <line x1="74" y1="66" x2="140" y2="130" stroke="var(--line-strong)" strokeWidth="1.5" opacity="0.5" />
+        <line x1="206" y1="66" x2="232" y2="126" stroke="var(--line-strong)" strokeWidth="1.5" opacity="0.5" />
+        <line x1="140" y1="130" x2="232" y2="126" stroke="var(--line-strong)" strokeWidth="1.5" opacity="0.5" />
         {/* dekoratīvie (citi pretendenti) */}
         <circle cx="48" cy="126" r="10" fill="var(--card)" stroke="var(--line-strong)" />
         <circle cx="140" cy="130" r="10" fill="var(--card)" stroke="var(--line-strong)" />
@@ -122,12 +141,12 @@ export function OverviewView({ data, cartelTop, onSelectBuyer, onSelectWinner, o
   const rd = data.riskDistribution;
   const [showFlags, setShowFlags] = useState(false); // sākumā 6, "Rādīt vairāk" → 12
   const [showLoyal, setShowLoyal] = useState(false);
-  const segs = [
+  const riskSegs = [
     { label: 'Zems risks', value: rd.green, color: RISK.green },
     { label: 'Vidējs risks', value: rd.yellow, color: RISK.yellow },
     { label: 'Augsts risks', value: rd.red, color: RISK.red },
-    { label: 'Nav pietiekamu datu', value: rd.none, color: RISK.none },
   ];
+  const evaluated = rd.green + rd.yellow + rd.red || 1;
   const maxSec = Math.max(...data.topSectors.map((s) => s.singleBidRate), nat);
 
   return (
@@ -224,15 +243,22 @@ export function OverviewView({ data, cartelTop, onSelectBuyer, onSelectWinner, o
         <div className="card ov-card">
           <h3 className="ov-h">Pasūtītāju riska sadalījums</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <Donut segs={segs} />
-            <div style={{ flex: '1 1 120px' }}>
-              {segs.map((s) => (
+            <Donut risk={riskSegs} none={rd.none} />
+            <div style={{ flex: '1 1 130px' }}>
+              {riskSegs.map((s) => (
                 <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 0', fontSize: 13 }}>
                   <span style={{ width: 11, height: 11, borderRadius: 2, background: s.color, flexShrink: 0 }} />
                   <span style={{ flex: 1 }}>{s.label}</span>
-                  <strong className="mono">{s.value}</strong>
+                  <span className="muted mono small" style={{ width: 34, textAlign: 'right' }}>{pct(s.value / evaluated, 0)}</span>
+                  <strong className="mono" style={{ width: 30, textAlign: 'right' }}>{s.value}</strong>
                 </div>
               ))}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0 0', marginTop: 4, borderTop: '1px solid var(--line)', fontSize: 13 }}>
+                <span style={{ width: 11, height: 11, borderRadius: 2, background: RISK.none, flexShrink: 0 }} />
+                <span style={{ flex: 1 }}>Nav pietiekamu datu <span className="muted small">(netiek vērtēti)</span></span>
+                <strong className="mono" style={{ width: 30, textAlign: 'right' }}>{rd.none}</strong>
+              </div>
+              <p className="muted small" style={{ margin: '8px 0 0' }}>Procenti — no {rd.green + rd.yellow + rd.red} pasūtītājiem ar pietiekamu datu apjomu.</p>
             </div>
           </div>
         </div>
@@ -258,13 +284,18 @@ export function OverviewView({ data, cartelTop, onSelectBuyer, onSelectWinner, o
       <div className="ov-row" style={{ marginTop: 12 }}>
         <div className="card ov-card">
           <h3 className="ov-h">Nozares ar vājāko konkurenci</h3>
+          <p className="muted small" style={{ marginTop: -4 }}>Zaļā svītra joslā — nacionālais vidējais ({pct(nat, 0)}); jo tālāk josla stiepjas pāri tai, jo vājāka konkurence nozarē.</p>
           {data.topSectors.map((s) => {
             const col = s.singleBidRate >= nat * 1.7 ? 'var(--red)' : s.singleBidRate >= nat * 1.3 ? 'var(--yellow)' : 'var(--green)';
             return (
               <div key={s.cpv2} className="ov-secrow clickable" tabIndex={0} role="button"
                 onClick={() => onPickSector(s.cpv2)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPickSector(s.cpv2); } }}>
                 <span className="ov-secname">{s.label}</span>
-                <span className="bar" style={{ flex: 1 }}><span style={{ width: `${(s.singleBidRate / maxSec) * 100}%`, background: col }} /></span>
+                <span className="bar" style={{ flex: 1, position: 'relative', overflow: 'visible' }}>
+                  <span style={{ width: `${(s.singleBidRate / maxSec) * 100}%`, background: col }} />
+                  <span aria-hidden="true" title={`nacionālais vidējais ${pct(nat, 0)}`}
+                    style={{ position: 'absolute', left: `${(nat / maxSec) * 100}%`, top: -2, bottom: -2, width: 2, background: 'var(--brand)', borderRadius: 1 }} />
+                </span>
                 <strong className="mono small" style={{ color: col, width: 38, textAlign: 'right' }}>{pct(s.singleBidRate, 0)}</strong>
               </div>
             );

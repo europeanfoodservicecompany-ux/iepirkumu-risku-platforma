@@ -171,7 +171,7 @@ export type CartelPair = {
   procs?: CartelProc[];
 };
 // Piegādātāja kopā-pretendenti (EIS) — citas firmas, kas bieži piedalās tajos pašos konkursos.
-export type CoBidder = { reg: string; name: string | null; fileId: string | null; coBids: number; theyWon: number; weWon: number };
+export type CoBidder = { reg: string; name: string | null; fileId: string | null; coBids: number; theyWon: number; weWon: number; related?: 'persona' | 'holdings' | null };
 // Saistīti pretendenti VIENĀ iepirkumā (kopīga persona/holdings/adrese).
 export type RelatedBidderPair = {
   a: { reg: string; name: string | null; fileId: string | null };
@@ -212,7 +212,9 @@ export type OffshoreInfo = { tier: 'offshore' | 'grey'; owners: OffshoreOwner[] 
 export type Officer = { name: string; id: string; role: string };
 export type RelatedWinner = { fileId: string | null; name: string | null; value: number; contracts: number; via: string; role?: string };
 export type PersonCompany = { fileId: string | null; name: string | null; value: number; contracts: number; role: string; sector?: string | null; buyers?: { name: string | null; value: number }[] };
-export type PersonEntry = { name: string; id: string; companyCount: number; totalValue: number; totalContracts: number; roles: string[]; sectors?: string[]; riskLevel?: 'high' | 'med' | null; signals?: string[]; signalTypes?: string[]; companies: PersonCompany[] };
+// Iespējama politiski nozīmīga persona — sakritība pēc vārda ar CVK vēlēšanu datiem. NAV apstiprinājums (bez personas koda).
+export type PepFlag = { tier: string; source: string; ambiguous: boolean };
+export type PersonEntry = { name: string; id: string; companyCount: number; totalValue: number; totalContracts: number; roles: string[]; sectors?: string[]; riskLevel?: 'high' | 'med' | null; signals?: string[]; signalTypes?: string[]; pep?: PepFlag; companies: PersonCompany[] };
 export type PersonsData = { meta?: { coverage?: string }; persons: PersonEntry[] };
 export type WinnerDetail = {
   winnerId: string; fileId: string; winnerName: string | null;
