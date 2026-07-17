@@ -752,7 +752,7 @@ export function writeDataset(dataDir: string, output: EngineOutput, lots: Lot[],
   const pepNorm = (s: string) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’'`\-–]/g, ' ').replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
   // PUBLISKI atzīmējam TIKAI ievēlētas amatpersonas (Saeimas un EP deputātus). Vēlēšanu kandidāts nav
   // politiski nozīmīga persona un tam nav varas pār iepirkumiem — to publiski nemarķējam.
-  const pepPublicTiers = new Set(['Saeimas deputāts', 'EP deputāts']);
+  const pepPublicTiers = new Set(['Ministru prezidents', 'ministrs', 'Saeimas deputāts', 'EP deputāts']);
   const pepMap = new Map<string, { tier: string; source: string }>();
   let pepSource = '';
   { const pp = join(dataDir, 'pep-list.json'); if (existsSync(pp)) {
