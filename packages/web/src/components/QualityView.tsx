@@ -3,8 +3,9 @@ import type { QualityData } from '../types.ts';
 
 // Datu kvalitātes monitors — publisks skats uz IUB atvērto datu nepilnībām.
 // Kritizē DATUS, ne iestādi: katrai problēmai konkrēti paziņojumu identifikatori, ko var izlabot pie avota.
-export function QualityView({ data }: { data: QualityData | null }) {
+export function QualityView({ data, error }: { data: QualityData | null; error?: boolean }) {
   const [open, setOpen] = useState<string | null>(null);
+  if (error) return <div className="card"><p className="muted" style={{ marginTop: 0 }}>Datu kvalitātes rādītāji šobrīd nav pieejami. Mēģini pārlādēt lapu vēlāk.</p></div>;
   if (!data) return <div className="card"><p className="muted">Ielādē datu kvalitātes rādītājus…</p></div>;
 
   return (

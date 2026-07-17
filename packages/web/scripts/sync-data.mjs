@@ -22,7 +22,7 @@ for (const junk of ['lots.json', 'engine_output.json', 'modifications.json', 'ur
 }
 
 copyFileSync(join(src, 'index.json'), join(destDir, 'index.json'));
-for (const f of ['overview.json', 'sectors.json', 'markets.json', 'active.json', 'search-index.json', 'winners-index.json', 'persons-index.json', 'contacts-index.json', 'cfla-index.json', 'cartel-index.json']) {
+for (const f of ['overview.json', 'sectors.json', 'markets.json', 'active.json', 'search-index.json', 'winners-index.json', 'persons-index.json', 'contacts-index.json', 'cfla-index.json', 'cartel-index.json', 'quality.json']) {
   if (existsSync(join(src, f))) copyFileSync(join(src, f), join(destDir, f));
 }
 

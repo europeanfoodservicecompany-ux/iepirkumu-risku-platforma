@@ -97,6 +97,7 @@ export function App() {
   const [cfla, setCfla] = useState<CflaIndexData | null>(null);
   const [cartel, setCartel] = useState<CartelIndexData | null>(null);
   const [quality, setQuality] = useState<QualityData | null>(null);
+  const [qualityErr, setQualityErr] = useState(false);
   const [searchIndex, setSearchIndex] = useState<SearchIndex | null>(null); // slaids indekss globālajai meklēšanai
   const [route, setRoute] = useState(parseHash());
   const view = route.view;
@@ -148,7 +149,7 @@ export function App() {
   }, [selected]);
 
   useEffect(() => {
-    if (view === 'quality' && !quality) loadJson('data/quality.json', setQuality);
+    if (view === 'quality' && !quality && !qualityErr) loadJson('data/quality.json', setQuality, () => setQualityErr(true));
     if (view === 'sectors' && !sectors) loadJson('data/sectors.json', setSectors);
     if ((view === 'markets' || view === 'analysis') && !markets) loadJson('data/markets.json', setMarkets);
     if ((view === 'active' || selected) && !active) loadJson('data/active.json', setActive);
@@ -308,7 +309,7 @@ export function App() {
       {view === 'sectors' && <div className="section">{sectors ? <SectorView data={sectors} onSelect={pickSector} onSelectBuyer={setSelected} /> : <div className="loading">Ielādē nozares…</div>}</div>}
       {view === 'markets' && <div className="section">{markets ? <MarketView data={markets} /> : <div className="loading">Ielādē tirgus…</div>}</div>}
       {view === 'active' && <div className="section">{active ? <ActiveView data={active} buyers={index.buyers} onSelectBuyer={setSelected} /> : <div className="loading">Ielādē konkursus…</div>}</div>}
-      {view === 'quality' && <div className="section"><QualityView data={quality} /></div>}
+      {view === 'quality' && <div className="section"><QualityView data={quality} error={qualityErr} /></div>}
       {view === 'method' && <div className="section"><MethodologyView /></div>}
       {view === 'about' && <AboutView />}
 
