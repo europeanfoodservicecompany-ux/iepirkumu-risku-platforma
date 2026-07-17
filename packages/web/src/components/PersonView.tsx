@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { PersonsData, PersonEntry } from '../types.ts';
-import { eur, norm, queryTokens, tokenMatch, downloadCsv } from '../format.ts';
+import { eur, norm, tokenMatch, downloadCsv, parseSearch } from '../format.ts';
 import { PersonNetwork } from './PersonNetwork.tsx';
 
 const PAGE = 30;
@@ -25,8 +25,10 @@ export function PersonView({ data, onSelectWinner, initialQuery }: { data: Perso
   const [onlyPep, setOnlyPep] = useState(sp.get('pep') === '1');
   const [limit, setLimit] = useState(PAGE);
   const [net, setNet] = useState<string | null>(null);
-  const term = norm(query.trim());
-  const tokens = queryTokens(query);
+  // Strukturētā meklēšana: reg:… (personas koda cipari), >summa / <summa (kopvērtība); pārējais — vārds.
+  const sq = parseSearch(query);
+  const term = norm(sq.raw.trim());
+  const tokens = sq.tokens;
   const reset = () => setLimit(PAGE);
   // Kad no globālās meklēšanas uzklikšķina personu, initialQuery mainās — aizstāj lauka tekstu (nepieliek klāt).
   useEffect(() => { if (initialQuery) { setQuery(initialQuery); setLimit(PAGE); } }, [initialQuery]);
@@ -57,9 +59,12 @@ export function PersonView({ data, onSelectWinner, initialQuery }: { data: Perso
   }, [data]);
 
   const rows = useMemo(() => {
-    const min = term ? 1 : minCo;
+    const min = (term || sq.structured) ? 1 : minCo;
     const filtered = data.persons.filter((p) =>
       (!term || tokenMatch(norm(p.name), tokens))
+      && (!sq.reg || String(p.id).replace(/\D/g, '').includes(sq.reg))
+      && (sq.minVal == null || p.totalValue >= sq.minVal)
+      && (sq.maxVal == null || p.totalValue <= sq.maxVal)
       && p.companyCount >= min
       && (role === 'all' || p.roles.includes(role))
       && (sector === 'all' || (p.sectors ?? []).includes(sector))
@@ -76,7 +81,7 @@ export function PersonView({ data, onSelectWinner, initialQuery }: { data: Perso
     const sorted = [...filtered].sort((a, b) => sort === 'name' ? a.name.localeCompare(b.name, 'lv') : val(a) - val(b));
     if (dir === 'desc') sorted.reverse();
     return sorted.slice(0, 800);
-  }, [data, term, role, minCo, sort, dir, onlyRisk, sector, minValue, minContracts, signalType, onlyPep]);
+  }, [data, term, tokens, sq.reg, sq.minVal, sq.maxVal, sq.structured, role, minCo, sort, dir, onlyRisk, sector, minValue, minContracts, signalType, onlyPep]);
   const shown = rows.slice(0, limit);
 
   return (
@@ -141,6 +146,10 @@ export function PersonView({ data, onSelectWinner, initialQuery }: { data: Perso
           <option value="buyer">Kopīgs pasūtītājs</option>
         </select>
       </div>
+      <p className="muted small" style={{ margin: '2px 0 0' }}>
+        Padoms: meklēšanā var lietot prefiksus — <code>&gt;1m</code> vai <code>&lt;500k</code> (kopvērtība),
+        {' '}<code>reg:0101</code> (personas koda cipari). Kombinējami ar vārdu, piem. <code>&gt;1m bērziņš</code>.
+      </p>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <p className="muted small" style={{ margin: 0 }}>{rows.length} personas{term ? '' : ' (filtrēts)'}.</p>
         {rows.length > 0 && <button className="filter-btn" style={{ padding: '5px 10px' }} onClick={() => downloadCsv('personas.csv',

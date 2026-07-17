@@ -1,6 +1,36 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { norm, pct, eur, bandFromScore, fmtRatio, levLE, queryTokens, tokenMatch } from '../src/format.ts';
+import { norm, pct, eur, bandFromScore, fmtRatio, levLE, queryTokens, tokenMatch, parseSearch, parseAmount } from '../src/format.ts';
+
+test('parseAmount — k/m sufiksi un decimāldaļa', () => {
+  assert.equal(parseAmount('500'), 500);
+  assert.equal(parseAmount('500k'), 500000);
+  assert.equal(parseAmount('1.5m'), 1500000);
+  assert.equal(parseAmount('1,5m'), 1500000);
+  assert.equal(parseAmount('2milj'), 2000000);
+  assert.equal(parseAmount('abc'), null);
+});
+
+test('parseSearch — prefiksi reg:/cpv:/>/< un brīvais teksts', () => {
+  const a = parseSearch('cpv:45 >1m ceļi');
+  assert.equal(a.cpv, '45');
+  assert.equal(a.minVal, 1000000);
+  assert.equal(a.maxVal, null);
+  assert.equal(a.raw, 'ceļi');
+  assert.ok(a.structured);
+
+  const b = parseSearch('reg:40003 <500k');
+  assert.equal(b.reg, '40003');
+  assert.equal(b.maxVal, 500000);
+  assert.equal(b.raw, '');
+
+  const c = parseSearch('vienkāršs vārds');
+  assert.equal(c.reg, null);
+  assert.equal(c.cpv, null);
+  assert.equal(c.minVal, null);
+  assert.equal(c.structured, false);
+  assert.deepEqual(c.tokens, ['vienkarss', 'vards']);
+});
 
 test('norm — noņem diakritiku un mazina burtus', () => {
   assert.equal(norm('Rīga'), 'riga');

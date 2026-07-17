@@ -1,7 +1,7 @@
 import { RiskNote } from './RiskNote.tsx';
 import { useEffect, useMemo, useState } from 'react';
 import type { WinnersIndex, WinnerIndexEntry } from '../types.ts';
-import { eur, pct, downloadCsv, norm, queryTokens, tokenMatch } from '../format.ts';
+import { eur, pct, downloadCsv, norm, tokenMatch, parseSearch } from '../format.ts';
 
 const PAGE = 60;
 type SortKey = 'value' | 'contracts' | 'buyers' | 'singleBid' | 'dependence' | 'name';
@@ -44,8 +44,11 @@ export function SupplierView({ data, onSelect, sectorFilter, onClearSector }: { 
     return { key: 'value', dir: 'desc' };
   });
   const [limit, setLimit] = useState(PAGE);
-  const term = norm(query.trim());
-  const tokens = queryTokens(query);
+  // Strukturētā meklēšana: reg:… cpv:… >summa <summa; pārējais paliek nosaukuma/reģ.nr brīvais teksts.
+  const sq = parseSearch(query);
+  const term = norm(sq.raw.trim());
+  const tokens = sq.tokens;
+  const active = !!term || sq.structured; // vai meklēšana aktīva (tad ignorē min. līgumu slieksni)
   void onClearSector;
   // Kad ienāk nozares filtrs no Nozaru cilnes — pielieto to (un atļauj visus piegādātājus).
   useEffect(() => { if (sectorFilter) { setSector(sectorFilter); setMinContracts(1); setLimit(PAGE); } }, [sectorFilter]);
@@ -81,11 +84,16 @@ export function SupplierView({ data, onSelect, sectorFilter, onClearSector }: { 
   const vb = VALUE_BANDS.find((b) => b.k === band)!;
   const filtered = useMemo(() => data.winners.filter((w) => {
     if (term && !tokenMatch(norm(`${w.winnerName ?? ''} ${w.winnerId}`), tokens)) return false;
+    // Strukturētie prefiksi: reg: (reģ.nr sākums), cpv: (nozares CPV2), >summa/<summa (kopvērtība).
+    if (sq.reg && !String(w.winnerId).replace(/\D/g, '').includes(sq.reg)) return false;
+    if (sq.cpv && (w.sectorCpv2 ?? '') !== sq.cpv.slice(0, 2)) return false;
+    if (sq.minVal != null && w.value < sq.minVal) return false;
+    if (sq.maxVal != null && w.value > sq.maxVal) return false;
     if (sector !== 'all' && w.sectorCpv2 !== sector) return false;
     if (w.value < vb.min || w.value >= vb.max) return false;
-    // Kad meklē pēc nosaukuma/reģ.nr, līgumu skaita slieksni neņem vērā — citādi konkrēts
+    // Kad meklē (pēc nosaukuma/reģ.nr vai ar prefiksu), līgumu skaita slieksni neņem vērā — citādi konkrēts
     // piegādātājs ar <5 līgumiem "pazūd" un izskatās, ka meklēšana nestrādā.
-    if (!term && w.contracts < minContracts) return false;
+    if (!active && w.contracts < minContracts) return false;
     if (addrOnly && !w.sharedAddr) return false;
     if (source === 'eu' && !w.cfla) return false;
     if (source === 'noeu' && w.cfla) return false;
@@ -95,7 +103,7 @@ export function SupplierView({ data, onSelect, sectorFilter, onClearSector }: { 
     if (lowCapMax && (w.lowCapEmp == null || w.lowCapEmp > lowCapMax)) return false;
     if (loTurnMax && (w.loTurn == null || w.loTurn >= loTurnMax)) return false;
     return true;
-  }), [data, term, sector, band, minContracts, vb, addrOnly, source, offshoreOnly, homeAdvOnly, capGapOnly, lowCapMax, loTurnMax]);
+  }), [data, term, tokens, sq.reg, sq.cpv, sq.minVal, sq.maxVal, active, sector, band, minContracts, vb, addrOnly, source, offshoreOnly, homeAdvOnly, capGapOnly, lowCapMax, loTurnMax]);
 
   const rows = useMemo(() => {
     const val = (w: WinnerIndexEntry): number | string =>
@@ -157,6 +165,10 @@ export function SupplierView({ data, onSelect, sectorFilter, onClearSector }: { 
           </button>
         ); })()}
       </div>
+      <p className="muted small" style={{ margin: '2px 0 0' }}>
+        Padoms: meklēšanā var lietot prefiksus — <code>reg:40003</code> (reģ.nr), <code>cpv:45</code> (nozares kods),
+        {' '}<code>&gt;1m</code> vai <code>&lt;500k</code> (kopvērtība). Tos var kombinēt ar nosaukumu, piem. <code>cpv:45 &gt;1m ceļi</code>.
+      </p>
       {showAdv && (
         <div className="controls" style={{ gap: 8, marginTop: -4, paddingBottom: 4 }}>
           <label className="chk"><input type="checkbox" checked={addrOnly} onChange={(e) => { setAddrOnly(e.target.checked); setLimit(PAGE); }} /> tikai kopīga adrese</label>
